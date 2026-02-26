@@ -1,0 +1,358 @@
+"""
+Retraining Pipeline — Auto-Retrain Prophet on Drift Detection
+=============================================================
+Project : Drift-Aware Continuous Learning Framework
+File    : src/retraining/retrain_pipeline.py
+
+HOW IT WORKS (plain language)
+------------------------------
+When the DriftDetector fires for a category, this module:
+
+  1. Collects the last 90 days of ACTUAL demand for that category
+     (not the model's predictions — the real values)
+
+  2. Retrains a fresh Prophet model on just those 90 days
+     Why 90 days? Enough to capture seasonal signal (3 months)
+     but recent enough to reflect the new demand pattern
+
+  3. Evaluates the new model on the last 14 days (held-out)
+     to confirm it's better than the old model
+
+  4. If new model is better: replaces old model, resets detector
+     If new model is worse: keeps old model (safety check)
+
+  5. Logs everything to MLflow:
+     - Which category, which date
+     - Pre-retrain MAE vs post-retrain MAE
+     - Model parameters
+     - The new model artifact itself
+
+WHY 90-DAY WINDOW
+-----------------
+Using all training data (Jan 2024 onward) would teach the model
+the OLD demand pattern which is exactly what we're trying to escape.
+90 days of recent data reflects the new pattern while retaining
+enough history for seasonal signal detection.
+
+MLFLOW TRACKING
+---------------
+Every retrain creates a new MLflow run with:
+  - experiment name: "demand_forecasting_drift"
+  - tags: category, retrain_date, trigger_reason
+  - params: window_days, model_type, threshold_used
+  - metrics: pre_mae, post_mae, mae_improvement_pct
+  - artifact: the retrained Prophet model
+"""
+
+import pandas as pd
+import numpy as np
+import warnings
+import logging
+import os
+from datetime import datetime, timedelta
+from dataclasses import dataclass
+from typing import Any, Optional, Dict, Tuple
+
+warnings.filterwarnings('ignore')
+logging.getLogger('cmdstanpy').setLevel(logging.WARNING)
+
+try:
+    import mlflow
+    import mlflow.pyfunc
+    MLFLOW_AVAILABLE = True
+except ImportError:  # pragma: no cover
+    mlflow: Any = None
+    MLFLOW_AVAILABLE = False
+    print("⚠️  MLflow not installed — run: pip install mlflow")
+
+try:
+    from prophet import Prophet
+    PROPHET_AVAILABLE = True
+except ImportError:  # pragma: no cover
+    Prophet: Any = None
+    PROPHET_AVAILABLE = False
+    print("⚠️  Prophet not installed — run: pip install prophet")
+
+
+# ─────────────────────────────────────────────────────────
+# Data class — result of one retrain event
+# ─────────────────────────────────────────────────────────
+
+@dataclass
+class RetrainResult:
+    category:           str
+    retrain_date:       str
+    trigger_reason:     str          # 'drift_detected' or 'manual'
+    window_days:        int          # how many days of data used
+    pre_retrain_mae:    float        # old model's recent MAE
+    post_retrain_mae:   float        # new model's MAE on holdout
+    mae_improvement:    float        # pre - post (positive = better)
+    mae_improvement_pct: float       # % improvement
+    model_accepted:     bool         # True if new model is better
+    mlflow_run_id:      Optional[str]
+    new_baseline_mae:   float        # MAE to pass to DriftDetector.reset()
+
+    def to_dict(self):
+        return {
+            'category'           : self.category,
+            'retrain_date'       : self.retrain_date,
+            'trigger_reason'     : self.trigger_reason,
+            'window_days'        : self.window_days,
+            'pre_retrain_mae'    : round(self.pre_retrain_mae, 1),
+            'post_retrain_mae'   : round(self.post_retrain_mae, 1),
+            'mae_improvement'    : round(self.mae_improvement, 1),
+            'mae_improvement_pct': round(self.mae_improvement_pct, 2),
+            'model_accepted'     : self.model_accepted,
+            'mlflow_run_id'      : self.mlflow_run_id,
+            'new_baseline_mae'   : round(self.new_baseline_mae, 1),
+        }
+
+    def __repr__(self):
+        status = "✅ ACCEPTED" if self.model_accepted else "❌ REJECTED"
+        return (
+            f"RetrainResult({self.category}, {self.retrain_date}, {status}, "
+            f"MAE: {self.pre_retrain_mae:.0f} → {self.post_retrain_mae:.0f} "
+            f"({self.mae_improvement_pct:+.1f}%))"
+        )
+
+
+# ─────────────────────────────────────────────────────────
+# RetrainPipeline — core class
+# ─────────────────────────────────────────────────────────
+
+class RetrainPipeline:
+    """
+    Manages Prophet retraining for all product categories.
+
+    Parameters
+    ----------
+    demand_data     : pd.DataFrame with columns [ds, category, y]
+                      The full demand time series
+    window_days     : int — how many recent days to train on (default 90)
+    holdout_days    : int — how many days to hold out for evaluation (default 14)
+    mlflow_tracking : bool — whether to log to MLflow (default True)
+    experiment_name : str — MLflow experiment name
+    """
+
+    def __init__(
+        self,
+        demand_data:     pd.DataFrame,
+        window_days:     int  = 90,
+        holdout_days:    int  = 14,
+        mlflow_tracking: bool = True,
+        experiment_name: str  = 'demand_forecasting_drift',
+    ):
+        self.demand_data     = demand_data.copy()
+        self.demand_data['ds'] = pd.to_datetime(self.demand_data['ds'])
+        self.window_days     = window_days
+        self.holdout_days    = holdout_days
+        self.mlflow_tracking = mlflow_tracking and MLFLOW_AVAILABLE
+        self.experiment_name = experiment_name
+
+        self._retrain_log: list[RetrainResult] = []
+
+        # Setup MLflow
+        if self.mlflow_tracking:
+            mlflow.set_experiment(experiment_name)
+            print(f"  MLflow experiment: '{experiment_name}'")
+        else:
+            print("  MLflow tracking disabled")
+
+    # ── Main method — call when drift is detected ─────────
+
+    def retrain(
+        self,
+        category:       str,
+        retrain_date:   str,
+        current_model:  Any,
+        pre_retrain_mae: float,
+        trigger_reason: str = 'drift_detected',
+    ) -> Tuple[RetrainResult, Any]:
+        """
+        Retrain Prophet for one category on the most recent window_days.
+
+        Parameters
+        ----------
+        category        : product category name
+        retrain_date    : date string 'YYYY-MM-DD' — the day drift was detected
+        current_model   : the existing Prophet model (kept as fallback)
+        pre_retrain_mae : the current rolling MAE that triggered the retrain
+        trigger_reason  : 'drift_detected' or 'manual'
+
+        Returns
+        -------
+        (RetrainResult, new_prophet_model_or_None)
+        If model_accepted=True, use the new model
+        If model_accepted=False, keep the current model
+        """
+        print(f"\n  ⚙️  Retraining {category} on {retrain_date}...")
+
+        retrain_dt = pd.Timestamp(retrain_date)
+
+        # ── 1. Collect retraining data
+        window_start = retrain_dt - timedelta(days=self.window_days)
+        holdout_start = retrain_dt - timedelta(days=self.holdout_days)
+
+        cat_data = (
+            self.demand_data[self.demand_data['category'] == category]
+            .sort_values('ds')
+        )
+
+        # Training slice: window_start to (holdout_start - 1 day)
+        train_data = cat_data[
+            (cat_data['ds'] >= window_start) &
+            (cat_data['ds'] < holdout_start)
+        ][['ds', 'y']].reset_index(drop=True)
+
+        # Holdout slice: holdout_start to retrain_date
+        holdout_data = cat_data[
+            (cat_data['ds'] >= holdout_start) &
+            (cat_data['ds'] <= retrain_dt)
+        ][['ds', 'y']].reset_index(drop=True)
+
+        if len(train_data) < 30:
+            print(f"  ⚠️  Not enough training data ({len(train_data)} days). Skipping.")
+            result = RetrainResult(
+                category=category, retrain_date=retrain_date,
+                trigger_reason=trigger_reason, window_days=self.window_days,
+                pre_retrain_mae=pre_retrain_mae, post_retrain_mae=pre_retrain_mae,
+                mae_improvement=0, mae_improvement_pct=0,
+                model_accepted=False, mlflow_run_id=None,
+                new_baseline_mae=pre_retrain_mae,
+            )
+            self._retrain_log.append(result)
+            return result, None
+
+        # ── 2. Train new Prophet model
+        new_model = Prophet(
+            yearly_seasonality      = 'auto',
+            weekly_seasonality      = 'auto',
+            daily_seasonality       = 'auto',
+            seasonality_mode        = 'multiplicative',
+            changepoint_prior_scale = 0.1,   # slightly more flexible for adaptation
+            interval_width          = 0.95,
+        )
+        new_model.fit(train_data)
+
+        # ── 3. Evaluate on holdout
+        future_holdout = pd.DataFrame({'ds': holdout_data['ds']})
+        forecast_holdout = new_model.predict(future_holdout)
+        post_mae = float(np.mean(
+            np.abs(holdout_data['y'].to_numpy(dtype=float) - forecast_holdout['yhat'].to_numpy(dtype=float))
+        ))
+
+        # ── 4. Also evaluate OLD model on same holdout (for comparison)
+        if current_model is not None:
+            old_forecast = current_model.predict(future_holdout)
+            old_holdout_mae = float(np.mean(
+                np.abs(holdout_data['y'].to_numpy(dtype=float) - old_forecast['yhat'].to_numpy(dtype=float))
+            ))
+        else:
+            old_holdout_mae = pre_retrain_mae
+
+        improvement     = old_holdout_mae - post_mae
+        improvement_pct = (improvement / old_holdout_mae) * 100 if old_holdout_mae > 0 else 0
+        model_accepted  = post_mae < old_holdout_mae  # accept only if genuinely better
+
+        new_baseline = post_mae if model_accepted else pre_retrain_mae
+
+        # ── 5. Log to MLflow
+        run_id = None
+        if self.mlflow_tracking:
+            run_id = self._log_to_mlflow(
+                category        = category,
+                retrain_date    = retrain_date,
+                trigger_reason  = trigger_reason,
+                train_days      = len(train_data),
+                pre_mae         = old_holdout_mae,
+                post_mae        = post_mae,
+                improvement_pct = improvement_pct,
+                model_accepted  = model_accepted,
+                new_model       = new_model if model_accepted else None,
+            )
+
+        # ── 6. Report
+        status = "✅ ACCEPTED" if model_accepted else "❌ REJECTED (old model better)"
+        print(f"     Pre-retrain MAE  : Rs.{old_holdout_mae:,.0f}")
+        print(f"     Post-retrain MAE : Rs.{post_mae:,.0f}")
+        print(f"     Improvement      : {improvement_pct:+.1f}%")
+        print(f"     Decision         : {status}")
+        if run_id:
+            print(f"     MLflow run ID    : {run_id[:8]}...")
+
+        result = RetrainResult(
+            category=category, retrain_date=retrain_date,
+            trigger_reason=trigger_reason, window_days=self.window_days,
+            pre_retrain_mae=old_holdout_mae, post_retrain_mae=post_mae,
+            mae_improvement=improvement, mae_improvement_pct=improvement_pct,
+            model_accepted=model_accepted, mlflow_run_id=run_id,
+            new_baseline_mae=new_baseline,
+        )
+
+        self._retrain_log.append(result)
+        return result, new_model if model_accepted else None
+
+    # ── MLflow logging ─────────────────────────────────────
+
+    def _log_to_mlflow(
+        self, category, retrain_date, trigger_reason, train_days,
+        pre_mae, post_mae, improvement_pct, model_accepted, new_model
+    ) -> Optional[str]:
+        try:
+            with mlflow.start_run(run_name=f"{category.split()[0]}_{retrain_date}") as run:
+                # Tags — searchable metadata
+                mlflow.set_tags({
+                    'category'      : category,
+                    'retrain_date'  : retrain_date,
+                    'trigger_reason': trigger_reason,
+                    'model_type'    : 'prophet',
+                    'model_accepted': str(model_accepted),
+                })
+
+                # Parameters — what was used for this retrain
+                mlflow.log_params({
+                    'window_days'   : self.window_days,
+                    'holdout_days'  : self.holdout_days,
+                    'train_days'    : train_days,
+                    'seasonality'   : 'multiplicative',
+                    'changepoint_scale': 0.1,
+                })
+
+                # Metrics — what changed
+                mlflow.log_metrics({
+                    'pre_retrain_mae'    : round(pre_mae, 2),
+                    'post_retrain_mae'   : round(post_mae, 2),
+                    'mae_improvement'    : round(pre_mae - post_mae, 2),
+                    'mae_improvement_pct': round(improvement_pct, 4),
+                })
+
+                # Log model artifact if accepted
+                if model_accepted and new_model is not None:
+                    try:
+                        mlflow.prophet.log_model(new_model, 'prophet_model')
+                    except Exception:
+                        # prophet MLflow flavor may need extra install
+                        pass
+
+                return run.info.run_id
+
+        except Exception as e:
+            print(f"     ⚠️  MLflow logging failed: {e}")
+            return None
+
+    # ── Getters ───────────────────────────────────────────
+
+    def get_retrain_log(self) -> list:
+        return [r.to_dict() for r in self._retrain_log]
+
+    def get_retrain_summary(self) -> pd.DataFrame:
+        if not self._retrain_log:
+            return pd.DataFrame()
+        return pd.DataFrame([r.to_dict() for r in self._retrain_log])
+
+    def save_retrain_log(self, path: str = 'reports/drift_logs/retrain_log.csv'):
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        df = self.get_retrain_summary()
+        if not df.empty:
+            df.to_csv(path, index=False)
+            print(f"  Retrain log saved: {path}")
