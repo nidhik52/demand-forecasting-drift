@@ -1,0 +1,41 @@
+DATASET SUMMARY
+=================================================================
+Raw dataset      : data/raw/sales_100k_generated.csv
+  Transactions   : 100,000
+  Date range     : 2024-01-01 to 2025-12-31
+  Categories     : 24 product categories
+  Regions        : 6 (North/South/East/West/Central/Northeast)
+  Missing values : 10,000 Sales_Amount (intentional, ~10%)
+
+Processed dataset: data/processed/final_demand_series.csv
+  Records        : 4,386 (731 days × 6 categories)
+  Date range     : 2024-01-01 to 2025-12-31
+  Categories     : 6 macro-groups
+
+Train/Validate/Test/Forecast split:
+  Train    : Jan 2024 – Sep 2025  (639 days, 87%)
+  Validate : Oct 2025             (31 days,   4%)
+  Test     : Nov–Dec 2025         (61 days,   8%)
+  Forecast : Jan–Mar 2026         (90 days, predicted by model — NOT in dataset)
+
+Per-category daily demand statistics:
+                           mean     std     min      max
+category                                                
+Electronics & Tech      11277.0  5178.0  3289.0  36277.0
+Entertainment & Office  18886.0  5044.0  6101.0  43939.0
+Fashion & Accessories    6250.0  2634.0   648.0  19599.0
+Health & Personal Care  14010.0  5159.0  3745.0  37299.0
+Home & Lifestyle        18527.0  5149.0  8160.0  34571.0
+Sports & Outdoors        7622.0  2523.0  2104.0  17083.0
+
+Drift events injected:
+  [1] ABRUPT  | Electronics & Tech     | +50% | Nov 1 – Dec 31, 2025
+      Rationale: Black Friday/holiday season electronics demand surge
+  [2] GRADUAL | Health & Personal Care | +40% ramp | Aug 1 – Dec 1, 2025
+      Rationale: Growing wellness trend — gradual behavioral shift
+
+Data quality notes:
+  - 10,000 missing Sales_Amount filled with per-category median
+  - 24 product categories grouped into 6 meaningful macro-groups
+  - Complete daily date range ensured (no gaps)
+  - Regions simplified to 6 geographic zones (not fake city names)

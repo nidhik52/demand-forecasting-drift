@@ -1,0 +1,46 @@
+name: Drift Detection Pipeline
+
+on:
+  # Run automatically every day at midnight
+  schedule:
+    - cron: '0 0 * * *'
+  # Also allow manual trigger from GitHub UI
+  workflow_dispatch:
+  # Run when new data is pushed to data/raw folder
+  push:
+    paths:
+      - 'data/raw/**'
+
+jobs:
+  run-drift-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run drift detection check
+        run: python src/drift_detection/run_drift_check.py
+
+      - name: Run retraining if drift detected
+        run: python src/retraining/auto_retrain.py
+
+      - name: Upload drift report as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: drift-report-${{ github.run_number }}
+          path: data/drift_logs/
+          retention-days: 30
+
+      - name: Notify on drift detected
+        if: failure()
+        run: echo "Drift detected - model retrained. Check drift_logs for details."
