@@ -1,0 +1,3 @@
+drift_id,type,category,start_date,end_date,multiplier,rationale,in_test_window
+1,Abrupt,Electronics & Tech,2025-11-01,2025-12-31,1.50,Black Friday/holiday season electronics demand surge,Yes — fully in Nov-Dec 2025 test window
+2,Gradual,Health & Personal Care,2025-08-01,2025-12-31,1.0 → 1.40 (linear ramp),Growing wellness trend — gradual behavioral shift,"Partial — ramp starts Aug 2025, peak in Dec 2025 test window"
