@@ -30,6 +30,23 @@ streamlit==1.35.0
 plotly==5.22.0
 
 # ─────────────────────────────────────────────
+# FW3 — Pipeline Orchestration (Apache Airflow)
+# ─────────────────────────────────────────────
+# pip install apache-airflow  (large install — use in Docker)
+# apache-airflow==2.9.1
+
+# ─────────────────────────────────────────────
+# FW5 — Data Quality Gates (Great Expectations)
+# ─────────────────────────────────────────────
+great-expectations==0.18.15
+
+# ─────────────────────────────────────────────
+# Additional model support
+# ─────────────────────────────────────────────
+pmdarima==2.1.1
+xgboost==3.2.0
+
+# ─────────────────────────────────────────────
 # Utilities
 # ─────────────────────────────────────────────
 python-dotenv==1.0.1
