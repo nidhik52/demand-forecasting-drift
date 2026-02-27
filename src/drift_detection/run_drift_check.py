@@ -29,13 +29,20 @@ import argparse
 import json
 import logging
 import os
+import re
 import sys
 import warnings
 from datetime import datetime, timedelta
 from pathlib import Path
 
+import joblib
 import numpy as np
 import pandas as pd
+
+
+def _category_slug(category: str) -> str:
+    """Convert 'Electronics & Tech' -> 'electronics_tech' for use as filename."""
+    return re.sub(r'[^a-z0-9]+', '_', category.lower()).strip('_')
 
 warnings.filterwarnings('ignore')
 logging.basicConfig(
@@ -62,6 +69,8 @@ def parse_args():
                         help='Path to save drift report JSON')
     parser.add_argument('--retrain',   action='store_true',
                         help='Trigger retraining if drift detected')
+    parser.add_argument('--model-dir', default='models',
+                        help='Directory to load/save trained Prophet models (default: models/)')
     return parser.parse_args()
 
 
@@ -155,8 +164,18 @@ def run_drift_check(df: pd.DataFrame, args) -> dict:
             log.warning(f"  {cat[:25]:25} — no validation data, skipping")
             continue
 
-        log.info(f"  Training   {cat[:30]}...")
-        model = train_prophet(train_df=train_data, category=cat)
+        slug       = _category_slug(cat)
+        model_path = PROJECT_ROOT / args.model_dir / f'{slug}.pkl'
+        if model_path.exists():
+            log.info(f"  Loading    {cat[:30]} from cache ({model_path.name})")
+            model = joblib.load(model_path)
+        else:
+            log.info(f"  Training   {cat[:30]} (no cache)...")
+            model = train_prophet(train_df=train_data, category=cat)
+            # Save freshly trained model so next run can skip training
+            model_path.parent.mkdir(parents=True, exist_ok=True)
+            joblib.dump(model, model_path)
+            log.info(f"             saved → {model_path.name}")
 
         val_forecast = model.predict(pd.DataFrame({'ds': val_data['ds']}))
         val_errors   = np.abs(val_data['y'].values - val_forecast['yhat'].values)
@@ -256,10 +275,10 @@ def save_report(report: dict, output_path: str):
     log.info(f"Report saved: {path}")
 
 
-def trigger_retraining(drifted_cats: list, df: pd.DataFrame):
+def trigger_retraining(drifted_cats: list, df: pd.DataFrame, model_dir: str = 'models'):
     """
     Trigger retraining for drifted categories.
-    Imports and uses RetrainPipeline.
+    Saves accepted models to model_dir so next CI run can skip training.
     """
     try:
         from src.retraining.retrain_pipeline import RetrainPipeline
@@ -272,6 +291,7 @@ def trigger_retraining(drifted_cats: list, df: pd.DataFrame):
         window_days     = 45,
         holdout_days    = 14,
         mlflow_tracking = True,
+        model_dir       = model_dir,
     )
 
     for cat in drifted_cats:
@@ -279,15 +299,12 @@ def trigger_retraining(drifted_cats: list, df: pd.DataFrame):
         cat_df    = df[df['category'] == cat].sort_values('ds')
         today_str = str(cat_df['ds'].max().date())
 
-        # Dummy model for pipeline (will retrain from scratch)
+        # Load current model from cache if available
+        slug       = _category_slug(cat)
+        model_path = PROJECT_ROOT / model_dir / f'{slug}.pkl'
         try:
-            from prophet import Prophet
-            from src.forecasting.prophet_model import ProphetForecaster
-            forecaster = ProphetForecaster()
-            forecaster.fit(cat_df[cat_df['ds'] <= cat_df['ds'].max()-timedelta(days=45)])
-            current_model = forecaster.model
-        except Exception as e:
-            log.warning(f"  Could not load current model: {e}")
+            current_model = joblib.load(model_path) if model_path.exists() else None
+        except Exception:
             current_model = None
 
         result, _ = pipeline.retrain(
@@ -318,7 +335,7 @@ def main():
     # Trigger retraining if requested and drift found
     if args.retrain and report['drift_detected']:
         log.info("\nTriggering retraining for drifted categories...")
-        trigger_retraining(report['drifted_categories'], df)
+        trigger_retraining(report['drifted_categories'], df, model_dir=args.model_dir)
 
     # Exit code: 0 = clean, 1 = drift detected
     # GitHub Actions uses exit code to decide next steps

@@ -44,6 +44,15 @@ jobs:
         run: |
           python -c "import cmdstanpy; cmdstanpy.install_cmdstan()"
 
+      - name: Restore trained models cache
+        id: cache-models
+        uses: actions/cache@v4
+        with:
+          path: models/
+          key: models-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            models-${{ runner.os }}-
+
       - name: Verify file structure
         run: |
           echo "=== Checking required files ==="
@@ -66,6 +75,7 @@ jobs:
             --data data/processed/final_demand_series.csv \
             --days 61 \
             --threshold 1.5 \
+            --model-dir models/ \
             --output reports/drift_report.json
 
       - name: Read drift report
@@ -88,9 +98,10 @@ jobs:
           echo "Drift detected — triggering retraining..."
           python src/drift_detection/run_drift_check.py \
             --data data/processed/final_demand_series.csv \
-            --days 30 \
-            --threshold 2.0 \
+            --days 61 \
+            --threshold 1.5 \
             --retrain \
+            --model-dir models/ \
             --output reports/drift_report_with_retrain.json
 
       - name: Upload drift report as artifact
@@ -110,7 +121,8 @@ jobs:
           r = json.load(open('reports/drift_report.json'))
           for cat in r.get('drifted_categories', []):
             info = r['categories'][cat]
-            print(f'  {cat}: ratio={info[\"ratio\"]}x baseline')
+            print(f'  {cat}: short={info[\"short_ratio\"]}x  long={info[\"long_ratio\"]}x  drift_days={info[\"drift_days\"]}/{info[\"eval_days\"]}'
+          )
           "
 
       - name: Pipeline summary
