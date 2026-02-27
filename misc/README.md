@@ -1,6 +1,6 @@
 # AI Session Context — demand-forecasting-drift
 
-> **Last updated:** 2026-02-27 (session 3 — model persistence + end-to-end test complete)  
+> **Last updated:** 2026-02-27 (session 4 — MLflow schema/artifacts/registry polished; Kafka real-time simulation planned)  
 > **Purpose:** Persistent context for Claude AI (or any LLM assistant) picking up this project mid-stream. Read this before starting any new session.
 
 ---
@@ -15,7 +15,7 @@ Retail demand-forecasting system for an Indian e-commerce dataset (`data/raw/sal
 4. **Retrains** models when drift is detected
 5. **Computes inventory** decisions (reorder points, safety stock) using the forecasts
 
-Three main product categories: **Electronics**, **Clothing**, **Health**.
+Six product categories (all tracked): **Electronics & Tech**, **Entertainment & Office**, **Fashion & Accessories**, **Health & Personal Care**, **Home & Lifestyle**, **Sports & Outdoors**.
 
 ---
 
@@ -45,9 +45,15 @@ notebooks/
   03_drift_detection.ipynb      # drift simulation over 61 days
   04_retraining.ipynb           # retrain on drifted data, compare MAE
   05_inventory.ipynb            # NOT YET CREATED — next priority
+  06_kafka_simulation.ipynb     # NOT YET CREATED — real-time Kafka simulation
 
 api/                            # EMPTY — second priority
 dashboard/                      # EMPTY — third priority
+
+kafka/                          # NOT YET CREATED — real-time streaming
+  producer.py                   # Kafka producer: streams sales_100k.csv row-by-row
+  consumer.py                   # Kafka consumer: triggers drift check + retrain
+  docker-compose.kafka.yml      # Zookeeper + Kafka + Schema Registry
 
 dags/
   drift_pipeline_dag.py         # Airflow DAG (FW3 — daily, 7 tasks)
@@ -162,6 +168,8 @@ All 7 future work points from the project spec, with implementation status:
 
 | # | Title | Status | Files |
 |---|---|---|---|
+| # | Title | Status | Files |
+|---|---|---|---|
 | FW1 | Real Retail Data Integration | ⏭️ Skip | Simulated data is academically valid; live POS feed is infra work, not ML |
 | FW2 | Adaptive Drift Threshold (CUSUM/ADWIN) | ⏭️ Skip | 1.5× fixed threshold works correctly and is fully explainable in a viva |
 | FW3 | Pipeline Orchestration with Apache Airflow | ✅ Prototyped | `dags/drift_pipeline_dag.py` |
@@ -169,6 +177,7 @@ All 7 future work points from the project spec, with implementation status:
 | FW5 | Data Quality Gates (Great Expectations) | ✅ Done | `src/data/quality_checks.py` — 8/8 checks passing |
 | FW6 | Multi-Model Ensemble / Online Learning Fallback | ⏭️ Skip | Adds complexity without strengthening the MLOps architecture story |
 | FW7 | Containerised, Autoscaled Deployment | ✅ Prototyped | `docker/Dockerfile`, `docker/docker-compose.yml` — 4 services |
+| FW8 | Real-Time Kafka Simulation | 🔄 In Progress | `kafka/producer.py`, `kafka/consumer.py`, `kafka/docker-compose.kafka.yml` |
 
 ### FW1 — Real Retail Data Integration
 Connect to a live POS/ERP feed via REST or Kafka for true online learning rather than simulated drift events, validating the framework on non-stationary real-world demand with genuine noise characteristics.
@@ -194,21 +203,31 @@ airflow dags trigger demand_forecasting_drift_pipeline
 
 ### FW4 ✅ — Model Registry (registry only, no A/B testing)
 **What is implemented:**
-- Every accepted retrain is registered to the MLflow Model Registry under `demand_{slug}` (e.g., `demand_health_personal_care`)
-- The accepted version is immediately aliased as `"production"`
-- Rejected retrains are logged to MLflow tracking but NOT registered (old model stays in registry)
+- **Every** drift-triggered retrain now logs the `prophet_model` artifact (MLmodel, conda.yaml, signature, etc.) — even rejected ones — so every run has a browsable artifact tree in the MLflow UI
+- **Accepted** retrains are additionally registered under `demand_{slug}` (e.g., `demand_health_personal_care`) and immediately aliased as `"production"`
+- **Rejected** retrains have the artifact but are NOT registered — old production model stays unchanged
 - Model versioning is automatic — each accepted retrain creates `v1`, `v2`, etc.
+- **Signature** is inferred via `mlflow.models.signature.infer_signature()` from a live Prophet prediction, so `ds` resolves as `datetime` (not `string`) matching Prophet's actual output type
+- **Dataset** is logged via `mlflow.log_input()` pointing to `data/processed/final_demand_series.csv` — populates the Dataset column in the MLflow UI
 
 **What is NOT done (intentionally skipped):** Shadow-mode A/B evaluation serving both models in parallel before promotion. Out of scope for this project.
 
 **Model schema (visible in MLflow UI → Models → version → Schema section):**
 
-| | Column | Type |
+| Direction | Column | Type |
 |---|---|---|
-| Input | `ds` | string (date) |
+| Input | `ds` | datetime |
 | Output | `yhat` | double |
 | Output | `yhat_lower` | double |
 | Output | `yhat_upper` | double |
+
+**Recent MLflow fixes (session 4):**
+
+| Fix | Commit | Effect |
+|---|---|---|
+| `infer_signature` replaces manual `Schema/ColSpec` | `dfb8053` | `ds` now correctly inferred as `datetime`; type mismatch that silently dropped artifacts is gone |
+| Log artifact for all retrains, not just accepted | `5948166` | All runs now show `prophet_model/` tree in UI |
+| `mlflow.log_input()` dataset tracking | previous session | Dataset column populated for all retrain runs |
 
 **Query the registry:**
 ```python
@@ -230,6 +249,41 @@ Add pre-training data validation (schema checks, outlier detection, missing-valu
 ```bash
 python src/data/quality_checks.py data/processed/final_demand_series.csv
 ```
+
+### FW8 🔄 — Real-Time Kafka Simulation (IN PROGRESS)
+Stream historical `sales_100k.csv` rows through Kafka at configurable speed to simulate live POS transactions arriving in real time. The consumer applies drift detection on each batch and triggers Prophet retraining when drift is detected — demonstrating the full MLOps loop end-to-end on a live event stream.
+
+**Architecture:**
+```
+[producer.py]
+  reads sales_100k.csv row by row
+  → publishes to Kafka topic 'sales_events'
+  → configurable replay speed (e.g. 1 row/sec = 1 day/sec of simulated time)
+
+[consumer.py]
+  subscribes to 'sales_events'
+  → aggregates daily demand per category in a rolling buffer
+  → on each new day: calls DriftDetectorRegistry.check()
+  → if drift > threshold: calls RetrainPipeline.retrain()
+  → logs retrain to MLflow in real time
+
+[MLflow UI]
+  refreshes as consumer runs — shows new runs appearing live
+```
+
+**Docker stack (kafka/docker-compose.kafka.yml):**
+- Zookeeper :2181
+- Kafka broker :9092
+- Kafka UI (Redpanda Console) :8080 — browse topics/messages visually
+
+**Run it:**
+```bash
+docker compose -f kafka/docker-compose.kafka.yml up -d
+python kafka/producer.py --speed 100   # 100× faster than real time
+python kafka/consumer.py               # watch drift detection + retrain in terminal
+```
+
+---
 
 ### FW6 — Multi-Model Ensemble / Online Learning Fallback (SKIP)
 Combine Prophet with an online learning model (River or scikit-multiflow) to handle abrupt drift faster than the current 45-day retrain window allows, with Prophet handling trend/seasonality and the online model adapting within days of a shift.
@@ -273,17 +327,18 @@ docker compose -f docker/docker-compose.yml up --build
 The full MLOps loop is implemented:
 
 ```
-[GitHub Actions / Airflow schedule]
+[Kafka producer / GitHub Actions / Airflow schedule]
          ↓
-[run_drift_check.py]
+[run_drift_check.py  OR  kafka/consumer.py]
   → loads cached Prophet model (models/*.pkl)
-  → walks forward 61 days comparing actual vs predicted
+  → walks forward 61 days (batch) OR processes rolling event stream (Kafka)
   → DriftDetectorRegistry flags categories via dual-window MAE
          ↓
 [retrain_pipeline.py]
-  → retrains Prophet on last 90 days of actual demand
+  → retrains Prophet on last 45 days of actual demand
   → A/B gates: only accepts if post_mae < pre_mae
-  → logs run to MLflow (pre/post MAE, params, improvement %)
+  → logs EVERY retrain run to MLflow (artifact + schema + dataset + metrics)
+  → registers accepted model to MLflow Model Registry @ production alias
   → saves accepted model back to models/*.pkl
          ↓
 [api/main.py]  ← STILL MISSING
@@ -296,16 +351,18 @@ The full MLOps loop is implemented:
 
 **What you can say in a viva today:**
 - CI/CD: ✅ GitHub Actions runs drift check daily, triggers retrain automatically
-- Experiment tracking: ✅ MLflow logs every retrain with full metrics
+- Experiment tracking: ✅ MLflow logs every retrain — full artifact tree, schema via `infer_signature`, dataset tracking
+- Model Registry: ✅ Every accepted retrain registered under `demand_{slug}@production`
 - Orchestration: ✅ Airflow DAG prototyped
 - Containerisation: ✅ Docker compose with 4 services
 - Data quality: ✅ Great Expectations gates
 - Model persistence: ✅ joblib + GitHub Actions cache
+- Real-time simulation: 🔄 Kafka producer/consumer (in progress)
 - Serving layer: ❌ api/main.py not built yet (Docker container has no app to serve)
 
 **Remaining to complete the deployment story:**
 
-### 1. `notebooks/05_inventory.ipynb` ← **DO THIS NEXT**
+### 1. `notebooks/05_inventory.ipynb` ← **DO NEXT (after full test pass)**
 - Show inventory decisions (reorder point, safety stock, order quantity) before and after retraining
 - Use `InventoryCalculator(service_level=0.95, lead_time_days=7, cycle_days=30)` from `src/inventory/replenishment.py`
 - Key metric: rupee value of avoidable stockout/overstock
@@ -326,6 +383,9 @@ Endpoints to implement:
 - Drift alert banner when drift is detected
 - Inventory recommendation table
 - Charts: forecast vs actual, MAE over time, drift ratio per category
+
+### 4. `kafka/` — Real-Time Kafka Simulation ← AFTER API
+See FW8 section above for full architecture and run instructions.
 
 ---
 
