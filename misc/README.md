@@ -201,6 +201,15 @@ airflow dags trigger demand_forecasting_drift_pipeline
 
 **What is NOT done (intentionally skipped):** Shadow-mode A/B evaluation serving both models in parallel before promotion. Out of scope for this project.
 
+**Model schema (visible in MLflow UI → Models → version → Schema section):**
+
+| | Column | Type |
+|---|---|---|
+| Input | `ds` | string (date) |
+| Output | `yhat` | double |
+| Output | `yhat_lower` | double |
+| Output | `yhat_upper` | double |
+
 **Query the registry:**
 ```python
 import mlflow, os
@@ -209,6 +218,9 @@ client = mlflow.MlflowClient()
 for rm in client.search_registered_models():
     v = client.get_model_version_by_alias(rm.name, 'production')
     print(f'{rm.name}  v{v.version}  run_id={v.run_id[:8]}')
+
+# Load production model directly:
+model = mlflow.pyfunc.load_model('models:/demand_health_personal_care@production')
 ```
 
 ### FW5 ✅ — Data Quality Gates (Great Expectations)
