@@ -8,6 +8,8 @@ on:
     paths:
       - 'data/processed/**'
       - 'src/**'
+      - 'requirements.txt'
+      - '.github/workflows/**'
   workflow_dispatch:
 
 jobs:
