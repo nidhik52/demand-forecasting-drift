@@ -25,6 +25,8 @@ mlartifacts/
 
 # Data files (don't commit raw/processed data to git)
 data/raw/*.csv
+# Allow the seed raw file — needed by master_data_pipeline.py in CI
+!data/raw/sales_100k.csv
 data/processed/*.csv
 data/raw/*.xlsx
 *.parquet

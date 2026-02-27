@@ -38,6 +38,12 @@ jobs:
           ls data/processed/ 2>/dev/null || echo "No processed data yet"
           echo "=== File check complete ==="
 
+      - name: Generate processed data
+        run: |
+          echo "Generating processed demand time series from raw data..."
+          python src/data/master_data_pipeline.py
+          echo "Generated: $(wc -l < data/processed/final_demand_series.csv) rows in final_demand_series.csv"
+
       - name: Run drift detection check
         id: drift_check
         continue-on-error: true
