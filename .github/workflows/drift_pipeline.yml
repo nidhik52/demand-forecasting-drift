@@ -65,7 +65,7 @@ jobs:
           python src/drift_detection/run_drift_check.py \
             --data data/processed/final_demand_series.csv \
             --days 30 \
-            --threshold 2.0 \
+            --threshold 1.5 \
             --output reports/drift_report.json
 
       - name: Read drift report

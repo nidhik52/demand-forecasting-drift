@@ -56,8 +56,8 @@ def parse_args():
                         help='Path to processed demand CSV')
     parser.add_argument('--days',      type=int, default=30,
                         help='Number of recent days to evaluate (default: 30)')
-    parser.add_argument('--threshold', type=float, default=2.0,
-                        help='MAE ratio threshold for drift flag (default: 2.0)')
+    parser.add_argument('--threshold', type=float, default=1.5,
+                        help='MAE ratio threshold for drift flag (default: 1.5, matches DriftDetector)')
     parser.add_argument('--output',    default='reports/drift_report.json',
                         help='Path to save drift report JSON')
     parser.add_argument('--retrain',   action='store_true',
@@ -101,98 +101,139 @@ def train_prophet(train_df: pd.DataFrame, category: str):
     return model
 
 
-def compute_rolling_mae(errors: list, window: int) -> float:
-    """Rolling MAE over last `window` errors."""
-    recent = errors[-window:] if len(errors) >= window else errors
-    return float(np.mean(recent)) if recent else 0.0
-
-
 def run_drift_check(df: pd.DataFrame, args) -> dict:
     """
-    Main drift detection logic.
+    Walk-forward drift detection using DriftDetectorRegistry
+    (dual-window: 7-day short + 30-day long, min_days=3 consecutive).
+    Identical logic to notebooks/03_drift_detection.ipynb and the Airflow DAG.
     Returns a drift report dict.
     """
-    categories   = sorted(df['category'].unique())
-    report       = {
-        'run_date'        : datetime.now().isoformat(),
-        'threshold'       : args.threshold,
-        'eval_days'       : args.days,
-        'drift_detected'  : False,
-        'categories'      : {},
-        'summary'         : '',
+    from src.drift_detection.drift_detector import DriftDetectorRegistry
+
+    categories = sorted(df['category'].unique())
+    report = {
+        'run_date'           : datetime.now().isoformat(),
+        'threshold'          : args.threshold,
+        'eval_days'          : args.days,
+        'drift_detected'     : False,
+        'drifted_categories' : [],
+        'categories'         : {},
+        'summary'            : '',
     }
 
-    # ── Determine evaluation window ──────────────────────────────────────────
-    latest_date  = df['ds'].max()
-    eval_start   = latest_date - timedelta(days=args.days)
-    train_end    = eval_start - timedelta(days=1)
+    # ── Determine windows ─────────────────────────────────────────────────────
+    # Eval: last args.days of data
+    # Val:  30 days immediately before eval → used to compute baseline MAE
+    # Train: everything before val
+    latest_date = df['ds'].max()
+    eval_start  = latest_date - timedelta(days=args.days - 1)
+    val_days    = 30
+    val_end     = eval_start - timedelta(days=1)
+    val_start   = val_end   - timedelta(days=val_days - 1)
+    train_end   = val_start - timedelta(days=1)
 
-    log.info(f"Train window: up to {train_end.date()}")
-    log.info(f"Eval window : {eval_start.date()} to {latest_date.date()} ({args.days} days)")
-    log.info(f"Threshold   : {args.threshold}x baseline MAE")
-    log.info(f"Categories  : {len(categories)}")
-    log.info("-" * 55)
+    log.info(f"Train window : up to {train_end.date()}")
+    log.info(f"Val window   : {val_start.date()} to {val_end.date()} ({val_days}d — baseline MAE)")
+    log.info(f"Eval window  : {eval_start.date()} to {latest_date.date()} ({args.days}d)")
+    log.info(f"Detector     : dual-window 7d/30d  |  threshold={args.threshold}x  |  min_days=3")
+    log.info(f"Categories   : {len(categories)}")
+    log.info("-" * 60)
+
+    baseline_maes  = {}
+    trained_models = {}
+
+    # ── Phase 1: Train Prophet + compute baseline MAE per category ────────────
+    for cat in categories:
+        cat_df     = df[df['category'] == cat].sort_values('ds')
+        train_data = cat_df[cat_df['ds'] <= train_end][['ds', 'y']].reset_index(drop=True)
+        val_data   = cat_df[(cat_df['ds'] >= val_start) & (cat_df['ds'] <= val_end)].reset_index(drop=True)
+
+        if len(train_data) < 60:
+            log.warning(f"  {cat[:25]:25} — insufficient training data ({len(train_data)} days), skipping")
+            continue
+        if len(val_data) == 0:
+            log.warning(f"  {cat[:25]:25} — no validation data, skipping")
+            continue
+
+        log.info(f"  Training   {cat[:30]}...")
+        model = train_prophet(train_df=train_data, category=cat)
+
+        val_forecast = model.predict(pd.DataFrame({'ds': val_data['ds']}))
+        val_errors   = np.abs(val_data['y'].values - val_forecast['yhat'].values)
+        baseline_mae = float(np.mean(val_errors))
+
+        baseline_maes[cat]  = baseline_mae
+        trained_models[cat] = model
+        log.info(f"             baseline MAE = {baseline_mae:,.0f}")
+
+    if not baseline_maes:
+        log.error("No categories had sufficient data. Cannot run drift check.")
+        sys.exit(2)
+
+    # ── Phase 2: Walk-forward eval with DriftDetectorRegistry ────────────────
+    registry = DriftDetectorRegistry(
+        baseline_maes = baseline_maes,
+        threshold     = args.threshold,   # 1.5x — matches notebooks and DAG
+        short_window  = 7,
+        long_window   = 30,
+        min_days      = 3,
+    )
 
     drifted_cats = []
 
-    for cat in categories:
-        cat_df = df[df['category'] == cat].sort_values('ds')
+    for cat in baseline_maes:
+        cat_df    = df[df['category'] == cat].sort_values('ds')
+        eval_data = cat_df[cat_df['ds'] >= eval_start].reset_index(drop=True)
 
-        train_data = cat_df[cat_df['ds'] <= train_end][['ds', 'y']].reset_index(drop=True)
-        eval_data  = cat_df[cat_df['ds'] >  train_end].reset_index(drop=True)
-
-        if len(train_data) < 60:
-            log.warning(f"  {cat[:20]:20} — insufficient training data ({len(train_data)} days), skipping")
-            continue
         if len(eval_data) == 0:
-            log.warning(f"  {cat[:20]:20} — no evaluation data, skipping")
             continue
 
-        # Train model
-        log.info(f"  Training {cat[:25]}...")
-        model = train_prophet(train_df=train_data, category=cat)
+        eval_forecast = trained_models[cat].predict(pd.DataFrame({'ds': eval_data['ds']}))
+        # Build a fast lookup: ds → yhat
+        yhat_map = dict(zip(eval_forecast['ds'], eval_forecast['yhat']))
 
-        # Forecast eval window
-        future   = pd.DataFrame({'ds': eval_data['ds']})
-        forecast = model.predict(future)
+        drift_days   = 0
+        retrain_days = []
 
-        # Compute errors
-        actuals    = eval_data['y'].values
-        predicted  = forecast['yhat'].values
-        errors     = np.abs(actuals - predicted).tolist()
+        for _, row in eval_data.iterrows():
+            actual    = float(row['y'])
+            predicted = float(yhat_map.get(row['ds'], actual))
+            date_str  = str(row['ds'].date())
 
-        # Baseline MAE (first 7 days of eval as warmup, rest as signal)
-        if len(errors) >= 14:
-            baseline_errors = errors[:7]
-            signal_errors   = errors[7:]
-        else:
-            baseline_errors = errors[:max(1, len(errors)//2)]
-            signal_errors   = errors[len(baseline_errors):]
+            status = registry.update(cat, actual, predicted, date_str)
+            if status.is_drifting:
+                drift_days += 1
+            if status.retrain_triggered:
+                retrain_days.append(date_str)
 
-        baseline_mae = float(np.mean(baseline_errors)) if baseline_errors else 0.0
-        recent_mae   = compute_rolling_mae(signal_errors, window=7)
-        ratio        = (recent_mae / baseline_mae) if baseline_mae > 0 else 0.0
-        is_drifting  = ratio > args.threshold
+        n_eval      = len(eval_data)
+        cat_summary = registry.get_all_summaries()[cat]
+        is_drifting = drift_days > 0
 
         log.info(
             f"  {'✅' if not is_drifting else '🔴'} {cat[:25]:25} "
-            f"baseline={baseline_mae:>7,.0f}  recent={recent_mae:>7,.0f}  "
-            f"ratio={ratio:>5.2f}x  {'DRIFT' if is_drifting else 'OK'}"
+            f"baseline={baseline_maes[cat]:>7,.0f}  "
+            f"short={cat_summary['short_ratio']:>4.2f}x  "
+            f"long={cat_summary['long_ratio']:>4.2f}x  "
+            f"drift={drift_days}/{n_eval}d  "
+            f"retrains={len(retrain_days)}"
         )
 
         report['categories'][cat] = {
-            'baseline_mae': round(baseline_mae, 1),
-            'recent_mae'  : round(recent_mae, 1),
-            'ratio'       : round(ratio, 3),
-            'is_drifting' : is_drifting,
-            'eval_days'   : len(eval_data),
+            'baseline_mae' : round(baseline_maes[cat], 1),
+            'short_ratio'  : round(cat_summary['short_ratio'], 3),
+            'long_ratio'   : round(cat_summary['long_ratio'], 3),
+            'drift_days'   : drift_days,
+            'eval_days'    : n_eval,
+            'retrain_days' : retrain_days,
+            'is_drifting'  : is_drifting,
         }
 
         if is_drifting:
             drifted_cats.append(cat)
 
-    # ── Summary ──────────────────────────────────────────────────────────────
-    report['drift_detected']  = len(drifted_cats) > 0
+    # ── Summary ───────────────────────────────────────────────────────────────
+    report['drift_detected']     = len(drifted_cats) > 0
     report['drifted_categories'] = drifted_cats
     report['summary'] = (
         f"Drift detected in {len(drifted_cats)}/{len(categories)} categories: "
@@ -201,7 +242,7 @@ def run_drift_check(df: pd.DataFrame, args) -> dict:
         else f"No drift detected across {len(categories)} categories (threshold={args.threshold}x)"
     )
 
-    log.info("-" * 55)
+    log.info("-" * 60)
     log.info(report['summary'])
     return report
 
