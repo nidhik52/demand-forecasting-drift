@@ -29,9 +29,11 @@ window fires too many false positives on gradual drift. A single
 long window misses abrupt drift for several days. The dual-window
 approach independently monitors both timescales simultaneously.
 
-Expected detection times on this dataset:
-  Electronics (abrupt +50%): short window fires Nov 1, long ~Nov 4
-  Health (gradual +40%):     long window fires ~Nov 14-16
+Expected detection times on this dataset (61-day window: Nov 1 – Dec 31):
+  Electronics (abrupt +50%): short window fires Nov 1, retrain Nov 3 (61/61 drift days)
+  Health (gradual +40%):     already drifted by Nov 1, flags Day 3, retrain Nov 5 (52/61 drift days)
+  Note: Health drift starts Aug 1 — by the time the eval window opens Nov 1 it is
+  already well above threshold, so it fires on Day 3 not Nov 14.
 """
 
 import numpy as np
