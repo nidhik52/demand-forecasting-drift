@@ -49,9 +49,16 @@ import numpy as np
 import warnings
 import logging
 import os
+import re
+import joblib
 from datetime import datetime, timedelta
 from dataclasses import dataclass
 from typing import Any, Optional, Dict, Tuple
+
+
+def _category_slug(category: str) -> str:
+    """Convert 'Electronics & Tech' -> 'electronics_tech' for use as filename."""
+    return re.sub(r'[^a-z0-9]+', '_', category.lower()).strip('_')
 
 warnings.filterwarnings('ignore')
 logging.getLogger('cmdstanpy').setLevel(logging.WARNING)
@@ -141,6 +148,7 @@ class RetrainPipeline:
         holdout_days:    int  = 14,
         mlflow_tracking: bool = True,
         experiment_name: str  = 'demand_forecasting_drift',
+        model_dir:       str  = 'models',
     ):
         self.demand_data     = demand_data.copy()
         self.demand_data['ds'] = pd.to_datetime(self.demand_data['ds'])
@@ -148,6 +156,8 @@ class RetrainPipeline:
         self.holdout_days    = holdout_days
         self.mlflow_tracking = mlflow_tracking and MLFLOW_AVAILABLE
         self.experiment_name = experiment_name
+        self.model_dir       = model_dir
+        os.makedirs(model_dir, exist_ok=True)
 
         self._retrain_log: list[RetrainResult] = []
 
@@ -290,6 +300,14 @@ class RetrainPipeline:
         )
 
         self._retrain_log.append(result)
+
+        # ── 7. Persist accepted model to disk so CI can reuse it next run
+        if model_accepted and new_model is not None:
+            slug      = _category_slug(category)
+            save_path = os.path.join(self.model_dir, f'{slug}.pkl')
+            joblib.dump(new_model, save_path)
+            print(f"     Model saved      : {save_path}")
+
         return result, new_model if model_accepted else None
 
     # ── MLflow logging ─────────────────────────────────────
