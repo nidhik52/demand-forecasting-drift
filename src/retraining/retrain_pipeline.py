@@ -326,9 +326,11 @@ class RetrainPipeline:
         try:
             with mlflow.start_run(run_name=f"{category.split()[0]}_{retrain_date}") as run:
                 # Log training dataset — populates the ‘Dataset’ column in the UI
+                # Source points to the master CSV; name identifies the category slice
                 dataset = mlflow.data.from_pandas(
                     train_data,
-                    name=f"{_category_slug(category)}_retrain_{retrain_date}",
+                    source="data/processed/final_demand_series.csv",
+                    name="final_demand_series",
                     targets="y",
                 )
                 mlflow.log_input(dataset, context="training")
