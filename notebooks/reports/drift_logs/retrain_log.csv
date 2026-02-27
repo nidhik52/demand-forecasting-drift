@@ -1,8 +1,8 @@
 category,retrain_date,trigger_reason,window_days,pre_retrain_mae,post_retrain_mae,mae_improvement,mae_improvement_pct,model_accepted,mlflow_run_id,new_baseline_mae
-Electronics & Tech,2025-11-03,drift_detected,45,5017.3,6422.6,-1405.3,-28.01,False,be6573d188694d5e945b9cf5129480f7,19664.5
-Entertainment & Office,2025-11-04,drift_detected,45,4930.3,5959.9,-1029.6,-20.88,False,b8e4c90a30dc4c70abdd5a6a63b0ff77,9636.6
-Fashion & Accessories,2025-11-03,drift_detected,45,2067.3,1997.6,69.7,3.37,True,0831c96b2a7041b7a2045e6a20edb849,1997.6
-Health & Personal Care,2025-11-05,drift_detected,45,6757.6,3816.3,2941.3,43.53,True,1b8627b811ab43b8976a46397a131cc7,3816.3
-Health & Personal Care,2025-11-26,drift_detected,45,6794.4,5598.8,1195.5,17.6,True,019ece17cf6b4fc5a31d2e37af18d8ad,5598.8
-Health & Personal Care,2025-12-24,drift_detected,45,11244.2,3595.7,7648.5,68.02,True,b73598eae53e4c708447d41e907297c3,3595.7
-Home & Lifestyle,2025-11-06,drift_detected,45,3351.5,3540.7,-189.2,-5.65,False,c5a9423dbc2d46c9a0ca58c675ac903e,5309.6
+Electronics & Tech,2025-11-03,drift_detected,45,5017.3,6422.6,-1405.3,-28.01,False,ffafae72c4be4eb99f0f0263663311f4,19664.5
+Entertainment & Office,2025-11-04,drift_detected,45,4930.3,5959.9,-1029.6,-20.88,False,8ff3f41c7d4041449f8335f2a6a072d4,9636.6
+Fashion & Accessories,2025-11-03,drift_detected,45,2067.3,1997.6,69.7,3.37,True,d86574926b2d421593e71b43357f4e23,1997.6
+Health & Personal Care,2025-11-05,drift_detected,45,6757.6,3816.3,2941.3,43.53,True,0ce03aaf564844d0819007cf12c2b43c,3816.3
+Health & Personal Care,2025-11-26,drift_detected,45,6794.4,5598.8,1195.5,17.6,True,a489aeee6a834b9b9c30db4d2c67c841,5598.8
+Health & Personal Care,2025-12-24,drift_detected,45,11244.2,3595.7,7648.5,68.02,True,7c2bebed4be146f4b207c6bde9e81511,3595.7
+Home & Lifestyle,2025-11-06,drift_detected,45,3351.5,3540.7,-189.2,-5.65,False,802e5698fb13416ebd4d4b632f4f93b3,5309.6
