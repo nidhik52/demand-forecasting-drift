@@ -58,3 +58,9 @@ logs/
 # Docker
 docker/data/
 notebooks/mlruns/
+
+# CI-generated reports (regenerated every run — never commit)
+reports/drift_report*.json
+
+# Misc files
+misc/
