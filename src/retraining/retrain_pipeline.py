@@ -77,6 +77,9 @@ try:
     MLFLOW_AVAILABLE = True
 except ImportError:  # pragma: no cover
     mlflow: Any = None
+    Schema: Any = None
+    ColSpec: Any = None
+    ModelSignature: Any = None
     MLFLOW_AVAILABLE = False
     print("⚠️  MLflow not installed — run: pip install mlflow")
 
@@ -367,15 +370,28 @@ class RetrainPipeline:
                 # Log model artifact + register to Model Registry if accepted
                 if model_accepted and new_model is not None:
                     try:
-                        # Define input/output schema so MLflow UI shows model details
+                        # Infer signature from real Prophet input/output so MLflow UI
+                        # shows Inputs/Outputs columns for every new model version.
+                        from mlflow.models.signature import infer_signature  # noqa: PLC0415
+                        _future   = new_model.make_future_dataframe(periods=1, include_history=False)
+                        _forecast = new_model.predict(_future)
+                        signature = infer_signature(
+                            _future[["ds"]],
+                            _forecast[["yhat", "yhat_lower", "yhat_upper"]],
+                        )
+                    except Exception as _sig_err:
+                        # Fallback: build signature manually from known Prophet schema
+                        print(f"     ⚠️  infer_signature failed ({_sig_err}); using manual schema")
                         signature = ModelSignature(
-                            inputs =Schema([ColSpec("string", "ds")]),
-                            outputs=Schema([
+                            inputs =Schema([ColSpec("string", "ds")]),           # type: ignore[arg-type]
+                            outputs=Schema([                                       # type: ignore[arg-type]
                                 ColSpec("double", "yhat"),
                                 ColSpec("double", "yhat_lower"),
                                 ColSpec("double", "yhat_upper"),
                             ]),
                         )
+
+                    try:
                         mlflow.prophet.log_model(new_model, 'prophet_model', signature=signature)
                         # Register to Model Registry — creates versioned production model
                         model_name = f"demand_{_category_slug(category)}"
@@ -386,9 +402,8 @@ class RetrainPipeline:
                         # Tag this version as 'production' immediately
                         client = mlflow.MlflowClient()
                         client.set_registered_model_alias(model_name, "production", reg.version)
-                    except Exception:
-                        # prophet MLflow flavor may need extra install
-                        pass
+                    except Exception as _log_err:
+                        print(f"     ⚠️  MLflow model log/registry failed: {_log_err}")
 
                 return run.info.run_id
 
