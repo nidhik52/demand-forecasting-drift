@@ -367,11 +367,13 @@ class RetrainPipeline:
                     'mae_improvement_pct': round(improvement_pct, 4),
                 })
 
-                # Log model artifact + register to Model Registry if accepted
-                if model_accepted and new_model is not None:
+                # Always log the model artifact so every retrain run shows the
+                # prophet_model artifact tree in the MLflow UI.  Registration to
+                # the Model Registry only happens for accepted retrains.
+                if new_model is not None:
                     try:
                         # Infer signature from real Prophet input/output so MLflow UI
-                        # shows Inputs/Outputs columns for every new model version.
+                        # shows Inputs/Outputs columns for every run.
                         from mlflow.models.signature import infer_signature  # noqa: PLC0415
                         _future   = new_model.make_future_dataframe(periods=1, include_history=False)
                         _forecast = new_model.predict(_future)
@@ -393,15 +395,16 @@ class RetrainPipeline:
 
                     try:
                         mlflow.prophet.log_model(new_model, 'prophet_model', signature=signature)
-                        # Register to Model Registry — creates versioned production model
-                        model_name = f"demand_{_category_slug(category)}"
-                        reg = mlflow.register_model(
-                            model_uri=f"runs:/{run.info.run_id}/prophet_model",
-                            name=model_name,
-                        )
-                        # Tag this version as 'production' immediately
-                        client = mlflow.MlflowClient()
-                        client.set_registered_model_alias(model_name, "production", reg.version)
+                        # Only register + alias as 'production' for accepted retrains
+                        if model_accepted:
+                            model_name = f"demand_{_category_slug(category)}"
+                            reg = mlflow.register_model(
+                                model_uri=f"runs:/{run.info.run_id}/prophet_model",
+                                name=model_name,
+                            )
+                            # Tag this version as 'production' immediately
+                            client = mlflow.MlflowClient()
+                            client.set_registered_model_alias(model_name, "production", reg.version)
                     except Exception as _log_err:
                         print(f"     ⚠️  MLflow model log/registry failed: {_log_err}")
 
