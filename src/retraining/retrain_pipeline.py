@@ -278,6 +278,7 @@ class RetrainPipeline:
                 retrain_date    = retrain_date,
                 trigger_reason  = trigger_reason,
                 train_days      = len(train_data),
+                train_data      = train_data,
                 pre_mae         = old_holdout_mae,
                 post_mae        = post_mae,
                 improvement_pct = improvement_pct,
@@ -320,10 +321,17 @@ class RetrainPipeline:
 
     def _log_to_mlflow(
         self, category, retrain_date, trigger_reason, train_days,
-        pre_mae, post_mae, improvement_pct, model_accepted, new_model
+        train_data, pre_mae, post_mae, improvement_pct, model_accepted, new_model
     ) -> Optional[str]:
         try:
             with mlflow.start_run(run_name=f"{category.split()[0]}_{retrain_date}") as run:
+                # Log training dataset — populates the ‘Dataset’ column in the UI
+                dataset = mlflow.data.from_pandas(
+                    train_data,
+                    name=f"{_category_slug(category)}_retrain_{retrain_date}",
+                    targets="y",
+                )
+                mlflow.log_input(dataset, context="training")
                 # Tags — searchable metadata
                 mlflow.set_tags({
                     'category'      : category,
