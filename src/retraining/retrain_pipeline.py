@@ -68,6 +68,8 @@ logging.getLogger('cmdstanpy').setLevel(logging.WARNING)
 try:
     import mlflow
     import mlflow.pyfunc
+    from mlflow.types.schema import Schema, ColSpec
+    from mlflow.models.signature import ModelSignature
     MLFLOW_AVAILABLE = True
 except ImportError:  # pragma: no cover
     mlflow: Any = None
@@ -351,7 +353,16 @@ class RetrainPipeline:
                 # Log model artifact + register to Model Registry if accepted
                 if model_accepted and new_model is not None:
                     try:
-                        mlflow.prophet.log_model(new_model, 'prophet_model')
+                        # Define input/output schema so MLflow UI shows model details
+                        signature = ModelSignature(
+                            inputs =Schema([ColSpec("string", "ds")]),
+                            outputs=Schema([
+                                ColSpec("double", "yhat"),
+                                ColSpec("double", "yhat_lower"),
+                                ColSpec("double", "yhat_upper"),
+                            ]),
+                        )
+                        mlflow.prophet.log_model(new_model, 'prophet_model', signature=signature)
                         # Register to Model Registry — creates versioned production model
                         model_name = f"demand_{_category_slug(category)}"
                         reg = mlflow.register_model(
