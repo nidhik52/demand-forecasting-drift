@@ -1,19 +1,19 @@
 name: Drift Detection Pipeline
 
 on:
-  # Run automatically every day at midnight
   schedule:
-    - cron: '0 0 * * *'
-  # Also allow manual trigger from GitHub UI
-  workflow_dispatch:
-  # Run when new data is pushed to data/raw folder
+    - cron: '0 2 * * *'
   push:
+    branches: [ main ]
     paths:
-      - 'data/raw/**'
+      - 'data/processed/**'
+      - 'src/**'
+  workflow_dispatch:
 
 jobs:
   run-drift-pipeline:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - name: Checkout repository
@@ -22,25 +22,79 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
           cache: 'pip'
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Verify file structure
+        run: |
+          echo "=== Checking required files ==="
+          ls src/drift_detection/
+          ls src/retraining/
+          ls data/processed/ 2>/dev/null || echo "No processed data yet"
+          echo "=== File check complete ==="
 
       - name: Run drift detection check
-        run: python src/drift_detection/run_drift_check.py
+        id: drift_check
+        continue-on-error: true
+        run: |
+          python src/drift_detection/run_drift_check.py \
+            --data data/processed/final_demand_series.csv \
+            --days 30 \
+            --threshold 2.0 \
+            --output reports/drift_report.json
+
+      - name: Read drift report
+        id: read_report
+        if: always()
+        run: |
+          if [ -f reports/drift_report.json ]; then
+            echo "=== Drift Report ==="
+            cat reports/drift_report.json
+            DRIFT=$(python3 -c "import json; r=json.load(open('reports/drift_report.json')); print(str(r['drift_detected']).lower())")
+            echo "DRIFT_DETECTED=$DRIFT" >> $GITHUB_OUTPUT
+          else
+            echo "No drift report found"
+            echo "DRIFT_DETECTED=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Run retraining if drift detected
-        run: python src/retraining/auto_retrain.py
+        if: steps.read_report.outputs.DRIFT_DETECTED == 'true'
+        run: |
+          echo "Drift detected — triggering retraining..."
+          python src/drift_detection/run_drift_check.py \
+            --data data/processed/final_demand_series.csv \
+            --days 30 \
+            --threshold 2.0 \
+            --retrain \
+            --output reports/drift_report_with_retrain.json
 
       - name: Upload drift report as artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: drift-report-${{ github.run_number }}
-          path: data/drift_logs/
+          path: reports/drift_report*.json
           retention-days: 30
 
       - name: Notify on drift detected
-        if: failure()
-        run: echo "Drift detected - model retrained. Check drift_logs for details."
+        if: steps.read_report.outputs.DRIFT_DETECTED == 'true'
+        run: |
+          echo "::warning title=Drift Detected::Concept drift detected. Check drift report artifact."
+          python3 -c "
+          import json
+          r = json.load(open('reports/drift_report.json'))
+          for cat in r.get('drifted_categories', []):
+            info = r['categories'][cat]
+            print(f'  {cat}: ratio={info[\"ratio\"]}x baseline')
+          "
+
+      - name: Pipeline summary
+        if: always()
+        run: |
+          echo "Run date: $(date)"
+          echo "Drift detected: ${{ steps.read_report.outputs.DRIFT_DETECTED }}"
