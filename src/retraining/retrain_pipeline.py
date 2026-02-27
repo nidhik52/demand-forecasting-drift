@@ -290,7 +290,7 @@ class RetrainPipeline:
                 post_mae        = post_mae,
                 improvement_pct = improvement_pct,
                 model_accepted  = model_accepted,
-                new_model       = new_model if model_accepted else None,
+                new_model       = new_model,  # always pass model — _log_to_mlflow gates registry on model_accepted
             )
 
         # ── 6. Report
