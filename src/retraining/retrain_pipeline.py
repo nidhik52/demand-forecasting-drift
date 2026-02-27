@@ -8,42 +8,46 @@ HOW IT WORKS (plain language)
 ------------------------------
 When the DriftDetector fires for a category, this module:
 
-  1. Collects the last 90 days of ACTUAL demand for that category
+  1. Collects the last 45 days of ACTUAL demand for that category
      (not the model's predictions — the real values)
+     Why 45 days? The default window_days=90 but run_drift_check.py
+     passes window_days=45 to keep the training data recent and tight.
 
-  2. Retrains a fresh Prophet model on just those 90 days
-     Why 90 days? Enough to capture seasonal signal (3 months)
-     but recent enough to reflect the new demand pattern
+  2. Retrains a fresh Prophet model on those days minus a 14-day holdout
+     The 14-day holdout is never seen during training — it's the test set.
 
-  3. Evaluates the new model on the last 14 days (held-out)
-     to confirm it's better than the old model
+  3. Evaluates the new model on the 14-day holdout
+     to confirm it's better than the old model on the same window
 
-  4. If new model is better: replaces old model, resets detector
-     If new model is worse: keeps old model (safety check)
+  4. If new model is better: replaces old model, saves to models/{slug}.pkl
+     If new model is worse: keeps old model (safety gate)
 
   5. Logs everything to MLflow:
-     - Which category, which date
-     - Pre-retrain MAE vs post-retrain MAE
-     - Model parameters
-     - The new model artifact itself
-     If accepted, also registers the model to the MLflow Model Registry
-     under the name 'demand_{slug}' and tags it as 'production'.
+     - experiment: "demand_forecasting_drift"
+     - tags    : category, retrain_date, trigger_reason, model_accepted
+     - params  : window_days, holdout_days, train_days, seasonality, changepoint_scale
+     - metrics : pre_retrain_mae, post_retrain_mae, mae_improvement, mae_improvement_pct
+     - dataset : final_demand_series (source: data/processed/final_demand_series.csv)
+     - artifact: Prophet model (accepted retrains only) with ModelSignature
+     If accepted, also registers to MLflow Model Registry as demand_{slug}@production.
 
-WHY 90-DAY WINDOW
------------------
+WHY 45-DAY WINDOW (when called from CI)
+-----------------------------------------
 Using all training data (Jan 2024 onward) would teach the model
-the OLD demand pattern which is exactly what we're trying to escape.
-90 days of recent data reflects the new pattern while retaining
-enough history for seasonal signal detection.
+the OLD demand pattern — exactly what we're trying to escape.
+45 days of recent data reflects the new pattern. The class default
+is window_days=90 but run_drift_check.py passes window_days=45 for
+tighter adaptation to abrupt drift events.
 
-MLFLOW TRACKING
----------------
-Every retrain creates a new MLflow run with:
-  - experiment name: "demand_forecasting_drift"
-  - tags: category, retrain_date, trigger_reason
-  - params: window_days, model_type, threshold_used
-  - metrics: pre_mae, post_mae, mae_improvement_pct
-  - artifact: the retrained Prophet model
+MLFLOW TRACKING (exact keys)
+-----------------------------
+Every retrain creates a new MLflow run under experiment "demand_forecasting_drift":
+  tags    : category, retrain_date, trigger_reason, model_type, model_accepted
+  params  : window_days, holdout_days, train_days, seasonality, changepoint_scale
+  metrics : pre_retrain_mae, post_retrain_mae, mae_improvement, mae_improvement_pct
+  dataset : final_demand_series  (source: data/processed/final_demand_series.csv)
+  artifact: prophet_model/  (only for accepted retrains, includes ModelSignature)
+  registry: demand_{slug}@production  (only for accepted retrains)
 """
 
 import pandas as pd
