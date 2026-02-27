@@ -30,7 +30,15 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Install cmdstan (required by Prophet)
+      - name: Cache cmdstan
+        id: cache-cmdstan
+        uses: actions/cache@v4
+        with:
+          path: ~/.cmdstan
+          key: cmdstan-${{ runner.os }}-${{ hashFiles('requirements.txt') }}
+
+      - name: Install cmdstan (required by Prophet, only if not cached)
+        if: steps.cache-cmdstan.outputs.cache-hit != 'true'
         run: |
           python -c "import cmdstanpy; cmdstanpy.install_cmdstan()"
 
