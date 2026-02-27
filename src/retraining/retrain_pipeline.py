@@ -26,6 +26,8 @@ When the DriftDetector fires for a category, this module:
      - Pre-retrain MAE vs post-retrain MAE
      - Model parameters
      - The new model artifact itself
+     If accepted, also registers the model to the MLflow Model Registry
+     under the name 'demand_{slug}' and tags it as 'production'.
 
 WHY 90-DAY WINDOW
 -----------------
@@ -289,6 +291,8 @@ class RetrainPipeline:
         print(f"     Decision         : {status}")
         if run_id:
             print(f"     MLflow run ID    : {run_id[:8]}...")
+            if model_accepted:
+                print(f"     Model Registry   : demand_{_category_slug(category)} @ production")
 
         result = RetrainResult(
             category=category, retrain_date=retrain_date,
@@ -344,10 +348,19 @@ class RetrainPipeline:
                     'mae_improvement_pct': round(improvement_pct, 4),
                 })
 
-                # Log model artifact if accepted
+                # Log model artifact + register to Model Registry if accepted
                 if model_accepted and new_model is not None:
                     try:
                         mlflow.prophet.log_model(new_model, 'prophet_model')
+                        # Register to Model Registry — creates versioned production model
+                        model_name = f"demand_{_category_slug(category)}"
+                        reg = mlflow.register_model(
+                            model_uri=f"runs:/{run.info.run_id}/prophet_model",
+                            name=model_name,
+                        )
+                        # Tag this version as 'production' immediately
+                        client = mlflow.MlflowClient()
+                        client.set_registered_model_alias(model_name, "production", reg.version)
                     except Exception:
                         # prophet MLflow flavor may need extra install
                         pass
