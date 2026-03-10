@@ -16,7 +16,7 @@ const RefLine = ReferenceLine as any;
 import { fetchDrift } from "../api";
 import type { DriftEvent } from "../types";
 
-interface Props { sku: string; }
+interface Props { sku: string; refreshTick?: number; }
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
@@ -33,7 +33,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   );
 };
 
-export default function DriftMonitor({ sku }: Props) {
+export default function DriftMonitor({ sku, refreshTick }: Props) {
   const [events, setEvents]   = useState<DriftEvent[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState<string | null>(null);
@@ -46,7 +46,7 @@ export default function DriftMonitor({ sku }: Props) {
       .then(setEvents)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [sku]);
+  }, [sku, refreshTick]);
 
   if (loading) return <div className="loading-msg">Loading drift data…</div>;
   if (error)   return <div className="error-msg">Error: {error}</div>;

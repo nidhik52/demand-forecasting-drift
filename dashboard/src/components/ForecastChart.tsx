@@ -16,7 +16,7 @@ const RefLine = ReferenceLine as any;
 import { fetchForecast } from "../api";
 import type { ForecastPoint } from "../types";
 
-interface Props { sku: string; }
+interface Props { sku: string; refreshTick?: number; }
 
 // ── Custom tooltip ────────────────────────────────────────────────────────────
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -31,7 +31,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   );
 };
 
-export default function ForecastChart({ sku }: Props) {
+export default function ForecastChart({ sku, refreshTick }: Props) {
   const [data, setData]       = useState<ForecastPoint[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState<string | null>(null);
@@ -44,7 +44,7 @@ export default function ForecastChart({ sku }: Props) {
       .then(setData)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [sku]);
+  }, [sku, refreshTick]);
 
   if (loading) return <div className="loading-msg">Loading forecast…</div>;
   if (error)   return <div className="error-msg">Error: {error}</div>;

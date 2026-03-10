@@ -9,7 +9,17 @@ import { useEffect, useState } from "react";
 import { fetchInventory } from "../api";
 import type { InventoryRow } from "../types";
 
-export default function InventoryTable() {
+interface Props { refreshTick?: number; }
+
+type StockStatus = "red" | "yellow" | "green";
+
+function stockStatus(row: InventoryRow): StockStatus {
+  if (row.Recommended_Order_Qty > 0) return "red";
+  if (row.Current_Stock <= row.Reorder_Point * 1.3) return "yellow";
+  return "green";
+}
+
+export default function InventoryTable({ refreshTick }: Props) {
   const [rows, setRows]           = useState<InventoryRow[]>([]);
   const [loading, setLoading]     = useState(false);
   const [error, setError]         = useState<string | null>(null);
@@ -22,7 +32,7 @@ export default function InventoryTable() {
       .then(setRows)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, []);
+  }, [refreshTick]);
 
   if (loading) return <div className="loading-msg">Loading inventory…</div>;
   if (error)   return <div className="error-msg">Error: {error}</div>;
@@ -106,24 +116,23 @@ export default function InventoryTable() {
             </thead>
             <tbody>
               {visible.map((r) => {
-                const needsOrder = r.Recommended_Order_Qty > 0;
+                const status = stockStatus(r);
+                const stockColor = status === "red" ? "#ef4444" : status === "yellow" ? "#f59e0b" : "#10b981";
                 return (
                   <tr key={r.SKU}>
                     <td><strong>{r.SKU}</strong></td>
-                    <td
-                      style={{ color: needsOrder ? "#ef4444" : "#10b981" }}
-                    >
+                    <td style={{ color: stockColor, fontWeight: 600 }}>
                       {r.Current_Stock.toFixed(0)}
                     </td>
                     <td style={{ color: "#94a3b8" }}>{r.Safety_Stock.toFixed(0)}</td>
                     <td>{r.Reorder_Point.toFixed(0)}</td>
-                    <td style={{ color: needsOrder ? "#f59e0b" : "#64748b", fontWeight: needsOrder ? 700 : 400 }}>
-                      {needsOrder ? r.Recommended_Order_Qty.toFixed(0) : "—"}
+                    <td style={{ color: status === "red" ? "#f59e0b" : "#64748b", fontWeight: status === "red" ? 700 : 400 }}>
+                      {status === "red" ? r.Recommended_Order_Qty.toFixed(0) : "—"}
                     </td>
                     <td style={{ color: "#94a3b8" }}>{r.Recommended_Order_Date}</td>
                     <td>
-                      <span className={`badge ${needsOrder ? "badge-red" : "badge-green"}`}>
-                        {needsOrder ? "ORDER" : "OK"}
+                      <span className={`badge badge-${status}`}>
+                        {status === "red" ? "🔴 ORDER" : status === "yellow" ? "🟡 WATCH" : "🟢 OK"}
                       </span>
                     </td>
                   </tr>

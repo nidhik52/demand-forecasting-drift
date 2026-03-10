@@ -10,6 +10,19 @@ day-by-day to create a realistic simulation without extra infrastructure.
 Each iteration yields one day's worth of transactions (all SKUs) as a
 small DataFrame — exactly what a drift detector or monitoring dashboard
 would receive in production.
+
+Drift Simulation
+────────────────
+The historical dataset does not contain natural concept drift.  To make
+drift detection and automatic retraining demonstrable, synthetic demand
+drift is injected for three SKUs after DRIFT_START_DATE:
+
+  ELEC-001 → demand × 3.0  (sharp spike — simulates electronics viral trend)
+  GROC-002 → demand × 2.5  (moderate spike — simulates supply disruption)
+  CLTH-003 → demand × 2.0  (mild spike — simulates seasonal fashion shift)
+
+This causes large forecast errors that push the rolling MAE above the
+detection threshold, triggering automatic model retraining.
 """
 
 import time
@@ -22,15 +35,42 @@ import pandas as pd
 DAILY_PATH    = Path("data/processed/daily_demand.csv")
 FORECAST_PATH = Path("data/processed/forecast_2026.csv")
 
-# ── Default parameters ────────────────────────────────────────────────────────
+# ── Default streaming parameters ──────────────────────────────────────────────
 STREAM_YEAR  = 2025     # historical year to replay as the "live" stream
 STREAM_DELAY = 0.0      # seconds between batches  (0 = full speed for pipeline)
+STREAM_DAYS  = 90       # number of days to stream (enough for drift to trigger)
+
+# ── Drift injection configuration ─────────────────────────────────────────────
+# After DRIFT_START_DATE, multiply demand for these SKUs to simulate concept drift.
+# This creates large forecast errors → rolling MAE exceeds threshold → retrain.
+DRIFT_START_DATE = pd.Timestamp("2025-01-15")
+
+DRIFT_MULTIPLIERS: dict[str, float] = {
+    "ELEC-001": 3.0,   # sharp spike — electronics viral trend
+    "GROC-002": 2.5,   # moderate spike — supply disruption
+    "CLTH-003": 2.0,   # mild spike — seasonal fashion shift
+}
+
+
+def _apply_drift(sku: str, demand: float, date: pd.Timestamp) -> tuple[float, bool]:
+    """
+    Apply synthetic drift multiplier if the SKU and date qualify.
+
+    Returns
+    ───────
+    (adjusted_demand, drift_injected)
+    """
+    if date >= DRIFT_START_DATE and sku in DRIFT_MULTIPLIERS:
+        multiplier = DRIFT_MULTIPLIERS[sku]
+        return demand * multiplier, True
+    return demand, False
 
 
 def stream_daily_batches(
     path: Path = DAILY_PATH,
     year: int = STREAM_YEAR,
     delay: float = STREAM_DELAY,
+    max_days: int = STREAM_DAYS,
 ) -> Generator[tuple[pd.Timestamp, pd.DataFrame], None, None]:
     """
     Yield (date, batch_df) for every day in `year`, in chronological order.
@@ -38,11 +78,15 @@ def stream_daily_batches(
     Each yielded batch_df contains columns:  Date | SKU | demand
     and represents one incoming day of retail transactions.
 
+    Synthetic drift is injected for configured SKUs after DRIFT_START_DATE
+    (see module-level DRIFT_MULTIPLIERS).
+
     Parameters
     ──────────
-    path  : path to the aggregated daily demand CSV
-    year  : calendar year whose data is replayed (default 2025)
-    delay : seconds to sleep between yields — useful for live demos
+    path     : path to the aggregated daily demand CSV
+    year     : calendar year whose data is replayed (default 2025)
+    delay    : seconds to sleep between yields — useful for live demos
+    max_days : cap on number of days to stream (default 90)
     """
     daily = pd.read_csv(path, parse_dates=["Date"])
 
@@ -56,17 +100,29 @@ def stream_daily_batches(
         )
         return
 
-    sorted_dates = sorted(stream_data["Date"].unique())
+    sorted_dates = sorted(stream_data["Date"].unique())[:max_days]
     total        = len(sorted_dates)
-    print(f"[Streaming] Replaying {total} days from {year} …")
+    print(f"[Streaming] Replaying {total} days from {year} "
+          f"(drift injection starts {DRIFT_START_DATE.date()}) …")
 
-    for i, date in enumerate(sorted_dates, 1):
+    for date in sorted_dates:
+        ts    = pd.Timestamp(date)
         batch = stream_data[stream_data["Date"] == date].copy()
-        print(
-            f"  Batch {i:>3}/{total}  {pd.Timestamp(date).date()}"
-            f"  — {len(batch)} SKU rows"
-        )
-        yield pd.Timestamp(date), batch
+
+        # ── Apply synthetic drift ────────────────────────────────────────────
+        drift_rows: list[str] = []
+        for idx, row in batch.iterrows():
+            adjusted, injected = _apply_drift(row["SKU"], float(row["demand"]), ts)
+            if injected:
+                batch.at[idx, "demand"] = adjusted
+                drift_rows.append(row["SKU"])
+
+        if drift_rows:
+            for sku in drift_rows:
+                print(f"  [Drift Injection] {sku} on {ts.date()} "
+                      f"→ demand × {DRIFT_MULTIPLIERS[sku]}")
+
+        yield ts, batch
 
         if delay > 0:
             time.sleep(delay)
