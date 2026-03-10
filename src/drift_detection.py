@@ -146,6 +146,7 @@ def _log_drift_event(event: dict, threshold: float) -> None:
         "rolling_mae":    event["rolling_mae"],
         "threshold":      threshold,
         "drift_detected": True,
+        "event_type":     "drift_detected",
     }])
 
     write_header = not DRIFT_LOG_PATH.exists()
