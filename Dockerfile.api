@@ -1,0 +1,32 @@
+# ── Stage 1: Build Python dependencies ───────────────────────────────────────
+FROM python:3.11-slim AS base
+
+WORKDIR /app
+
+# Prophet requires C++ toolchain + Stan libs at install time
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        gcc g++ libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# ── Stage 2: Runtime image ────────────────────────────────────────────────────
+FROM base AS runtime
+
+WORKDIR /app
+
+# Copy project source — exclude large data/model artefacts (use volumes)
+COPY api/       api/
+COPY src/       src/
+COPY pipeline.py .
+
+# Create output directories (will be mounted as Docker volumes in production)
+RUN mkdir -p data/processed data/drift_logs models mlruns
+
+EXPOSE 8000
+
+# Default: start the API server.
+# Override CMD to run the pipeline instead:
+#   docker run ... python pipeline.py
+CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]

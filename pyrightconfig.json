@@ -1,7 +1,0 @@
-{
-  "venvPath": ".",
-  "venv": ".venv",
-  "pythonVersion": "3.12",
-  "include": ["src", "api", "dashboard", "tests"],
-  "reportMissingImports": true
-}
