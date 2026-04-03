@@ -1,28 +1,30 @@
 import pandas as pd
 from datetime import datetime
-from src.config import EVENT_LOG_FILE
+from pathlib import Path
+
+EVENT_LOG_FILE = Path("data/processed/system_events.csv")
 
 
-def log_event(event_type: str, message: str, event_time=None, date=None):
-    """Append a single event to the `EVENT_LOG_FILE`.
+def log_event(event_type, message, event_time=None):
 
-    Accepts either `event_time` or `date` (legacy callers use both names).
-    Writes rows with columns: `Timestamp,Event_Type,Message`.
-    """
-
-    ts = event_time or date or datetime.now()
-    ts = pd.to_datetime(ts).strftime("%Y-%m-%d %H:%M:%S")
-
-    # ensure parent directory exists
     EVENT_LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
 
-    if EVENT_LOG_FILE.exists():
+    if event_time is None:
+        event_time = datetime.now()
+
+    log_row = {
+        "timestamp": event_time.strftime("%Y-%m-%d %H:%M:%S"),
+        "event_type": event_type,
+        "message": message
+    }
+
+    try:
         df = pd.read_csv(EVENT_LOG_FILE)
-    else:
-        df = pd.DataFrame(columns=["Timestamp", "Event_Type", "Message"])
+    except:
+        df = pd.DataFrame(columns=["timestamp", "event_type", "message"])
 
-    new_row = {"Timestamp": ts, "Event_Type": event_type, "Message": message}
-
-    df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+    df = pd.concat([df, pd.DataFrame([log_row])], ignore_index=True)
 
     df.to_csv(EVENT_LOG_FILE, index=False)
+
+    print(f"[{log_row['timestamp']}] {event_type} → {message}")
