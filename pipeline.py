@@ -1,173 +1,217 @@
-"""
-pipeline.py
-───────────────────────────────────────────────────────────────────────────────
-End-to-end orchestrator for the Drift-Aware Continuous Learning Framework
-for Demand Forecasting and Inventory Replenishment.
+import pandas as pd
+import os
+from datetime import datetime
+from prophet import Prophet
+import joblib
 
-Pipeline stages
-───────────────
-  1. Preprocess  — clean raw data → data/processed/daily_demand.csv
-  2. Forecast    — train Prophet per SKU → models/ + forecast_2026.csv
-  3. Inventory   — safety stock / reorder point → inventory_recommendations.csv
-  4. Stream      — replay 2025 data day-by-day
-                 → drift detection → auto-retrain → MLflow logging
-
-Usage
-─────
-  # Run the full pipeline
-  python pipeline.py
-
-  # Run a single stage
-  python pipeline.py --step preprocess
-  python pipeline.py --step forecast
-  python pipeline.py --step inventory
-  python pipeline.py --step stream
-"""
-
-import argparse
-import sys
-import time
-from pathlib import Path
-
-# Ensure project root is on the Python path (safe to run from any directory)
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-
-from src.data_preprocessing import preprocess
-from src.forecasting        import run_forecasting
-from src.inventory          import compute_inventory
-from src.streaming          import stream_daily_batches, get_forecast_for_date
-from src.drift_detection    import DriftDetector
-from src.retraining         import retrain
-
-# ── Helpers ───────────────────────────────────────────────────────────────────
-
-def print_stage(title: str) -> None:
-    print("\n" + "=" * 64)
-    print(f"  {title}")
-    print("=" * 64)
+from src.config import DAILY_DEMAND_FILE, FORECAST_FILE, INVENTORY_FILE, DRIFT_THRESHOLD
+from src.event_logger import log_event
 
 
-# ── Stage 1: Data Preprocessing ───────────────────────────────────────────────
+# ----------------------------------------
+# LOAD DATA
+# ----------------------------------------
 
-def step_preprocess() -> None:
-    print_stage("STAGE 1 — DATA PREPROCESSING")
-    daily = preprocess(save=True)
-    print(f"  Result: {len(daily):,} rows  |  {daily['SKU'].nunique()} SKUs")
+def load_data():
+    daily = pd.read_csv(DAILY_DEMAND_FILE)
+    forecast = pd.read_csv(FORECAST_FILE)
+    inventory = pd.read_csv(INVENTORY_FILE)
 
+    daily["Date"] = pd.to_datetime(daily["Date"])
+    forecast["Date"] = pd.to_datetime(forecast["Date"])
+    inventory["Stock_As_Of_Date"] = pd.to_datetime(inventory["Stock_As_Of_Date"])
 
-# ── Stage 2: Demand Forecasting ───────────────────────────────────────────────
-
-def step_forecast() -> tuple[dict, object]:
-    print_stage("STAGE 2 — PROPHET FORECASTING (2026)")
-    models, forecast_df = run_forecasting(save=True)
-    print(f"  Result: {len(forecast_df):,} forecast rows across {len(models)} SKUs")
-    return models, forecast_df
-
-
-# ── Stage 3: Inventory Decision Engine ───────────────────────────────────────
-
-def step_inventory(forecast_df=None) -> None:
-    print_stage("STAGE 3 — INVENTORY DECISION ENGINE")
-    recs = compute_inventory(forecast_df=forecast_df, save=True)
-    flagged = (recs["Recommended_Order_Qty"] > 0).sum()
-    print(f"  Result: {flagged} / {len(recs)} SKUs need replenishment.")
+    return daily, forecast, inventory
 
 
-# ── Stage 4: Streaming → Drift Detection → Auto-Retrain ──────────────────────
+# ----------------------------------------
+# DRIFT DETECTION
+# ----------------------------------------
 
-def step_stream() -> None:
-    print_stage("STAGE 4 — STREAMING · DRIFT DETECTION · AUTO-RETRAIN")
+def detect_drift(actual, forecast):
+    if actual == 0:
+        return False
 
-    detector       = DriftDetector()   # stateful rolling-MAE monitor
-    retrained_skus: set[str] = set()   # prevent retrain storms (once per run)
+    error_ratio = abs(actual - forecast) / actual
+    return error_ratio > DRIFT_THRESHOLD
 
-    batches = list(stream_daily_batches())
-    total   = len(batches)
-    for i, (date, batch) in enumerate(batches, 1):
-        print(f"  Streaming day {i} / {total} — {date.date()}")
 
-        # Retrieve the pre-generated forecast for this date
-        forecast_day = get_forecast_for_date(date)
-        forecast_map = dict(
-            zip(forecast_day["SKU"], forecast_day["forecast_demand"])
-        )
+# ----------------------------------------
+# RETRAIN MODEL
+# ----------------------------------------
 
-        # Process each SKU row in today's batch
-        for _, row in batch.iterrows():
-            sku      = row["SKU"]
-            actual   = float(row["demand"])
-            if sku not in forecast_map:
-                print(f"  Warning: no forecast for SKU {sku} on {date.date()} — using 0.0")
-            forecast = float(forecast_map.get(sku, 0.0))
+def retrain_model(sku_df, sku, current_date):
+    print(f"🔁 Retraining model for {sku}")
 
-            result = detector.update(
-                sku=sku, date=date, actual=actual, forecast=forecast
+    if len(sku_df) < 10:
+        print(f"⚠ Not enough data for {sku}, skipping retrain")
+        return None
+
+    prophet_df = sku_df.rename(columns={"Date": "ds", "Demand": "y"})
+
+    model = Prophet()
+    model.fit(prophet_df)
+
+    model_name = f"models/prophet_{sku}_{current_date.date()}.pkl"
+    os.makedirs("models", exist_ok=True)
+
+    joblib.dump(model, model_name)
+
+    print(f"✅ Model saved → {model_name}")
+
+    return model
+
+
+# ----------------------------------------
+# UPDATE FORECAST
+# ----------------------------------------
+
+def update_forecast(model, sku, sku_name):
+    future = model.make_future_dataframe(periods=FORECAST_DAYS)
+    forecast = model.predict(future)
+
+    out = forecast[["ds", "yhat"]].rename(columns={"ds": "Date", "yhat": "Forecast_Demand"})
+    out["SKU"] = sku
+    out["SKU_Name"] = sku_name
+
+    return out
+
+
+# ----------------------------------------
+# INVENTORY UPDATE (FIXED)
+# ----------------------------------------
+
+def update_inventory(inventory, daily_slice, forecast_slice, current_date):
+
+    for _, row in daily_slice.iterrows():
+        sku = row["SKU"]
+        demand = row["Demand"]
+
+        idx = inventory[inventory["SKU"] == sku].index[0]
+
+        # reduce stock
+        inventory.loc[idx, "Current_Stock"] -= demand
+        inventory.loc[idx, "Current_Stock"] = max(0, inventory.loc[idx, "Current_Stock"])
+
+        # update stock date
+        inventory.loc[idx, "Stock_As_Of_Date"] = current_date
+
+        # forecast demand next 7 days
+        f = forecast_slice[forecast_slice["SKU"] == sku].head(7)
+        future_demand = f["Forecast_Demand"].sum()
+
+        current_stock = inventory.loc[idx, "Current_Stock"]
+
+        if current_stock < future_demand:
+            order_qty = int(future_demand - current_stock)
+
+            inventory.loc[idx, "Current_Stock"] += order_qty
+
+            log_event(
+                event_type="RESTOCK",
+                message=f"{sku} restocked {order_qty}",
+                date=current_date
             )
 
-            # ── Drift → Retrain ───────────────────────────────────────────────
-            if result["drift_detected"] and sku not in retrained_skus:
-                print(
-                    f"\n  ⚠  DRIFT detected on {sku}  "
-                    f"rolling_MAE={result['rolling_mae']:.1f}  "
-                    f"(threshold={detector.threshold})  →  retraining …"
+    return inventory
+
+
+# ----------------------------------------
+# MAIN PIPELINE
+# ----------------------------------------
+
+def run_pipeline(start_date, end_date):
+
+    print("\n🚀 Starting pipeline\n")
+
+    daily, forecast, inventory = load_data()
+
+    current_date = pd.to_datetime(start_date)
+    end_date = pd.to_datetime(end_date)
+
+    metrics = []
+
+    while current_date <= end_date:
+
+        print(f"\n📡 Streaming {current_date.date()}")
+
+        daily_slice = daily[daily["Date"] == current_date]
+        forecast_slice = forecast[forecast["Date"] == current_date]
+
+        for _, row in daily_slice.iterrows():
+
+            sku = row["SKU"]
+            actual = row["Demand"]
+
+            pred_row = forecast_slice[forecast_slice["SKU"] == sku]
+
+            if pred_row.empty:
+                continue
+
+            predicted = pred_row["Forecast_Demand"].values[0]
+
+            error = abs(actual - predicted)
+
+            metrics.append({
+                "Date": current_date,
+                "SKU": sku,
+                "Actual": actual,
+                "Predicted": predicted,
+                "Error": error
+            })
+
+            # DRIFT
+            if detect_drift(actual, predicted):
+
+                print(f"⚠ Drift detected for {sku}")
+
+                log_event(
+                    event_type="DRIFT",
+                    message=f"Drift detected for {sku}",
+                    date=current_date
                 )
-                retrain(
-                    sku=sku,
-                    data_up_to=date,
-                    rolling_mae=result["rolling_mae"],
-                )
-                # Reset the error buffer so we start fresh after retraining
-                detector.reset(sku)
-                retrained_skus.add(sku)
-                print(f"  ✓  {sku} retrained — forecast updated — run logged to MLflow.")
 
-    print(f"\n  Streaming complete.  Days processed: {total}")
-    if retrained_skus:
-        print(f"  Retraining summary: {len(retrained_skus)} SKU(s) retrained:")
-        for sku in sorted(retrained_skus):
-            print(f"    \u2022 {sku}")
-    else:
-        print("  No retraining events triggered.")
+                sku_df = daily[(daily["SKU"] == sku) & (daily["Date"] <= current_date)]
+
+                model = retrain_model(sku_df, sku, current_date)
+
+                if model:
+                    new_forecast = update_forecast(model, sku, row["SKU_Name"])
+
+                    forecast = forecast[forecast["SKU"] != sku]
+                    forecast = pd.concat([forecast, new_forecast])
+
+                    log_event(
+                        event_type="RETRAIN",
+                        message=f"{sku} retrained",
+                        date=current_date
+                    )
+
+        # INVENTORY UPDATE
+        inventory = update_inventory(inventory, daily_slice, forecast, current_date)
+
+        current_date += pd.Timedelta(days=1)
+
+    # SAVE FILES
+    pd.DataFrame(metrics).to_csv("data/processed/metrics.csv", index=False)
+    forecast.to_csv("data/processed/forecast_2025.csv", index=False)
+    inventory.to_csv("data/processed/inventory_master.csv", index=False)
+
+    print("\n✅ Pipeline completed")
 
 
-# ── Main ──────────────────────────────────────────────────────────────────────
-
-def main(step: str = "all") -> None:
-    start_time = time.time()
-    print("\n" + "#" * 64)
-    print("  Drift-Aware Demand Forecasting Pipeline")
-    print("  M.Tech Project — Continuous Learning Framework")
-    print("#" * 64)
-
-    forecast_df = None
-
-    if step in ("all", "preprocess"):
-        step_preprocess()
-
-    if step in ("all", "forecast"):
-        _, forecast_df = step_forecast()
-
-    if step in ("all", "inventory"):
-        # Pass the in-memory forecast to avoid re-reading from disk
-        step_inventory(forecast_df=forecast_df)
-
-    if step in ("all", "stream"):
-        step_stream()
-
-    elapsed = time.time() - start_time
-    print(f"\n  Pipeline completed in {elapsed:.1f}s")
-    print("\n✅  Pipeline complete.\n")
-
+# ----------------------------------------
+# CLI
+# ----------------------------------------
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Drift-Aware Demand Forecasting Pipeline"
-    )
-    parser.add_argument(
-        "--step",
-        choices=["all", "preprocess", "forecast", "inventory", "stream"],
-        default="all",
-        help="Pipeline stage to run  (default: all)",
-    )
+
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--start", type=str, required=True)
+    parser.add_argument("--end", type=str, required=True)
+
     args = parser.parse_args()
-    main(step=args.step)
+
+    run_pipeline(args.start, args.end)
