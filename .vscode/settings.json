@@ -3,5 +3,6 @@
   "remote.autoForwardPortsFallback": 0,
   "typescript.tsdk": "dashboard/node_modules/typescript/lib",
   "typescript.preferences.includePackageJsonAutoImports": "off",
-  "git.ignoreLimitWarning": true
+  "git.ignoreLimitWarning": true,
+  "python-envs.defaultEnvManager": "ms-python.python:system"
 }

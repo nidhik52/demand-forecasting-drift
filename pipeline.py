@@ -1,224 +1,200 @@
 import pandas as pd
-import os
+import numpy as np
+import pickle
+import random
 from datetime import datetime
-from prophet import Prophet
-import joblib
+from pathlib import Path
 
-from src.config import DAILY_DEMAND_FILE, FORECAST_FILE, INVENTORY_FILE, DRIFT_THRESHOLD
+from src.config import (
+    DAILY_DEMAND_FILE,
+    FORECAST_FILE,
+    MODELS_DIR
+)
+
 from src.event_logger import log_event
-from src.forecasting import train_and_forecast
+
+from src.inventory import (
+    load_data as load_inventory_data,
+    generate_inventory_recommendations,
+    save_inventory
+)
+
+# -----------------------------
+# CONFIG
+# -----------------------------
+DRIFT_THRESHOLD = 1.4
+MIN_HISTORY = 30
+COOLDOWN_DAYS = 5   # ✅ FINAL CHANGE
 
 
-# ----------------------------------------
+# -----------------------------
 # LOAD DATA
-# ----------------------------------------
-
+# -----------------------------
 def load_data():
     daily = pd.read_csv(DAILY_DEMAND_FILE)
-    # ensure forecast exists; if not, generate it using forecasting module
-    if not FORECAST_FILE.exists():
-        print(f"Forecast file {FORECAST_FILE} not found — generating initial forecast")
-        df = daily.copy()
-        df["Date"] = pd.to_datetime(df["Date"]) if "Date" in df.columns else df["Date"]
-        train_and_forecast(df, silent=True)
-
     forecast = pd.read_csv(FORECAST_FILE)
-    inventory = pd.read_csv(INVENTORY_FILE)
 
     daily["Date"] = pd.to_datetime(daily["Date"])
     forecast["Date"] = pd.to_datetime(forecast["Date"])
-    inventory["Stock_As_Of_Date"] = pd.to_datetime(inventory["Stock_As_Of_Date"])
 
-    return daily, forecast, inventory
-
-
-# ----------------------------------------
-# DRIFT DETECTION
-# ----------------------------------------
-
-def detect_drift(actual, forecast):
-    if actual == 0:
-        return False
-
-    error_ratio = abs(actual - forecast) / actual
-    return error_ratio > DRIFT_THRESHOLD
+    return daily, forecast
 
 
-# ----------------------------------------
-# RETRAIN MODEL
-# ----------------------------------------
-
-def retrain_model(sku_df, sku, current_date):
-    print(f"🔁 Retraining model for {sku}")
-
-    if len(sku_df) < 10:
-        print(f"⚠ Not enough data for {sku}, skipping retrain")
-        return None
-
-    prophet_df = sku_df.rename(columns={"Date": "ds", "Demand": "y"})
-
-    model = Prophet()
-    model.fit(prophet_df)
-
-    model_name = f"models/prophet_{sku}_{current_date.date()}.pkl"
-    os.makedirs("models", exist_ok=True)
-
-    joblib.dump(model, model_name)
-
-    print(f"✅ Model saved → {model_name}")
-
-    return model
+# -----------------------------
+# ERROR
+# -----------------------------
+def compute_error(actual, predicted):
+    return np.mean(np.abs(actual - predicted))
 
 
-# ----------------------------------------
-# UPDATE FORECAST
-# ----------------------------------------
-
-def update_forecast(model, sku, sku_name):
-    future = model.make_future_dataframe(periods=FORECAST_DAYS)
-    forecast = model.predict(future)
-
-    out = forecast[["ds", "yhat"]].rename(columns={"ds": "Date", "yhat": "Forecast_Demand"})
-    out["SKU"] = sku
-    out["SKU_Name"] = sku_name
-
-    return out
+# -----------------------------
+# MODEL
+# -----------------------------
+def train_model(data):
+    return data.mean()
 
 
-# ----------------------------------------
-# INVENTORY UPDATE (FIXED)
-# ----------------------------------------
-
-def update_inventory(inventory, daily_slice, forecast_slice, current_date):
-
-    for _, row in daily_slice.iterrows():
-        sku = row["SKU"]
-        demand = row["Demand"]
-
-        idx = inventory[inventory["SKU"] == sku].index[0]
-
-        # reduce stock
-        inventory.loc[idx, "Current_Stock"] -= demand
-        inventory.loc[idx, "Current_Stock"] = max(0, inventory.loc[idx, "Current_Stock"])
-
-        # update stock date
-        inventory.loc[idx, "Stock_As_Of_Date"] = current_date
-
-        # forecast demand next 7 days
-        f = forecast_slice[forecast_slice["SKU"] == sku].head(7)
-        future_demand = f["Forecast_Demand"].sum()
-
-        current_stock = inventory.loc[idx, "Current_Stock"]
-
-        if current_stock < future_demand:
-            order_qty = int(future_demand - current_stock)
-
-            inventory.loc[idx, "Current_Stock"] += order_qty
-
-            log_event(
-                event_type="RESTOCK",
-                message=f"{sku} restocked {order_qty}",
-                date=current_date
-            )
-
-    return inventory
+def predict(model, steps):
+    return np.array([model] * steps)
 
 
-# ----------------------------------------
-# MAIN PIPELINE
-# ----------------------------------------
+# -----------------------------
+# GENERATE REALISTIC TIMESTAMP
+# -----------------------------
+def generate_event_time(current_date):
+    return datetime(
+        current_date.year,
+        current_date.month,
+        current_date.day,
+        random.randint(9, 18),
+        random.randint(0, 59),
+        random.randint(0, 59)
+    )
 
+
+# -----------------------------
+# PIPELINE
+# -----------------------------
 def run_pipeline(start_date, end_date):
 
     print("\n🚀 Starting pipeline\n")
 
-    daily, forecast, inventory = load_data()
+    MODELS_DIR.mkdir(exist_ok=True)
 
-    current_date = pd.to_datetime(start_date)
-    end_date = pd.to_datetime(end_date)
+    daily, forecast_df = load_data()
+    dates = pd.date_range(start=start_date, end=end_date)
 
-    metrics = []
+    # Track last retrain per SKU
+    last_retrain = {}
 
-    while current_date <= end_date:
+    for current_date in dates:
 
-        print(f"\n📡 Streaming {current_date.date()}")
+        print(f"\n📡 Processing {current_date.date()}")
 
-        daily_slice = daily[daily["Date"] == current_date]
-        forecast_slice = forecast[forecast["Date"] == current_date]
+        for sku in daily["SKU"].unique():
 
-        for _, row in daily_slice.iterrows():
+            sku_data = daily[daily["SKU"] == sku]
 
-            sku = row["SKU"]
-            actual = row["Demand"]
+            history = sku_data[sku_data["Date"] < current_date]["Demand"]
 
-            pred_row = forecast_slice[forecast_slice["SKU"] == sku]
-
-            if pred_row.empty:
+            if len(history) < MIN_HISTORY:
                 continue
 
-            predicted = pred_row["Forecast_Demand"].values[0]
+            # -------------------------
+            # COOLDOWN CHECK
+            # -------------------------
+            if sku in last_retrain:
+                days_since = (current_date - last_retrain[sku]).days
+                if days_since < COOLDOWN_DAYS:
+                    print(f"⏳ {sku} cooldown active ({days_since} days)")
+                    continue
 
-            error = abs(actual - predicted)
+            # -------------------------
+            # BASE MODEL
+            # -------------------------
+            base_model = train_model(history)
 
-            metrics.append({
-                "Date": current_date,
-                "SKU": sku,
-                "Actual": actual,
-                "Predicted": predicted,
-                "Error": error
-            })
+            actual = history.values[-7:]
+            base_pred = predict(base_model, len(actual))
+            base_error = compute_error(actual, base_pred)
 
-            # DRIFT
-            if detect_drift(actual, predicted):
+            # -------------------------
+            # RECENT MODEL
+            # -------------------------
+            recent_model = train_model(history.tail(30))
 
-                print(f"⚠ Drift detected for {sku}")
+            recent_pred = predict(recent_model, len(actual))
+            recent_error = compute_error(actual, recent_pred)
+
+            # -------------------------
+            # DRIFT DETECTION
+            # -------------------------
+            if recent_error > base_error * DRIFT_THRESHOLD:
+
+                event_time = generate_event_time(current_date)
 
                 log_event(
-                    event_type="DRIFT",
-                    message=f"Drift detected for {sku}",
-                    date=current_date
+                    "DRIFT",
+                    f"Drift detected for {sku} ({base_error:.2f} → {recent_error:.2f})",
+                    event_time
                 )
 
-                sku_df = daily[(daily["SKU"] == sku) & (daily["Date"] <= current_date)]
+                # -------------------------
+                # RETRAIN
+                # -------------------------
+                model_name = f"{sku}_{event_time.strftime('%Y-%m-%d_%H-%M-%S')}.pkl"
+                model_path = MODELS_DIR / model_name
 
-                model = retrain_model(sku_df, sku, current_date)
+                with open(model_path, "wb") as f:
+                    pickle.dump(recent_model, f)
 
-                if model:
-                    new_forecast = update_forecast(model, sku, row["SKU_Name"])
+                log_event(
+                    "RETRAIN",
+                    f"{sku} retrained and saved model",
+                    event_time
+                )
 
-                    forecast = forecast[forecast["SKU"] != sku]
-                    forecast = pd.concat([forecast, new_forecast])
+                print(f"✅ {sku} retrained & saved")
 
-                    log_event(
-                        event_type="RETRAIN",
-                        message=f"{sku} retrained",
-                        date=current_date
-                    )
+                # Update cooldown tracker
+                last_retrain[sku] = current_date
 
+            else:
+                print(f"✔ {sku} stable")
+
+        # -------------------------
         # INVENTORY UPDATE
-        inventory = update_inventory(inventory, daily_slice, forecast, current_date)
+        # -------------------------
+        forecast, inventory = load_inventory_data()
 
-        current_date += pd.Timedelta(days=1)
+        if forecast.empty or inventory.empty:
+            print("⚠ Inventory skipped (missing data)")
+            continue
 
-    # SAVE FILES
-    pd.DataFrame(metrics).to_csv("data/processed/metrics.csv", index=False)
-    forecast.to_csv("data/processed/forecast_2025.csv", index=False)
-    inventory.to_csv("data/processed/inventory_master.csv", index=False)
+        recs = generate_inventory_recommendations(
+            forecast,
+            inventory,
+            current_date
+        )
 
-    print("\n✅ Pipeline completed")
+        if recs is not None and not recs.empty:
+            save_inventory(recs)
+            print("📦 Inventory updated")
+        else:
+            print("⚠ No inventory recommendations generated")
+
+    print("\n✅ Pipeline completed\n")
 
 
-# ----------------------------------------
+# -----------------------------
 # CLI
-# ----------------------------------------
-
+# -----------------------------
 if __name__ == "__main__":
-
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--start", type=str, required=True)
-    parser.add_argument("--end", type=str, required=True)
+    parser.add_argument("--start", required=True)
+    parser.add_argument("--end", required=True)
 
     args = parser.parse_args()
 
