@@ -1,218 +1,239 @@
-"""
-forecasting.py
-──────────────
-Trains one Facebook Prophet model per SKU using a clear time-based split,
-then generates a 365-day demand forecast for the full year 2026.
-
-Data Split Strategy
-───────────────────
-  Training data    : 2024-01-01 → 2024-12-31  (in-sample fit)
-  Validation data  : 2025-01-01 → 2025-06-30  (out-of-sample MAE evaluation)
-  Final training   : 2024-01-01 → 2025-12-31  (all history, before 2026 forecast)
-
-Steps
-─────
-  1. Validation phase  — train on 2024, predict 2025-H1, compute MAE per SKU
-  2. Final phase       — retrain on full 2024–2025 data, forecast all of 2026
-  3. Save final models and forecast CSV
-
-Why Prophet?
-────────────
-• Designed for business time series with strong seasonality.
-• Handles missing values and outliers gracefully.
-• Produces human-interpretable trend + seasonality components.
-
-Inputs  →  data/processed/daily_demand.csv
-Outputs →  data/processed/forecast_2026.csv
-           models/<SKU>.pkl   (one trained model pickle per SKU)
-"""
-
-import pickle
-import warnings
-from pathlib import Path
-
 import pandas as pd
+import numpy as np
 from prophet import Prophet
+from tqdm import tqdm
+from pathlib import Path
+import sys
+import pickle
+import glob
 
-warnings.filterwarnings("ignore")   # suppress Stan / Prophet internal noise
+if __package__ is None or __package__ == "":
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-# ── Paths ─────────────────────────────────────────────────────────────────────
-DAILY_PATH    = Path("data/processed/daily_demand.csv")
-FORECAST_PATH = Path("data/processed/forecast_2026.csv")
-MODELS_DIR    = Path("models")
-
-# ── Forecast parameters ───────────────────────────────────────────────────────
-FORECAST_YEAR    = 2026
-FORECAST_PERIODS = 365   # one full calendar year
-
-# ── Data split boundaries ──────────────────────────────────────────────────────
-TRAIN_END   = pd.Timestamp("2024-12-31")   # end of training window
-VAL_START   = pd.Timestamp("2025-01-01")   # start of validation window
-VAL_END     = pd.Timestamp("2025-06-30")   # end   of validation window
+from src.config import DAILY_DEMAND_FILE, FORECAST_FILE, MODELS_DIR
 
 
-def load_daily_demand(path: Path = DAILY_PATH) -> pd.DataFrame:
-    """Load the preprocessed daily demand CSV."""
-    return pd.read_csv(path, parse_dates=["Date"])
+class SimpleAvgModel:
+    """Fallback lightweight model: predicts historical value when available else mean."""
+    def __init__(self, hist_df):
+        self.hist = dict((pd.to_datetime(k).to_pydatetime(), float(v)) for k, v in hist_df.set_index('ds')['y'].to_dict().items())
+        self.avg = float(hist_df['y'].mean()) if len(hist_df) > 0 else 0.0
+
+    def predict(self, df):
+        # df expected to have column 'ds'
+        dates = pd.to_datetime(df['ds'])
+        yhat = [self.hist.get(d.to_pydatetime(), self.avg) for d in dates]
+        return pd.DataFrame({'ds': dates.values, 'yhat': yhat})
 
 
-def train_prophet(sku_df: pd.DataFrame) -> Prophet:
-    """
-    Fit a Prophet model for a single SKU's daily demand series.
-
-    Prophet requires exactly two columns:
-      ds  →  date
-      y   →  numeric target (demand)
-
-    Seasonality settings
-    ────────────────────
-    • yearly  : captures annual purchase cycles (e.g. peak Q4)
-    • weekly  : captures weekday vs. weekend patterns
-    • daily   : off — not meaningful at daily granularity
-    """
-    ts = sku_df.rename(columns={"Date": "ds", "demand": "y"})[["ds", "y"]]
-
-    model = Prophet(
-        yearly_seasonality=True,
-        weekly_seasonality=True,
-        daily_seasonality=False,
-        interval_width=0.95,        # 95 % prediction interval
-        changepoint_prior_scale=0.05,  # controls trend flexibility
-    )
-    model.fit(ts)
-    return model
-
-
-def forecast_sku(model: Prophet, periods: int = FORECAST_PERIODS) -> pd.DataFrame:
-    """
-    Extend the model's horizon by `periods` days and return predictions.
-
-    Returned columns: ds | yhat | yhat_lower | yhat_upper
-    """
-    future   = model.make_future_dataframe(periods=periods, freq="D")
-    forecast = model.predict(future)
-    return forecast[["ds", "yhat", "yhat_lower", "yhat_upper"]]
-
-
-def save_model(model: Prophet, sku: str) -> Path:
-    """Pickle a trained Prophet model to models/<SKU>.pkl."""
+def _save_model_file(model, sku, timestamp):
+    safe_sku = str(sku).replace("/", "-")
     MODELS_DIR.mkdir(parents=True, exist_ok=True)
-    path = MODELS_DIR / f"{sku}.pkl"
-    with open(path, "wb") as f:
-        pickle.dump(model, f)
-    return path
+    model_filename = f"{safe_sku}_{timestamp}.pkl"
+    model_path = MODELS_DIR / model_filename
+    try:
+        with open(model_path, 'wb') as f:
+            pickle.dump(model, f)
+        # update latest pointer
+        latest_ptr = MODELS_DIR / f"{safe_sku}_latest.pkl"
+        with open(latest_ptr, 'wb') as f:
+            pickle.dump(model, f)
+        return model_path
+    except Exception:
+        return None
 
+def run_forecasting(df, silent=False):
 
-def load_model(sku: str) -> Prophet:
-    """Load a previously saved Prophet model for the given SKU."""
-    path = MODELS_DIR / f"{sku}.pkl"
-    if not path.exists():
-        raise FileNotFoundError(f"No saved model for SKU '{sku}' at {path}")
-    with open(path, "rb") as f:
-        return pickle.load(f)
+    if not silent:
+        print("\n🔮 Starting forecasting...\n")
 
+    forecasts = []
 
-def run_forecasting(save: bool = True) -> tuple[dict, pd.DataFrame]:
-    """
-    Main entry point — three-phase forecasting pipeline.
+    for sku in tqdm(df["SKU"].unique(), desc="Forecasting SKUs", disable=silent):
 
-    Phase 1 — Validation
-    ────────────────────
-    For each SKU, train on 2024 data only, then predict 2025-H1 and
-    compute the Mean Absolute Error (MAE) against held-out actuals.
-    This validates that the model generalises before we commit it to
-    a 2026 production forecast.
+        sku_df = df[df["SKU"] == sku].copy()
 
-    Phase 2 — Final training
-    ────────────────────────
-    Retrain on the full 2024–2025 dataset (all available history) and
-    generate the 2026 forecast that the inventory engine will use.
-
-    Returns
-    ───────
-    models      : dict  {sku → Prophet}   (final models)
-    forecast_df : DataFrame  Date | SKU | forecast_demand
-    """
-    daily = load_daily_demand()
-    skus  = sorted(daily["SKU"].unique())
-
-    # ── Phase 1 — Validation ────────────────────────────────────────────────
-    print(f"[Forecasting] Phase 1 — Validation  "
-          f"(train: 2024 | val: 2025-H1)  [{len(skus)} SKUs]")
-
-    val_maes: list[float] = []
-
-    for i, sku in enumerate(skus, 1):
-        sku_df = daily[daily["SKU"] == sku].copy()
-
-        train_df = sku_df[sku_df["Date"] <= TRAIN_END]
-        val_df   = sku_df[(sku_df["Date"] >= VAL_START) & (sku_df["Date"] <= VAL_END)]
-
-        if len(train_df) < 2 or val_df.empty:
+        if len(sku_df) < 10:
+            if not silent:
+                print(f"⚠ Skipping {sku} (not enough data)")
             continue
 
-        # Train on 2024
-        val_model = train_prophet(train_df)
+        prophet_df = sku_df.rename(columns={"Date": "ds", "Demand": "y"})[["ds", "y"]]
 
-        # Predict far enough to cover the validation window
-        val_days_needed = int((VAL_END - TRAIN_END).days) + 1
-        fc = forecast_sku(val_model, periods=val_days_needed)
+        # Try to load latest model for SKU if exists; otherwise attempt to train a fresh Prophet model
+        model = load_latest_model(sku)
 
-        # Align predictions with actuals
-        fc_val = fc[(fc["ds"] >= VAL_START) & (fc["ds"] <= VAL_END)].copy()
-        fc_val = fc_val.rename(columns={"ds": "Date", "yhat": "forecast_demand"})
+        if model is None:
+            try:
+                model = Prophet(
+                    daily_seasonality=True,
+                    weekly_seasonality=True,
+                    yearly_seasonality=False,
+                )
+                model.fit(prophet_df)
+                # Save an initial model only if no model exists for this SKU yet
+                safe_sku = str(sku).replace("/", "-")
+                if get_latest_model_path(safe_sku) is None:
+                    ts = prophet_df["ds"].max().strftime("%Y-%m-%d_%H-%M-%S")
+                    _save_model_file(model, sku, f"initial_{ts}")
+            except Exception:
+                # if Prophet cannot be instantiated or trained, leave model as None and use fallback
+                model = None
 
-        merged  = val_df.merge(fc_val[["Date", "forecast_demand"]], on="Date", how="inner")
-        if merged.empty:
-            continue
+        # If a usable model exists, try to predict; otherwise use fallback average-based forecast
+        if model is not None:
+            try:
+                future = model.make_future_dataframe(periods=30)
+                forecast = model.predict(future)
+                forecast["yhat"] = forecast["yhat"].clip(lower=0)
+            except Exception:
+                model = None
 
-        mae = (merged["demand"] - merged["forecast_demand"]).abs().mean()
-        val_maes.append(mae)
+        if model is None:
+            # Fallback: simple average-based forecast when Prophet is unavailable
+            hist_min = prophet_df["ds"].min()
+            hist_max = prophet_df["ds"].max()
+            full_dates = pd.date_range(start=hist_min, end=hist_max + pd.Timedelta(days=30), freq="D")
+            avg = prophet_df["y"].mean()
+            yhat = []
+            hist_map = prophet_df.set_index("ds")["y"].to_dict()
+            for d in full_dates:
+                if d in hist_map:
+                    yhat.append(float(hist_map[d]))
+                else:
+                    yhat.append(float(avg))
+            forecast = pd.DataFrame({"ds": full_dates, "yhat": yhat})
+            # create a lightweight fallback model and save only if no existing model
+            model = SimpleAvgModel(prophet_df)
+            safe_sku = str(sku).replace("/", "-")
+            if get_latest_model_path(safe_sku) is None:
+                ts = prophet_df["ds"].max().strftime("%Y-%m-%d_%H-%M-%S")
+                _save_model_file(model, sku, f"initial_{ts}")
 
-    avg_val_mae = sum(val_maes) / len(val_maes) if val_maes else float("nan")
-    print(f"  Validation complete — avg MAE across {len(val_maes)} SKUs: "
-          f"{avg_val_mae:.2f} units/day")
+        forecast["SKU"] = sku
 
-    # ── Phase 2 — Final training & 2026 forecast ────────────────────────────
-    print(f"\n[Forecasting] Phase 2 — Final training  "
-          f"(train: 2024–2025 | forecast: {FORECAST_YEAR})")
+        forecast = forecast[["ds", "yhat", "SKU"]]
+        forecast.columns = ["Date", "Forecast_Demand", "SKU"]
 
-    all_forecasts: list[pd.DataFrame] = []
-    models:        dict               = {}
+        forecasts.append(forecast)
 
-    for i, sku in enumerate(skus, 1):
-        sku_df = daily[daily["SKU"] == sku].copy()
+    final_forecast = pd.concat(forecasts)
 
-        # Train on full 2024–2025 history
-        model = train_prophet(sku_df)
+    FORECAST_FILE.parent.mkdir(parents=True, exist_ok=True)
+    final_forecast.to_csv(FORECAST_FILE, index=False)
 
-        # Generate FORECAST_PERIODS days beyond the training end
-        fc = forecast_sku(model, periods=FORECAST_PERIODS)
+    if not silent:
+        print(f"\n✅ Forecast saved to {FORECAST_FILE}")
 
-        # Keep only 2026 rows
-        fc_2026 = fc[fc["ds"].dt.year == FORECAST_YEAR].copy()
-        fc_2026["SKU"] = sku
-        fc_2026 = fc_2026.rename(columns={"ds": "Date", "yhat": "forecast_demand"})
+    return final_forecast
 
-        # Clip negative forecasts to zero (demand cannot be negative)
-        fc_2026["forecast_demand"] = fc_2026["forecast_demand"].clip(lower=0).round(2)
 
-        all_forecasts.append(fc_2026[["Date", "SKU", "forecast_demand"]])
+def train_and_forecast(df, sku=None, silent=False):
+    if sku is not None:
+        df = df[df["SKU"] == sku].copy()
+    return run_forecasting(df, silent=silent)
 
-        models[sku] = model
-        save_model(model, sku)
-        print(f"  [{i:>3}/{len(skus)}] {sku} — retrained on 2024–2025 & 2026 forecast ✓")
 
-    forecast_df = pd.concat(all_forecasts, ignore_index=True)
+def save_retrained_model_artifact(sku_data, sku, drift_time):
+    prophet_df = sku_data.rename(columns={"Date": "ds", "Demand": "y"})[["ds", "y"]]
 
-    if save:
-        FORECAST_PATH.parent.mkdir(parents=True, exist_ok=True)
-        forecast_df.to_csv(FORECAST_PATH, index=False)
-        print(f"  Saved → {FORECAST_PATH}")
+    MODELS_DIR.mkdir(parents=True, exist_ok=True)
 
-    print("[Forecasting] Done.")
-    return models, forecast_df
+    # Train candidate model
+    try:
+        new_model = Prophet(
+            daily_seasonality=True,
+            weekly_seasonality=True,
+            yearly_seasonality=False,
+        )
+        new_model.fit(prophet_df)
+    except Exception:
+        # fallback to lightweight model when Prophet is unavailable
+        new_model = SimpleAvgModel(prophet_df)
+
+    # Evaluate against existing latest model if present
+    safe_sku = str(sku).replace("/", "-")
+    latest = get_latest_model_path(safe_sku)
+
+    def _mape_for(model, df):
+        if model is None or len(df) == 0:
+            return float('inf')
+        test_df = df.rename(columns={"Date": "ds", "Demand": "y"})[["ds", "y"]]
+        try:
+            pred = model.predict(test_df[["ds"]])
+        except Exception:
+            return float('inf')
+
+        y_true = test_df["y"].values
+        y_pred = pred["yhat"].values
+
+        # avoid divide by zero by using at least 1 in the denominator
+        denom = np.maximum(np.abs(y_true), 1.0)
+        mape = np.mean(np.abs(y_true - y_pred) / denom)
+        return float(mape)
+
+    new_mape = _mape_for(new_model, sku_data)
+
+    if latest is not None:
+        try:
+            with open(latest, 'rb') as f:
+                old_model = pickle.load(f)
+        except Exception:
+            old_model = None
+        old_mape = _mape_for(old_model, sku_data)
+    else:
+        old_model = None
+        old_mape = float('inf')
+
+    timestamp = pd.to_datetime(drift_time).strftime("%Y-%m-%d_%H-%M-%S")
+    model_filename = f"{safe_sku}_{timestamp}.pkl"
+    model_path = MODELS_DIR / model_filename
+
+    # Save new model only if it improves MAPE (lower is better) or no previous model
+    if new_mape < old_mape or latest is None:
+        with open(model_path, 'wb') as f:
+            pickle.dump(new_model, f)
+
+        # update latest pointer
+        latest_ptr = MODELS_DIR / f"{safe_sku}_latest.pkl"
+        with open(latest_ptr, 'wb') as f:
+            pickle.dump(new_model, f)
+
+        return model_path
+    else:
+        # keep existing model
+        return Path(latest) if latest is not None else None
+
+
+def get_latest_model_path(safe_sku):
+    # find model files for SKU and return the most recent by name ordering
+    pattern = str(MODELS_DIR / f"{safe_sku}_*.pkl")
+    files = glob.glob(pattern)
+    if not files:
+        # also support latest pointer
+        latest_ptr = MODELS_DIR / f"{safe_sku}_latest.pkl"
+        if latest_ptr.exists():
+            return str(latest_ptr)
+        return None
+    files.sort()
+    return files[-1]
+
+
+def load_latest_model(sku):
+    safe_sku = str(sku).replace("/", "-")
+    latest = get_latest_model_path(safe_sku)
+    if latest is None:
+        return None
+    try:
+        with open(latest, 'rb') as f:
+            model = pickle.load(f)
+        return model
+    except Exception:
+        return None
 
 
 if __name__ == "__main__":
-    run_forecasting()
+    df = pd.read_csv(DAILY_DEMAND_FILE)
+    df["Date"] = pd.to_datetime(df["Date"])
+
+    run_forecasting(df)

@@ -1,0 +1,73 @@
+SKU,Current_Stock,Stock_As_Of_Date,Recommended_Order_Qty,Risk_Level,Recommendation
+APPL-001,308,2025-07-27,100,SAFE,Stock sufficient
+PETS-001,327,2025-07-27,83,WARNING,Plan reorder soon
+PCAR-003,330,2025-07-27,85,SAFE,Stock sufficient
+PCAR-002,440,2025-07-27,0,SAFE,Stock sufficient
+BABY-002,392,2025-07-27,14,SAFE,Stock sufficient
+PCAR-001,415,2025-07-27,0,SAFE,Stock sufficient
+OUTD-003,308,2025-07-27,98,SAFE,Stock sufficient
+BABY-001,318,2025-07-27,89,WARNING,Plan reorder soon
+BABY-003,369,2025-07-27,44,SAFE,Stock sufficient
+OUTD-001,312,2025-07-27,90,SAFE,Stock sufficient
+OFFC-003,337,2025-07-27,98,SAFE,Stock sufficient
+BEAU-001,454,2025-07-27,0,SAFE,Stock sufficient
+OFFC-002,318,2025-07-27,97,SAFE,Stock sufficient
+OFFC-001,406,2025-07-27,0,SAFE,Stock sufficient
+BEAU-002,327,2025-07-27,93,SAFE,Stock sufficient
+OUTD-002,317,2025-07-27,82,WARNING,Plan reorder soon
+MUSC-003,482,2025-07-27,0,SAFE,Stock sufficient
+PETS-002,333,2025-07-27,81,WARNING,Plan reorder soon
+AUTO-003,435,2025-07-27,0,SAFE,Stock sufficient
+APPL-002,321,2025-07-27,99,SAFE,Stock sufficient
+TOYS-001,444,2025-07-27,0,SAFE,Stock sufficient
+TOOL-003,438,2025-07-27,0,SAFE,Stock sufficient
+APPL-003,318,2025-07-27,101,SAFE,Stock sufficient
+TOOL-001,446,2025-07-27,0,SAFE,Stock sufficient
+PETS-003,345,2025-07-27,81,SAFE,Stock sufficient
+SPRT-003,337,2025-07-27,83,SAFE,Stock sufficient
+SPRT-002,525,2025-07-27,0,SAFE,Stock sufficient
+SPRT-001,383,2025-07-27,27,SAFE,Stock sufficient
+AUTO-002,305,2025-07-27,116,WARNING,Plan reorder soon
+SOFT-003,414,2025-07-27,0,SAFE,Stock sufficient
+SOFT-002,394,2025-07-27,5,SAFE,Stock sufficient
+AUTO-001,288,2025-07-27,101,SAFE,Stock sufficient
+TOYS-002,345,2025-07-27,82,WARNING,Plan reorder soon
+MUSC-002,341,2025-07-27,74,SAFE,Stock sufficient
+BEAU-003,333,2025-07-27,99,SAFE,Stock sufficient
+GROC-002,449,2025-07-27,143,SAFE,Stock sufficient
+GROC-001,690,2025-07-27,0,SAFE,Stock sufficient
+CLTH-003,299,2025-07-27,34,SAFE,Stock sufficient
+GRDN-003,311,2025-07-27,94,SAFE,Stock sufficient
+GRDN-002,439,2025-07-27,0,SAFE,Stock sufficient
+DIY0-001,317,2025-07-27,79,SAFE,Stock sufficient
+GROC-003,458,2025-07-27,135,SAFE,Stock sufficient
+GRDN-001,322,2025-07-27,98,SAFE,Stock sufficient
+FURN-002,325,2025-07-27,94,SAFE,Stock sufficient
+DIY0-002,330,2025-07-27,97,WARNING,Plan reorder soon
+FURN-001,324,2025-07-27,98,SAFE,Stock sufficient
+ELEC-003,218,2025-07-27,28,SAFE,Stock sufficient
+DIY0-003,444,2025-07-27,0,SAFE,Stock sufficient
+ELEC-002,192,2025-07-27,54,SAFE,Stock sufficient
+FURN-003,320,2025-07-27,84,WARNING,Plan reorder soon
+MUSC-001,391,2025-07-27,22,SAFE,Stock sufficient
+CLTH-002,308,2025-07-27,17,SAFE,Stock sufficient
+HLTH-002,314,2025-07-27,99,SAFE,Stock sufficient
+MOVI-003,329,2025-07-27,91,SAFE,Stock sufficient
+MOVI-002,334,2025-07-27,98,SAFE,Stock sufficient
+BOOK-001,328,2025-07-27,103,SAFE,Stock sufficient
+MOVI-001,442,2025-07-27,0,SAFE,Stock sufficient
+JWLY-003,330,2025-07-27,109,WARNING,Plan reorder soon
+JWLY-002,316,2025-07-27,87,WARNING,Plan reorder soon
+HLTH-001,332,2025-07-27,98,WARNING,Plan reorder soon
+HOMK-003,492,2025-07-27,0,SAFE,Stock sufficient
+BOOK-003,322,2025-07-27,94,WARNING,Plan reorder soon
+HOMK-002,467,2025-07-27,0,SAFE,Stock sufficient
+HOMK-001,457,2025-07-27,0,SAFE,Stock sufficient
+HLTH-003,329,2025-07-27,84,SAFE,Stock sufficient
+CLTH-001,240,2025-07-27,87,WARNING,Plan reorder soon
+JWLY-001,418,2025-07-27,5,SAFE,Stock sufficient
+TOYS-003,469,2025-07-27,0,SAFE,Stock sufficient
+ELEC-001,188,2025-07-27,57,SAFE,Stock sufficient
+TOOL-002,396,2025-07-27,0,SAFE,Stock sufficient
+SOFT-001,515,2025-07-27,0,SAFE,Stock sufficient
+BOOK-002,315,2025-07-27,152,SAFE,Stock sufficient
