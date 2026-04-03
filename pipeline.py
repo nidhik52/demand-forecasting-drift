@@ -6,6 +6,7 @@ import joblib
 
 from src.config import DAILY_DEMAND_FILE, FORECAST_FILE, INVENTORY_FILE, DRIFT_THRESHOLD
 from src.event_logger import log_event
+from src.forecasting import train_and_forecast
 
 
 # ----------------------------------------
@@ -14,6 +15,13 @@ from src.event_logger import log_event
 
 def load_data():
     daily = pd.read_csv(DAILY_DEMAND_FILE)
+    # ensure forecast exists; if not, generate it using forecasting module
+    if not FORECAST_FILE.exists():
+        print(f"Forecast file {FORECAST_FILE} not found — generating initial forecast")
+        df = daily.copy()
+        df["Date"] = pd.to_datetime(df["Date"]) if "Date" in df.columns else df["Date"]
+        train_and_forecast(df, silent=True)
+
     forecast = pd.read_csv(FORECAST_FILE)
     inventory = pd.read_csv(INVENTORY_FILE)
 
