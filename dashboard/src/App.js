@@ -11,7 +11,7 @@ import {
   Legend
 } from "recharts";
 
-const API = (process.env.REACT_APP_API_BASE_URL || "").replace(/\/$/, "");
+const API = (process.env.REACT_APP_API_BASE_URL || "https://demand-forecasting-drift.onrender.com").replace(/\/$/, "");
 
 const getApiUrl = (path) => `${API}${path}`;
 
