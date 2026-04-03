@@ -3,11 +3,19 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
 
 # Virtual environment
 .venv/
 venv/
 env/
+.env
+.env.*
+!.env.example
 
 # Jupyter
 .ipynb_checkpoints/
@@ -20,8 +28,6 @@ models/*.pkl
 
 # Generated data
 data/processed/
-data/processed/inventory_recommendations.csv
-data/processed/validation_metrics.csv
 
 # OS files
 .DS_Store
@@ -36,3 +42,14 @@ Thumbs.db
 
 # Streamlit cache
 .streamlit/
+
+# Node Modules
+node_modules/
+
+# Dashboard build artifacts
+dashboard/build/
+
+# Frontend local env files
+dashboard/.env
+dashboard/.env.*
+!dashboard/.env.example
