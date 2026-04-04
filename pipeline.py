@@ -15,7 +15,8 @@ from src.config import (
     MODELS_DIR,
     METRICS_FILE,
     INVENTORY_FILE,
-    DRIFT_THRESHOLD
+    DRIFT_THRESHOLD,
+    DRIFT_THRESHOLD_PCT
 )
 
 from src.event_logger import log_event
@@ -53,7 +54,9 @@ def forecast(model):
 # -----------------------------
 def detect_drift(actual, predicted):
     error = abs(actual - predicted)
-    return error, error > DRIFT_THRESHOLD
+    denom = max(abs(actual), 1.0)
+    pct_error = error / denom
+    return error, error > DRIFT_THRESHOLD and pct_error > DRIFT_THRESHOLD_PCT
 
 # -----------------------------
 # SAVE MODEL
@@ -105,24 +108,26 @@ def run_pipeline(start_date, end_date):
 
             error, drift = detect_drift(actual, predicted)
 
-            timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            time_of_day = datetime.now() - datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+            drift_time = current_date + time_of_day
+            timestamp = drift_time.strftime("%Y-%m-%d_%H-%M-%S")
 
             # -----------------------------
             # DRIFT HANDLING
             # -----------------------------
             if drift:
-                log_event("DRIFT", f"Drift detected for {sku} ({actual:.2f} → {predicted:.2f})", datetime.now())
+                log_event("DRIFT", f"Drift detected for {sku} ({actual:.2f} → {predicted:.2f})", drift_time)
 
                 model = train_model(sku_data)
 
                 save_model(model, sku, timestamp)
 
-                log_event("RETRAIN", f"{sku} retrained and saved model", datetime.now())
+                log_event("RETRAIN", f"{sku} retrained and saved model", drift_time)
 
                 print(f"✅ {sku} retrained")
 
             else:
-                log_event("NO_DRIFT", f"{sku} stable, model reused", datetime.now())
+                log_event("NO_DRIFT", f"{sku} stable, model reused", drift_time)
 
                 print(f"ℹ️ {sku} no drift, using existing model")
 
@@ -151,9 +156,16 @@ def run_pipeline(start_date, end_date):
         # -----------------------------
         # INVENTORY UPDATE
         # -----------------------------
-        inv_df = load_inventory_data()
-        recommendations = generate_inventory_recommendations(inv_df, metrics_df)
+        forecast_df, inv_df = load_inventory_data()
+        if "Stock_As_Of_Date" in inv_df.columns:
+            inv_df["Stock_As_Of_Date"] = end_date
+        recommendations = generate_inventory_recommendations(
+            forecast_df,
+            inv_df,
+            end_date
+        )
         save_inventory(recommendations)
+        inv_df.to_csv(INVENTORY_FILE, index=False)
 
         print("📦 Inventory updated")
 

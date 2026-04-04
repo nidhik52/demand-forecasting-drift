@@ -93,12 +93,17 @@ def get_metrics(sku: str, start: str, end: str):
     if df.empty:
         return []
 
-    df["Date"] = pd.to_datetime(df["Date"])
+    df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
+    start_dt = pd.to_datetime(start, errors="coerce")
+    end_dt = pd.to_datetime(end, errors="coerce")
+
+    if pd.isna(start_dt) or pd.isna(end_dt):
+        return []
 
     df = df[
         (df["SKU"] == sku) &
-        (df["Date"] >= start) &
-        (df["Date"] <= end)
+        (df["Date"] >= start_dt) &
+        (df["Date"] <= end_dt)
     ]
 
     return df.sort_values("Date").to_dict(orient="records")

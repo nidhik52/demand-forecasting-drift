@@ -123,6 +123,12 @@ Use Docker Compose watch to rebuild and restart when backend or dashboard files 
 docker compose watch
 ```
 
+Or use the helper script:
+
+```bash
+./scripts/auto-build-watch.sh
+```
+
 The container image now includes the contents of `models/`, while `data/` remains mounted from the host so runtime outputs persist without bloating the image.
 
 ### 3. Auto redeploy on remote git changes (Docker-only)
