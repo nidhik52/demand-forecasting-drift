@@ -1,0 +1,73 @@
+SKU,Current_Stock,Stock_As_Of_Date,Recommended_Order_Qty,Risk_Level,Recommendation
+APPL-001,333,2025-09-30,0,SAFE,Stock sufficient
+PETS-001,684,2025-09-30,0,SAFE,Stock sufficient
+PCAR-003,277,2025-09-30,0,SAFE,Stock sufficient
+PCAR-002,460,2025-09-30,0,SAFE,Stock sufficient
+BABY-002,0,2025-09-30,111,CRITICAL,URGENT: reorder immediately
+PCAR-001,211,2025-09-30,0,SAFE,Stock sufficient
+OUTD-003,67,2025-09-30,11,WARNING,Plan reorder soon
+BABY-001,287,2025-09-30,0,SAFE,Stock sufficient
+BABY-003,40,2025-09-30,121,CRITICAL,Stock will run out before lead time
+OUTD-001,53,2025-09-30,103,CRITICAL,Stock will run out before lead time
+OFFC-003,337,2025-09-30,0,SAFE,Stock sufficient
+BEAU-001,57,2025-09-30,27,CRITICAL,Stock will run out before lead time
+OFFC-002,0,2025-09-30,160,CRITICAL,URGENT: reorder immediately
+OFFC-001,242,2025-09-30,0,SAFE,Stock sufficient
+BEAU-002,0,2025-09-30,82,CRITICAL,URGENT: reorder immediately
+OUTD-002,622,2025-09-30,0,SAFE,Stock sufficient
+MUSC-003,407,2025-09-30,0,SAFE,Stock sufficient
+PETS-002,333,2025-09-30,0,SAFE,Stock sufficient
+AUTO-003,232,2025-09-30,0,SAFE,Stock sufficient
+APPL-002,14,2025-09-30,104,CRITICAL,Stock will run out before lead time
+TOYS-001,152,2025-09-30,0,SAFE,Stock sufficient
+TOOL-003,256,2025-09-30,0,SAFE,Stock sufficient
+APPL-003,0,2025-09-30,113,CRITICAL,URGENT: reorder immediately
+TOOL-002,417,2025-09-30,0,SAFE,Stock sufficient
+TOOL-001,602,2025-09-30,0,SAFE,Stock sufficient
+PETS-003,529,2025-09-30,0,SAFE,Stock sufficient
+SPRT-003,14,2025-09-30,104,CRITICAL,Stock will run out before lead time
+SPRT-002,343,2025-09-30,0,SAFE,Stock sufficient
+SPRT-001,69,2025-09-30,46,CRITICAL,Stock will run out before lead time
+AUTO-002,795,2025-09-30,0,SAFE,Stock sufficient
+SOFT-003,66,2025-09-30,13,WARNING,Plan reorder soon
+SOFT-002,0,2025-09-30,77,CRITICAL,URGENT: reorder immediately
+SOFT-001,540,2025-09-30,0,SAFE,Stock sufficient
+AUTO-001,586,2025-09-30,0,SAFE,Stock sufficient
+TOYS-002,795,2025-09-30,0,SAFE,Stock sufficient
+MUSC-002,750,2025-09-30,0,SAFE,Stock sufficient
+BEAU-003,539,2025-09-30,0,SAFE,Stock sufficient
+GROC-002,99,2025-09-30,136,CRITICAL,Stock will run out before lead time
+GROC-001,231,2025-09-30,0,SAFE,Stock sufficient
+CLTH-003,266,2025-09-30,0,SAFE,Stock sufficient
+GRDN-003,456,2025-09-30,0,SAFE,Stock sufficient
+GRDN-002,38,2025-09-30,35,CRITICAL,Stock will run out before lead time
+DIY0-001,244,2025-09-30,0,SAFE,Stock sufficient
+GROC-003,19,2025-09-30,100,CRITICAL,Stock will run out before lead time
+GRDN-001,195,2025-09-30,0,SAFE,Stock sufficient
+FURN-002,331,2025-09-30,0,SAFE,Stock sufficient
+DIY0-002,70,2025-09-30,99,CRITICAL,Stock will run out before lead time
+FURN-001,56,2025-09-30,60,CRITICAL,Stock will run out before lead time
+ELEC-003,241,2025-09-30,0,SAFE,Stock sufficient
+DIY0-003,287,2025-09-30,0,SAFE,Stock sufficient
+ELEC-002,460,2025-09-30,0,SAFE,Stock sufficient
+FURN-003,483,2025-09-30,0,SAFE,Stock sufficient
+MUSC-001,13,2025-09-30,145,CRITICAL,Stock will run out before lead time
+CLTH-002,315,2025-09-30,0,SAFE,Stock sufficient
+HLTH-002,485,2025-09-30,0,SAFE,Stock sufficient
+MOVI-003,252,2025-09-30,0,SAFE,Stock sufficient
+MOVI-002,42,2025-09-30,76,CRITICAL,Stock will run out before lead time
+BOOK-001,345,2025-09-30,0,SAFE,Stock sufficient
+MOVI-001,245,2025-09-30,0,SAFE,Stock sufficient
+JWLY-003,29,2025-09-30,92,CRITICAL,Stock will run out before lead time
+JWLY-002,160,2025-09-30,0,SAFE,Stock sufficient
+HLTH-001,14,2025-09-30,151,CRITICAL,Stock will run out before lead time
+BOOK-002,153,2025-09-30,0,SAFE,Stock sufficient
+HOMK-003,0,2025-09-30,82,CRITICAL,URGENT: reorder immediately
+BOOK-003,151,2025-09-30,0,SAFE,Stock sufficient
+HOMK-002,198,2025-09-30,0,SAFE,Stock sufficient
+HOMK-001,255,2025-09-30,0,SAFE,Stock sufficient
+HLTH-003,68,2025-09-30,46,CRITICAL,Stock will run out before lead time
+CLTH-001,218,2025-09-30,0,SAFE,Stock sufficient
+JWLY-001,14,2025-09-30,70,CRITICAL,Stock will run out before lead time
+TOYS-003,212,2025-09-30,0,SAFE,Stock sufficient
+ELEC-001,461,2025-09-30,0,SAFE,Stock sufficient

@@ -1,0 +1,15 @@
+.git
+.github
+.vscode
+.venv
+__pycache__
+*.pyc
+.env
+.env.*
+data
+models
+notebook
+dashboard/node_modules
+dashboard/build
+dashboard/.env
+dashboard/.env.*
