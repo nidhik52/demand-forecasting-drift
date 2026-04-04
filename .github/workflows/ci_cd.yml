@@ -14,28 +14,43 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 🔥 Setup Python
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
+      # 🔥 Cache pip (IMPROVED)
       - name: Cache pip
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
+      # 🔥 Install deps
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      # 🔥 Pipeline run
       - name: Run pipeline
         run: |
           python pipeline.py --start 2025-07-01 --end 2025-07-05
 
+      # 🔥 Validate outputs
       - name: Validate outputs
         run: |
           test -f data/processed/metrics.csv
           test -f data/processed/system_events.csv
+          test -f data/processed/inventory_recommendations.csv
+
+      # 🔥 API test (MORE STABLE)
+      - name: Test API
+        run: |
+          uvicorn api:app --host 127.0.0.1 --port 8000 &
+          sleep 8
+          curl --fail http://127.0.0.1:8000/skus
 
   frontend:
     runs-on: ubuntu-latest
@@ -44,16 +59,28 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 🔥 Cache node modules (NEW)
+      - name: Cache Node
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('dashboard/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      # 🔥 Setup Node
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: "18"
 
+      # 🔥 Install deps
       - name: Install dependencies
         run: |
           cd dashboard
           npm install
 
+      # 🔥 Build (fixes your Vercel issue)
       - name: Build app
         run: |
           cd dashboard
