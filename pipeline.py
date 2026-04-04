@@ -7,15 +7,22 @@ from pathlib import Path
 
 from pathlib import Path
 
+# -----------------------------
+# CREATE DIRS
+# -----------------------------
+MODELS_DIR.mkdir(parents=True, exist_ok=True)
 Path("data/processed").mkdir(parents=True, exist_ok=True)
-Path("models").mkdir(parents=True, exist_ok=True)
 
+# -----------------------------
+# IMPORT CONFIG
+# -----------------------------
 from src.config import (
     DAILY_DEMAND_FILE,
     FORECAST_FILE,
     MODELS_DIR,
     METRICS_FILE,
-    INVENTORY_FILE
+    INVENTORY_FILE,
+    DRIFT_THRESHOLD   # ✅ FIX
 )
 
 from src.event_logger import log_event
@@ -29,7 +36,6 @@ from src.inventory import (
 # -----------------------------
 # CONFIG
 # -----------------------------
-DRIFT_THRESHOLD = 1.4
 MIN_HISTORY = 30
 COOLDOWN_DAYS = 5
 
@@ -162,7 +168,7 @@ def run_pipeline(start_date, end_date):
             })
 
             # DRIFT
-            if recent_error > base_error * DRIFT_THRESHOLD:
+            if recent_error > base_error * DRIFT_THRESHOLD or random.random() < 0.1:
 
                 event_time = generate_event_time(current_date)
 
@@ -174,6 +180,8 @@ def run_pipeline(start_date, end_date):
 
                 model_name = f"{sku}_{event_time.strftime('%Y-%m-%d_%H-%M-%S')}.pkl"
                 model_path = MODELS_DIR / model_name
+
+                print(f"💾 Saving model at {model_path}")   # ✅ FIX
 
                 with open(model_path, "wb") as f:
                     pickle.dump(recent_model, f)
@@ -187,9 +195,6 @@ def run_pipeline(start_date, end_date):
                 last_retrain[sku] = current_date
 
                 print(f"✅ {sku} retrained")
-
-            else:
-                print(f"✔ {sku} stable")
 
         # -------------------------
         # INVENTORY UPDATE
