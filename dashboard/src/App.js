@@ -17,6 +17,7 @@ function App() {
   const [metrics, setMetrics] = useState([]);
   const [events, setEvents] = useState([]);
   const [inventory, setInventory] = useState([]);
+  const [orderQty, setOrderQty] = useState({});
 
   const [loading, setLoading] = useState(false);
 
@@ -102,7 +103,7 @@ function App() {
 
   const avgMAE =
     metrics.length > 0
-      ? (metrics.reduce((s, x) => s + Number(x.MAE), 0) / metrics.length).toFixed(2)
+      ? (metrics.reduce((s, x) => s + Number(x.Error ?? x.MAE ?? 0), 0) / metrics.length).toFixed(2)
       : 0;
 
   const criticalCount = inventory.filter(i => i.Risk_Level === "CRITICAL").length;
@@ -112,7 +113,7 @@ function App() {
   // --------------------------
   const chartData = metrics.map(d => ({
     date: d.Date,
-    mae: Number(d.MAE)
+    mae: Number(d.Error ?? d.MAE ?? 0)
   }));
 
   const driftPoints = events
@@ -185,14 +186,27 @@ function App() {
               <b>{i.SKU}</b> ({i.Risk_Level})<br />
               Stock: {i.Current_Stock} | Suggested: {i.Recommended_Order_Qty}
 
-              <br />
+              <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
+                <input
+                  type="number"
+                  min="0"
+                  value={orderQty[i.SKU] ?? i.Recommended_Order_Qty}
+                  onChange={e =>
+                    setOrderQty(prev => ({
+                      ...prev,
+                      [i.SKU]: Number(e.target.value)
+                    }))
+                  }
+                  style={{ width: "100px" }}
+                />
 
-              <button
-                onClick={() => placeOrder(i.SKU, i.Recommended_Order_Qty)}
-                disabled={i.Recommended_Order_Qty === 0}
-              >
-                Order
-              </button>
+                <button
+                  onClick={() => placeOrder(i.SKU, Number(orderQty[i.SKU] ?? i.Recommended_Order_Qty))}
+                  disabled={Number(orderQty[i.SKU] ?? i.Recommended_Order_Qty) === 0}
+                >
+                  Order
+                </button>
+              </div>
             </div>
           ))}
         </Card>
