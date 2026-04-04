@@ -101,6 +101,60 @@ Windows:
 pip install pandas prophet scikit-learn tqdm joblib
 ```
 
+## Docker Deployment (Low Disk Usage)
+
+This repository supports a single Docker image that serves both backend and frontend.
+
+### 1. Build and run
+
+```bash
+docker compose up -d --build
+```
+
+App endpoint:
+
+- http://localhost:8000
+
+### 2. Auto rebuild on local file changes
+
+Use Docker Compose watch to rebuild and restart when backend or dashboard files change:
+
+```bash
+docker compose watch
+```
+
+### 3. Auto redeploy on remote git changes (Docker-only)
+
+If you deploy on a server and want Docker redeploy without CI/CD changes, run:
+
+```bash
+chmod +x scripts/auto-redeploy.sh
+./scripts/auto-redeploy.sh
+```
+
+This script:
+
+- polls origin/main for new commits
+- runs git pull
+- rebuilds and restarts with docker compose up -d --build
+- prunes old images to control disk usage
+
+Optional environment variables:
+
+- REPO_DIR: repository path to watch
+- BRANCH: branch name (default main)
+- INTERVAL_SECONDS: poll interval (default 60)
+
+### 4. Disk cleanup recommendations
+
+Run periodically on the deployment host:
+
+```bash
+docker image prune -af
+docker builder prune -af
+docker container prune -f
+```
+
 ## First-Time Setup
 
 Run these once to prepare the system.
