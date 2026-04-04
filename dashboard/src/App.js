@@ -6,7 +6,6 @@ import {
 
 const API = (process.env.REACT_APP_API || "").replace(/\/$/, "");
 
-
 function App() {
 
   const [sku, setSku] = useState("");
@@ -18,6 +17,8 @@ function App() {
   const [metrics, setMetrics] = useState([]);
   const [events, setEvents] = useState([]);
   const [inventory, setInventory] = useState([]);
+
+  const [loading, setLoading] = useState(false);
 
   // --------------------------
   // LOAD SKUs
@@ -38,15 +39,20 @@ function App() {
 
     if (!sku) return;
 
-    const [mRes, eRes, iRes] = await Promise.all([
-      fetch(`${API}/metrics?sku=${sku}&start=${start}&end=${end}`),
-      fetch(`${API}/events?sku=${sku}&start=${start}&end=${end}`),
-      fetch(`${API}/inventory`)
-    ]);
+    try {
+      const [mRes, eRes, iRes] = await Promise.all([
+        fetch(`${API}/metrics?sku=${sku}&start=${start}&end=${end}`),
+        fetch(`${API}/events?sku=${sku}&start=${start}&end=${end}`),
+        fetch(`${API}/inventory`)
+      ]);
 
-    setMetrics(await mRes.json());
-    setEvents(await eRes.json());
-    setInventory(await iRes.json());
+      setMetrics(await mRes.json());
+      setEvents(await eRes.json());
+      setInventory(await iRes.json());
+
+    } catch (err) {
+      console.error("Fetch error:", err);
+    }
 
   }, [sku, start, end]);
 
@@ -58,9 +64,34 @@ function App() {
   // RUN PIPELINE
   // --------------------------
   const runPipeline = async () => {
-    await fetch(`${API}/run_pipeline?start=${start}&end=${end}`, {
+    setLoading(true);
+
+    try {
+      await fetch(`${API}/run_pipeline?start=${start}&end=${end}`, {
+        method: "POST"
+      });
+
+      // wait a bit for backend to update files
+      setTimeout(fetchData, 2000);
+
+    } catch (err) {
+      console.error(err);
+    }
+
+    setLoading(false);
+  };
+
+  // --------------------------
+  // PLACE ORDER
+  // --------------------------
+  const placeOrder = async (sku, qty) => {
+    if (qty === 0) return;
+
+    await fetch(`${API}/order?sku=${sku}&qty=${qty}`, {
       method: "POST"
     });
+
+    alert(`Order placed for ${sku}`);
     fetchData();
   };
 
@@ -74,7 +105,7 @@ function App() {
       ? (metrics.reduce((s, x) => s + Number(x.MAE), 0) / metrics.length).toFixed(2)
       : 0;
 
-  const criticalCount = inventory.filter(i => i.Risk === "CRITICAL").length;
+  const criticalCount = inventory.filter(i => i.Risk_Level === "CRITICAL").length;
 
   // --------------------------
   // CHART
@@ -106,8 +137,14 @@ function App() {
         <input type="date" value={end} onChange={e => setEnd(e.target.value)} />
 
         <button onClick={fetchData}>Refresh</button>
-        <button onClick={runPipeline}>Run Pipeline</button>
+
+        <button onClick={runPipeline} disabled={loading}>
+          {loading ? "Running..." : "Run Pipeline"}
+        </button>
       </div>
+
+      {/* LOADING */}
+      {loading && <p>⏳ Pipeline running... please wait</p>}
 
       {/* KPI */}
       <div style={grid3}>
@@ -139,13 +176,23 @@ function App() {
           <h3>Inventory</h3>
           {inventory.slice(0, 10).map((i, idx) => (
             <div key={idx} style={{
+              marginBottom: "10px",
               color:
-                i.Risk === "CRITICAL" ? "#ff6b6b" :
-                i.Risk === "WARNING" ? "#facc15" :
+                i.Risk_Level === "CRITICAL" ? "#ff6b6b" :
+                i.Risk_Level === "WARNING" ? "#facc15" :
                 "#4ade80"
             }}>
-              <b>{i.SKU}</b> ({i.Risk})<br />
+              <b>{i.SKU}</b> ({i.Risk_Level})<br />
               Stock: {i.Current_Stock} | Suggested: {i.Recommended_Order_Qty}
+
+              <br />
+
+              <button
+                onClick={() => placeOrder(i.SKU, i.Recommended_Order_Qty)}
+                disabled={i.Recommended_Order_Qty === 0}
+              >
+                Order
+              </button>
             </div>
           ))}
         </Card>
@@ -156,7 +203,7 @@ function App() {
       <div style={grid2}>
         <Card>
           <h3>Drift Events</h3>
-          {events.slice(-10).map((e, i) => (
+          {events.filter(e => e.event_type === "DRIFT").slice(-10).map((e, i) => (
             <div key={i}>{e.timestamp} — {e.message}</div>
           ))}
         </Card>

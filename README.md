@@ -145,17 +145,6 @@ Optional environment variables:
 - BRANCH: branch name (default main)
 - INTERVAL_SECONDS: poll interval (default 60)
 
-Run it as a background service on Linux (systemd):
-
-```bash
-chmod +x scripts/install-auto-redeploy-service.sh
-./scripts/install-auto-redeploy-service.sh
-```
-
-Service file source:
-
-- scripts/retail-auto-redeploy.service
-
 ### 4. Disk cleanup recommendations
 
 Run periodically on the deployment host:
@@ -164,13 +153,6 @@ Run periodically on the deployment host:
 docker image prune -af
 docker builder prune -af
 docker container prune -f
-```
-
-Install a weekly cleanup cron (Sunday 03:00):
-
-```bash
-chmod +x scripts/install-weekly-prune-cron.sh
-./scripts/install-weekly-prune-cron.sh
 ```
 
 ## First-Time Setup
