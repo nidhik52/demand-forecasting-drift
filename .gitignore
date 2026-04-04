@@ -26,8 +26,6 @@ logs/
 # Model files
 models/*.pkl
 
-# Generated data
-data/processed/
 
 # OS files
 .DS_Store

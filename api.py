@@ -4,6 +4,7 @@ import pandas as pd
 import subprocess
 import sys
 from pathlib import Path
+from fastapi.staticfiles import StaticFiles
 
 from src.config import (
     EVENT_LOG_FILE,
@@ -16,6 +17,7 @@ from src.config import (
 from src.event_logger import log_event
 
 app = FastAPI()
+FRONTEND_BUILD_DIR = PROJECT_ROOT / "dashboard" / "build"
 
 # ---------------------------
 # CORS (IMPORTANT)
@@ -155,3 +157,7 @@ def place_order(sku: str, qty: int):
     log_event("ORDER", f"{sku} order placed for {qty} units", order_date)
 
     return {"status": "success"}
+
+
+if FRONTEND_BUILD_DIR.exists():
+    app.mount("/", StaticFiles(directory=FRONTEND_BUILD_DIR, html=True), name="frontend")
