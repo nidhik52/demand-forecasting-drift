@@ -5,16 +5,8 @@ import random
 from datetime import datetime
 from pathlib import Path
 
-from pathlib import Path
-
 # -----------------------------
-# CREATE DIRS
-# -----------------------------
-MODELS_DIR.mkdir(parents=True, exist_ok=True)
-Path("data/processed").mkdir(parents=True, exist_ok=True)
-
-# -----------------------------
-# IMPORT CONFIG
+# IMPORT CONFIG FIRST
 # -----------------------------
 from src.config import (
     DAILY_DEMAND_FILE,
@@ -22,7 +14,7 @@ from src.config import (
     MODELS_DIR,
     METRICS_FILE,
     INVENTORY_FILE,
-    DRIFT_THRESHOLD   # ✅ FIX
+    DRIFT_THRESHOLD
 )
 
 from src.event_logger import log_event
@@ -32,6 +24,12 @@ from src.inventory import (
     generate_inventory_recommendations,
     save_inventory
 )
+
+# -----------------------------
+# CREATE DIRS
+# -----------------------------
+MODELS_DIR.mkdir(parents=True, exist_ok=True)
+Path("data/processed").mkdir(parents=True, exist_ok=True)
 
 # -----------------------------
 # CONFIG
