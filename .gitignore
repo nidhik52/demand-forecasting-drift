@@ -20,8 +20,6 @@ env/
 # Jupyter
 .ipynb_checkpoints/
 
-# Logs
-logs/
 
 # Model files
 models/*.pkl
