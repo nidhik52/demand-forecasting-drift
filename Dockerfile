@@ -18,7 +18,9 @@ ENV PYTHONUNBUFFERED=1
 COPY requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+COPY api.py ./api.py
+COPY pipeline.py ./pipeline.py
+COPY src ./src
 COPY --from=frontend-builder /frontend/build ./dashboard/build
 
 EXPOSE 8000
