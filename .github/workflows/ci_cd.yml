@@ -1,4 +1,4 @@
-name: Full CI/CD Pipeline
+name: Full Self-Contained CI/CD Pipeline
 
 on:
   push:
@@ -7,20 +7,28 @@ on:
 
 jobs:
 
-  backend:
+  full-pipeline:
     runs-on: ubuntu-latest
 
     steps:
+
+      # =========================
+      # CHECKOUT
+      # =========================
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 🔥 Setup Python
+      # =========================
+      # PYTHON SETUP
+      # =========================
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      # 🔥 Cache pip (IMPROVED)
+      # =========================
+      # CACHE BACKEND
+      # =========================
       - name: Cache pip
         uses: actions/cache@v4
         with:
@@ -29,37 +37,49 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
 
-      # 🔥 Install deps
-      - name: Install dependencies
-        run: pip install -r requirements.txt
+      # =========================
+      # INSTALL BACKEND DEPS
+      # =========================
+      - name: Install backend dependencies
+        run: |
+          pip install -r requirements.txt
 
-      # 🔥 Pipeline run
+      # =========================
+      # RUN PIPELINE
+      # =========================
       - name: Run pipeline
         run: |
           python pipeline.py --start 2025-07-01 --end 2025-07-05
 
-      # 🔥 Validate outputs
+      # =========================
+      # VALIDATE OUTPUTS
+      # =========================
       - name: Validate outputs
         run: |
           test -f data/processed/metrics.csv
           test -f data/processed/system_events.csv
           test -f data/processed/inventory_recommendations.csv
 
-      # 🔥 API test (MORE STABLE)
-      - name: Test API
+      # =========================
+      # START API + TEST
+      # =========================
+      - name: Test API endpoints
         run: |
           uvicorn api:app --host 127.0.0.1 --port 8000 &
           sleep 8
           curl --fail http://127.0.0.1:8000/skus
 
-  frontend:
-    runs-on: ubuntu-latest
+      # =========================
+      # NODE SETUP
+      # =========================
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      # 🔥 Cache node modules (NEW)
+      # =========================
+      # CACHE FRONTEND
+      # =========================
       - name: Cache Node
         uses: actions/cache@v4
         with:
@@ -68,20 +88,38 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-      # 🔥 Setup Node
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "18"
-
-      # 🔥 Install deps
-      - name: Install dependencies
+      # =========================
+      # INSTALL FRONTEND
+      # =========================
+      - name: Install frontend dependencies
         run: |
           cd dashboard
           npm install
 
-      # 🔥 Build (fixes your Vercel issue)
-      - name: Build app
+      # =========================
+      # BUILD FRONTEND
+      # =========================
+      - name: Build frontend
         run: |
           cd dashboard
           CI=false npm run build
+
+      # =========================
+      # PACKAGE FULL APP (CD)
+      # =========================
+      - name: Package deployment bundle
+        run: |
+          mkdir deploy_bundle
+          cp -r api.py pipeline.py requirements.txt deploy_bundle/
+          cp -r src deploy_bundle/
+          cp -r data deploy_bundle/
+          cp -r dashboard/build deploy_bundle/frontend
+
+      # =========================
+      # UPLOAD ARTIFACT (CD)
+      # =========================
+      - name: Upload deployable bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: full-app-deployment
+          path: deploy_bundle/
