@@ -1,73 +1,73 @@
-SKU,Current_Stock,Stock_As_Of_Date,Recommended_Order_Qty,Risk_Level,Recommendation
-APPL-001,333,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-PETS-001,684,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-PCAR-003,277,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-PCAR-002,460,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-BABY-002,0,2025-03-14 00:00:00,112,CRITICAL,URGENT: reorder immediately
-PCAR-001,211,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-OUTD-003,67,2025-03-14 00:00:00,14,CRITICAL,Stock will run out before lead time
-BABY-001,287,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-BABY-003,40,2025-03-14 00:00:00,124,CRITICAL,Stock will run out before lead time
-OUTD-001,53,2025-03-14 00:00:00,105,CRITICAL,Stock will run out before lead time
-OFFC-003,337,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-BEAU-001,57,2025-03-14 00:00:00,30,CRITICAL,Stock will run out before lead time
-OFFC-002,0,2025-03-14 00:00:00,166,CRITICAL,URGENT: reorder immediately
-OFFC-001,242,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-BEAU-002,0,2025-03-14 00:00:00,88,CRITICAL,URGENT: reorder immediately
-OUTD-002,622,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-MUSC-003,407,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-PETS-002,333,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-AUTO-003,232,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-APPL-002,14,2025-03-14 00:00:00,106,CRITICAL,Stock will run out before lead time
-TOYS-001,152,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-TOOL-003,256,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-APPL-003,0,2025-03-14 00:00:00,117,CRITICAL,URGENT: reorder immediately
-TOOL-002,417,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-TOOL-001,602,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-PETS-003,529,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-SPRT-003,14,2025-03-14 00:00:00,105,CRITICAL,Stock will run out before lead time
-SPRT-002,343,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-SPRT-001,69,2025-03-14 00:00:00,47,CRITICAL,Stock will run out before lead time
-AUTO-002,795,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-SOFT-003,66,2025-03-14 00:00:00,13,WARNING,Plan reorder soon
-SOFT-002,0,2025-03-14 00:00:00,78,CRITICAL,URGENT: reorder immediately
-SOFT-001,540,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-AUTO-001,586,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-TOYS-002,795,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-MUSC-002,750,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-BEAU-003,539,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-GROC-002,99,2025-03-14 00:00:00,141,CRITICAL,Stock will run out before lead time
-GROC-001,231,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-CLTH-003,266,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-GRDN-003,456,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-GRDN-002,38,2025-03-14 00:00:00,39,CRITICAL,Stock will run out before lead time
-DIY0-001,244,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-GROC-003,19,2025-03-14 00:00:00,105,CRITICAL,Stock will run out before lead time
-GRDN-001,195,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-FURN-002,331,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-DIY0-002,70,2025-03-14 00:00:00,102,CRITICAL,Stock will run out before lead time
-FURN-001,56,2025-03-14 00:00:00,65,CRITICAL,Stock will run out before lead time
-ELEC-003,241,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-DIY0-003,287,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-ELEC-002,460,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-FURN-003,483,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-MUSC-001,13,2025-03-14 00:00:00,155,CRITICAL,Stock will run out before lead time
-CLTH-002,315,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-HLTH-002,485,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-MOVI-003,252,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-MOVI-002,42,2025-03-14 00:00:00,77,CRITICAL,Stock will run out before lead time
-BOOK-001,345,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-MOVI-001,245,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-JWLY-003,29,2025-03-14 00:00:00,94,CRITICAL,Stock will run out before lead time
-JWLY-002,160,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-HLTH-001,14,2025-03-14 00:00:00,157,CRITICAL,Stock will run out before lead time
-BOOK-002,153,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-HOMK-003,0,2025-03-14 00:00:00,82,CRITICAL,URGENT: reorder immediately
-BOOK-003,151,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-HOMK-002,198,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-HOMK-001,255,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-HLTH-003,68,2025-03-14 00:00:00,49,CRITICAL,Stock will run out before lead time
-CLTH-001,218,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-JWLY-001,14,2025-03-14 00:00:00,69,CRITICAL,Stock will run out before lead time
-TOYS-003,212,2025-03-14 00:00:00,0,SAFE,Stock sufficient
-ELEC-001,461,2025-03-14 00:00:00,0,SAFE,Stock sufficient
+SKU,Product,Current_Stock,Stock_As_Of_Date,Recommended_Order_Qty,Risk_Level,Recommendation
+APPL-001,Air Fryer 5L,333,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+PETS-001,Dry Dog Food 2kg,684,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+PCAR-003,Shampoo 400ml,277,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+PCAR-002,Razor 5-Blade,460,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+BABY-002,Nappy Pack 40,0,2025-07-14 00:00:00,112,CRITICAL,URGENT: reorder immediately
+PCAR-001,Electric Toothbrush,211,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+OUTD-003,Hiking Socks 3-Pack,67,2025-07-14 00:00:00,13,WARNING,Plan reorder soon
+BABY-001,Baby Monitor,287,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+BABY-003,Baby Wipes 80ct,40,2025-07-14 00:00:00,123,CRITICAL,Stock will run out before lead time
+OUTD-001,Camping Tent 2P,53,2025-07-14 00:00:00,106,CRITICAL,Stock will run out before lead time
+OFFC-003,Desk Organiser,337,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+BEAU-001,Face Moisturiser,57,2025-07-14 00:00:00,28,CRITICAL,Stock will run out before lead time
+OFFC-002,Ballpoint Pens 10pk,0,2025-07-14 00:00:00,163,CRITICAL,URGENT: reorder immediately
+OFFC-001,A4 Paper Ream,242,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+BEAU-002,Lipstick Set,0,2025-07-14 00:00:00,84,CRITICAL,URGENT: reorder immediately
+OUTD-002,Sleeping Bag,622,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+MUSC-003,Digital Piano,407,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+PETS-002,Cat Litter 5kg,333,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+AUTO-003,Car Seat Organiser,232,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+APPL-002,Microwave Oven 20L,14,2025-07-14 00:00:00,105,CRITICAL,Stock will run out before lead time
+TOYS-001,Building Blocks Set,152,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+TOOL-003,Adjustable Wrench,256,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+APPL-003,Hand Blender,0,2025-07-14 00:00:00,115,CRITICAL,URGENT: reorder immediately
+TOOL-002,Hammer 500g,417,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+TOOL-001,Screwdriver Set,602,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+PETS-003,Pet Collar,529,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+SPRT-003,Resistance Bands,14,2025-07-14 00:00:00,104,CRITICAL,Stock will run out before lead time
+SPRT-002,Dumbbell Pair 5kg,343,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+SPRT-001,Yoga Mat,69,2025-07-14 00:00:00,46,CRITICAL,Stock will run out before lead time
+AUTO-002,Tyre Inflator,795,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+SOFT-003,VPN Subscription,66,2025-07-14 00:00:00,12,WARNING,Plan reorder soon
+SOFT-002,Office Suite,0,2025-07-14 00:00:00,77,CRITICAL,URGENT: reorder immediately
+SOFT-001,Antivirus 1-Year,540,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+AUTO-001,Dash Cam HD,586,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+TOYS-002,Remote Control Car,795,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+MUSC-002,DJ Headphones,750,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+BEAU-003,Hair Serum 100ml,539,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+GROC-002,Cooking Oil 1L,99,2025-07-14 00:00:00,137,CRITICAL,Stock will run out before lead time
+GROC-001,Ground Coffee 500g,231,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+CLTH-003,Formal Trousers,266,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+GRDN-003,Pruning Shears,456,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+GRDN-002,Plant Pots Set,38,2025-07-14 00:00:00,37,CRITICAL,Stock will run out before lead time
+DIY0-001,Power Drill,244,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+GROC-003,Pasta 500g,19,2025-07-14 00:00:00,100,CRITICAL,Stock will run out before lead time
+GRDN-001,Garden Hose 20m,195,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+FURN-002,Bookshelf 5-Tier,331,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+DIY0-002,Sandpaper Pack,70,2025-07-14 00:00:00,100,CRITICAL,Stock will run out before lead time
+FURN-001,Office Chair,56,2025-07-14 00:00:00,62,CRITICAL,Stock will run out before lead time
+ELEC-003,Wireless Charger,241,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+DIY0-003,Adhesive Tape Pack,287,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+ELEC-002,USB-C Hub 7-Port,460,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+FURN-003,Bedside Table,483,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+MUSC-001,Acoustic Guitar,13,2025-07-14 00:00:00,149,CRITICAL,Stock will run out before lead time
+CLTH-002,Cotton T-Shirt,315,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+HLTH-002,Digital Thermometer,485,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+MOVI-003,Popcorn Maker,252,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+MOVI-002,Streaming Voucher,42,2025-07-14 00:00:00,76,CRITICAL,Stock will run out before lead time
+BOOK-001,Fiction Novel,345,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+MOVI-001,Action DVD Pack,245,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+JWLY-003,Pearl Bracelet,29,2025-07-14 00:00:00,93,CRITICAL,Stock will run out before lead time
+JWLY-002,Gold Earrings,160,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+HLTH-001,Vitamin C 60 Tablets,14,2025-07-14 00:00:00,152,CRITICAL,Stock will run out before lead time
+BOOK-002,Academic Textbook,153,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+HOMK-003,Cutting Board,0,2025-07-14 00:00:00,83,CRITICAL,URGENT: reorder immediately
+BOOK-003,Self-Help Guide,151,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+HOMK-002,Knife Set 5pc,198,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+HOMK-001,Non-stick Pan 28cm,255,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+HLTH-003,First Aid Kit,68,2025-07-14 00:00:00,47,CRITICAL,Stock will run out before lead time
+CLTH-001,Denim Jacket,218,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+JWLY-001,Silver Necklace,14,2025-07-14 00:00:00,68,CRITICAL,Stock will run out before lead time
+TOYS-003,Jigsaw Puzzle 500pc,212,2025-07-14 00:00:00,0,SAFE,Stock sufficient
+ELEC-001,Bluetooth Speaker,461,2025-07-14 00:00:00,0,SAFE,Stock sufficient

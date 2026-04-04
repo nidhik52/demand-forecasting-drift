@@ -4,12 +4,12 @@ services:
       context: .
       dockerfile: Dockerfile
     image: retail-system:latest
-    container_name: retail-system
     ports:
       - "8000:8000"
     restart: unless-stopped
     volumes:
       - ./data:/app/data
+      - ./models:/app/models
     develop:
       watch:
         - action: rebuild
