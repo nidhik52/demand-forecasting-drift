@@ -1,8 +1,0 @@
-services:
-  retail-frontend:
-    build:
-      context: ./dashboard
-      dockerfile: Dockerfile
-    image: retail-frontend
-    ports:
-      - "3000:3000"

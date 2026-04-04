@@ -5,6 +5,10 @@ import random
 from datetime import datetime
 from pathlib import Path
 
+from pathlib import Path
+Path("data/processed").mkdir(parents=True, exist_ok=True)
+Path("models").mkdir(parents=True, exist_ok=True)
+
 from src.config import (
     DAILY_DEMAND_FILE,
     FORECAST_FILE,
