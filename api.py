@@ -52,9 +52,21 @@ def run_pipeline(start: str, end: str):
             "--start", start,
             "--end", end
         ]
-        subprocess.run(cmd, check=True, cwd=PROJECT_ROOT)
 
-        return {"status": "success", "message": "Pipeline executed"}
+        result = subprocess.run(
+            cmd,
+            cwd=PROJECT_ROOT,
+            capture_output=True,
+            text=True
+        )
+
+        print("STDOUT:", result.stdout)
+        print("STDERR:", result.stderr)
+
+        return {
+            "status": "success",
+            "logs": result.stdout[-1000:]
+        }
 
     except Exception as e:
         return {"status": "error", "message": str(e)}
