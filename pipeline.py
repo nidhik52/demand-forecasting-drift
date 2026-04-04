@@ -2,11 +2,12 @@ import pandas as pd
 import numpy as np
 import pickle
 import random
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
+import argparse
 
 # -----------------------------
-# IMPORT CONFIG FIRST
+# IMPORT CONFIG FIRST (IMPORTANT FIX)
 # -----------------------------
 from src.config import (
     DAILY_DEMAND_FILE,
@@ -26,223 +27,140 @@ from src.inventory import (
 )
 
 # -----------------------------
-# CREATE DIRS
+# CREATE DIRECTORIES
 # -----------------------------
 MODELS_DIR.mkdir(parents=True, exist_ok=True)
 Path("data/processed").mkdir(parents=True, exist_ok=True)
 
 # -----------------------------
-# CONFIG
-# -----------------------------
-MIN_HISTORY = 30
-COOLDOWN_DAYS = 5
-
-
-# -----------------------------
 # LOAD DATA
 # -----------------------------
 def load_data():
-    daily = pd.read_csv(DAILY_DEMAND_FILE)
-    forecast = pd.read_csv(FORECAST_FILE)
-
-    daily["Date"] = pd.to_datetime(daily["Date"])
-    forecast["Date"] = pd.to_datetime(forecast["Date"])
-
-    return daily, forecast
-
+    return pd.read_csv(DAILY_DEMAND_FILE)
 
 # -----------------------------
-# ERROR FUNCTION
-# -----------------------------
-def compute_error(actual, predicted):
-    return np.mean(np.abs(actual - predicted))
-
-
-# -----------------------------
-# SIMPLE MODEL
+# SIMPLE FORECAST MODEL
 # -----------------------------
 def train_model(data):
-    return data.mean()
+    # Simple moving average (replaceable later)
+    return data["demand"].mean()
 
-
-def predict(model, steps):
-    return np.array([model] * steps)
-
-
-# -----------------------------
-# REALISTIC TIMESTAMP
-# -----------------------------
-def generate_event_time(current_date):
-    return datetime(
-        current_date.year,
-        current_date.month,
-        current_date.day,
-        random.randint(9, 18),
-        random.randint(0, 59),
-        random.randint(0, 59)
-    )
-
+def forecast(model):
+    return model + random.uniform(-2, 2)
 
 # -----------------------------
-# 🔥 INITIALIZE INVENTORY IF EMPTY
+# DRIFT DETECTION
 # -----------------------------
-def initialize_inventory_if_empty(inventory, daily):
-    if inventory.empty:
-        print("⚠ Inventory empty → initializing...")
+def detect_drift(actual, predicted):
+    error = abs(actual - predicted)
+    return error, error > DRIFT_THRESHOLD
 
-        skus = daily["SKU"].unique()
+# -----------------------------
+# SAVE MODEL
+# -----------------------------
+def save_model(model, sku, timestamp):
+    filename = f"{sku}_{timestamp}.pkl"
+    path = MODELS_DIR / filename
 
-        inventory = pd.DataFrame({
-            "SKU": skus,
-            "Product": skus,
-            "Current_Stock": np.random.randint(100, 500, size=len(skus)),
-            "Lead_Time_Days": np.random.randint(5, 10, size=len(skus)),
-            "Stock_As_Of_Date": "2025-01-01"
-        })
+    with open(path, "wb") as f:
+        pickle.dump(model, f)
 
-        inventory.to_csv(INVENTORY_FILE, index=False)
-
-        print("✅ Inventory initialized")
-
-    return inventory
-
+    print(f"💾 Saving model at {path}")
 
 # -----------------------------
 # MAIN PIPELINE
 # -----------------------------
 def run_pipeline(start_date, end_date):
 
-    print("\n🚀 Starting pipeline\n")
+    df = load_data()
+    df["date"] = pd.to_datetime(df["date"])
 
-    MODELS_DIR.mkdir(exist_ok=True)
+    current_date = pd.to_datetime(start_date)
+    end_date = pd.to_datetime(end_date)
 
-    daily, forecast_df = load_data()
-    dates = pd.date_range(start=start_date, end=end_date)
-
-    # 🔥 Load inventory ONCE
-    forecast, inventory = load_inventory_data()
-
-    # 🔥 Fix empty inventory
-    inventory = initialize_inventory_if_empty(inventory, daily)
-
-    last_retrain = {}
-    all_metrics = []
-
-    for current_date in dates:
+    while current_date <= end_date:
 
         print(f"\n📡 Processing {current_date.date()}")
 
-        for sku in daily["SKU"].unique():
+        daily_data = df[df["date"] == current_date]
 
-            sku_data = daily[daily["SKU"] == sku]
-            history = sku_data[sku_data["Date"] < current_date]["Demand"]
+        metrics = []
 
-            if len(history) < MIN_HISTORY:
-                continue
+        for sku in daily_data["SKU"].unique():
 
-            # COOLDOWN
-            if sku in last_retrain:
-                days_since = (current_date - last_retrain[sku]).days
-                if days_since < COOLDOWN_DAYS:
-                    continue
+            sku_data = daily_data[daily_data["SKU"] == sku]
 
-            # BASE MODEL
-            base_model = train_model(history)
+            actual = sku_data["demand"].values[0]
 
-            actual = history.values[-7:]
-            base_pred = predict(base_model, len(actual))
-            base_error = compute_error(actual, base_pred)
+            # -----------------------------
+            # TRAIN MODEL (INITIAL)
+            # -----------------------------
+            model = train_model(sku_data)
 
-            # RECENT MODEL
-            recent_model = train_model(history.tail(30))
-            recent_pred = predict(recent_model, len(actual))
-            recent_error = compute_error(actual, recent_pred)
+            predicted = forecast(model)
 
-            # METRICS
-            all_metrics.append({
-                "Date": current_date.strftime("%Y-%m-%d"),
-                "SKU": sku,
-                "MAE": round(recent_error, 4)
-            })
+            error, drift = detect_drift(actual, predicted)
 
-            # DRIFT
-            if recent_error > base_error * DRIFT_THRESHOLD or random.random() < 0.1:
+            timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-                event_time = generate_event_time(current_date)
+            # -----------------------------
+            # DRIFT HANDLING
+            # -----------------------------
+            if drift:
+                log_event("DRIFT", f"Drift detected for {sku} ({actual:.2f} → {predicted:.2f})", datetime.now())
 
-                log_event(
-                    "DRIFT",
-                    f"Drift detected for {sku} ({base_error:.2f} → {recent_error:.2f})",
-                    event_time
-                )
+                model = train_model(sku_data)
 
-                model_name = f"{sku}_{event_time.strftime('%Y-%m-%d_%H-%M-%S')}.pkl"
-                model_path = MODELS_DIR / model_name
+                save_model(model, sku, timestamp)
 
-                print(f"💾 Saving model at {model_path}")   # ✅ FIX
-
-                with open(model_path, "wb") as f:
-                    pickle.dump(recent_model, f)
-
-                log_event(
-                    "RETRAIN",
-                    f"{sku} retrained and saved model",
-                    event_time
-                )
-
-                last_retrain[sku] = current_date
+                log_event("RETRAIN", f"{sku} retrained and saved model", datetime.now())
 
                 print(f"✅ {sku} retrained")
 
-        # -------------------------
-        # INVENTORY UPDATE
-        # -------------------------
-        recs = generate_inventory_recommendations(
-            forecast,
-            inventory,
-            current_date
-        )
+            else:
+                log_event("NO_DRIFT", f"{sku} stable, model reused", datetime.now())
 
-        if recs is not None and not recs.empty:
+                print(f"ℹ️ {sku} no drift, using existing model")
 
-            # ✅ Update recommendation date
-            recs["Stock_As_Of_Date"] = current_date.strftime("%Y-%m-%d")
+            # -----------------------------
+            # STORE METRICS
+            # -----------------------------
+            metrics.append({
+                "Date": current_date,
+                "SKU": sku,
+                "Actual": actual,
+                "Predicted": predicted,
+                "Error": error
+            })
 
-            save_inventory(recs)
+        # -----------------------------
+        # SAVE METRICS
+        # -----------------------------
+        metrics_df = pd.DataFrame(metrics)
 
-            # ✅ Update MASTER inventory date
-            inventory["Stock_As_Of_Date"] = current_date.strftime("%Y-%m-%d")
-
-            inventory.to_csv(INVENTORY_FILE, index=False)
-
-            print("📦 Inventory updated")
-
-        else:
-            print("⚠ No recommendations generated")
-
-    # -----------------------------
-    # SAVE METRICS
-    # -----------------------------
-    if all_metrics:
-        metrics_df = pd.DataFrame(all_metrics)
-
-        try:
-            old_df = pd.read_csv(METRICS_FILE)
-            metrics_df = pd.concat([old_df, metrics_df], ignore_index=True)
-        except:
-            pass
+        if Path(METRICS_FILE).exists():
+            old = pd.read_csv(METRICS_FILE)
+            metrics_df = pd.concat([old, metrics_df], ignore_index=True)
 
         metrics_df.to_csv(METRICS_FILE, index=False)
 
-    print("\n✅ Pipeline completed\n")
+        # -----------------------------
+        # INVENTORY UPDATE
+        # -----------------------------
+        inv_df = load_inventory_data()
+        recommendations = generate_inventory_recommendations(inv_df, metrics_df)
+        save_inventory(recommendations)
 
+        print("📦 Inventory updated")
+
+        current_date += timedelta(days=1)
+
+    print("\n✅ Pipeline completed")
 
 # -----------------------------
-# CLI
+# CLI ENTRY
 # -----------------------------
 if __name__ == "__main__":
-    import argparse
-
     parser = argparse.ArgumentParser()
     parser.add_argument("--start", required=True)
     parser.add_argument("--end", required=True)
