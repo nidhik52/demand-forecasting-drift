@@ -71,8 +71,11 @@ def save_model(model, sku, timestamp):
 # MAIN PIPELINE
 # -----------------------------
 def run_pipeline(start_date, end_date):
-
     df = load_data()
+
+    # Normalize columns
+    df.columns = df.columns.str.lower()
+
     df["date"] = pd.to_datetime(df["date"])
 
     current_date = pd.to_datetime(start_date)
@@ -86,11 +89,12 @@ def run_pipeline(start_date, end_date):
 
         metrics = []
 
-        for sku in daily_data["SKU"].unique():
+        for sku in daily_data["sku"].unique():
 
-            sku_data = daily_data[daily_data["SKU"] == sku]
+            sku_data = daily_data[daily_data["sku"] == sku]
 
             actual = sku_data["demand"].values[0]
+    
 
             # -----------------------------
             # TRAIN MODEL (INITIAL)
