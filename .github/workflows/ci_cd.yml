@@ -1,0 +1,97 @@
+name: Full CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+
+  # =========================
+  # BACKEND TEST + PIPELINE
+  # =========================
+  backend:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      # 🔥 Cache dependencies (IMPORTANT)
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      # ✅ Check imports
+      - name: Backend sanity check
+        run: |
+          python -c "import fastapi, pandas, numpy; print('Backend OK')"
+
+      # 🔥 RUN PIPELINE (CRITICAL)
+      - name: Run pipeline
+        run: |
+          python pipeline.py --start 2025-07-01 --end 2025-07-05
+
+      # ✅ VALIDATE OUTPUT FILES
+      - name: Validate outputs
+        run: |
+          test -f data/processed/metrics.csv
+          test -f data/processed/system_events.csv
+          test -f data/processed/inventory_recommendations.csv
+
+      # 🔥 OPTIONAL: TEST API
+      - name: Start API and test
+        run: |
+          uvicorn api:app --host 127.0.0.1 --port 8000 &
+          sleep 5
+          curl http://127.0.0.1:8000/skus
+
+  # =========================
+  # FRONTEND BUILD
+  # =========================
+  frontend:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      # 🔥 Cache node modules
+      - name: Cache Node
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('dashboard/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: Install frontend deps
+        run: |
+          cd dashboard
+          npm install
+
+      # 🚨 IMPORTANT FIX (for your Vercel error)
+      - name: Build frontend
+        run: |
+          cd dashboard
+          CI=false npm run build
