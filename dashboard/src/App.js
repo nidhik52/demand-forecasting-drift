@@ -28,8 +28,11 @@ function App() {
     fetch(`${API}/skus`)
       .then(res => res.json())
       .then(data => {
-        setSkus(data);
-        if (data.length > 0) setSku(data[0]);
+        const normalized = data.map(item =>
+          typeof item === "string" ? { SKU: item, Product: "" } : item
+        );
+        setSkus(normalized);
+        if (normalized.length > 0) setSku(normalized[0].SKU);
       });
   }, []);
 
@@ -111,15 +114,17 @@ function App() {
   // --------------------------
   // CHART
   // --------------------------
-  const chartData = metrics.map(d => ({
-    date: d.Date,
-    mae: Number(d.Error ?? d.MAE ?? 0)
-  }));
+  const chartData = metrics
+    .map(d => ({
+      date: String(d.Date ?? "").split(" ")[0].split("T")[0],
+      mae: Number(d.Error ?? d.MAE ?? 0)
+    }))
+    .sort((a, b) => a.date.localeCompare(b.date));
 
   const driftPoints = events
     .filter(e => e.event_type === "DRIFT")
     .map(e => ({
-      date: e.timestamp.split(" ")[0],
+      date: String(e.timestamp ?? "").split(" ")[0].split("T")[0],
       mae: Math.max(...chartData.map(d => d.mae), 2)
     }));
 
@@ -131,7 +136,11 @@ function App() {
       {/* FILTER */}
       <div style={filterBar}>
         <select value={sku} onChange={e => setSku(e.target.value)}>
-          {skus.map(s => <option key={s}>{s}</option>)}
+          {skus.map(item => (
+            <option key={item.SKU} value={item.SKU}>
+              {item.SKU}{item.Product ? ` — ${item.Product}` : ""}
+            </option>
+          ))}
         </select>
 
         <input type="date" value={start} onChange={e => setStart(e.target.value)} />
@@ -175,7 +184,15 @@ function App() {
         {/* INVENTORY */}
         <Card>
           <h3>Inventory</h3>
-          {inventory.slice(0, 10).map((i, idx) => (
+          {[...inventory]
+            .sort((a, b) => {
+              const weight = { CRITICAL: 3, WARNING: 2, SAFE: 1 };
+              const riskDiff = (weight[b.Risk_Level] || 0) - (weight[a.Risk_Level] || 0);
+              if (riskDiff !== 0) return riskDiff;
+              return Number(b.Recommended_Order_Qty || 0) - Number(a.Recommended_Order_Qty || 0);
+            })
+            .slice(0, 10)
+            .map((i, idx) => (
             <div key={idx} style={{
               marginBottom: "10px",
               color:
@@ -183,7 +200,7 @@ function App() {
                 i.Risk_Level === "WARNING" ? "#facc15" :
                 "#4ade80"
             }}>
-              <b>{i.SKU}</b> ({i.Risk_Level})<br />
+              <b>{i.SKU}</b>{i.Product ? ` — ${i.Product}` : ""} ({i.Risk_Level})<br />
               Stock: {i.Current_Stock} | Suggested: {i.Recommended_Order_Qty}
 
               <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>

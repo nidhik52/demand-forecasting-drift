@@ -32,6 +32,7 @@ def generate_inventory_recommendations(forecast, inventory, current_date):
     for _, item in inventory.iterrows():
 
         sku = item["SKU"]
+        product = item.get("Product", "")
 
         # Safe parsing
         try:
@@ -80,6 +81,7 @@ def generate_inventory_recommendations(forecast, inventory, current_date):
 
         recs.append({
             "SKU": sku,
+            "Product": product,
             "Current_Stock": int(stock),
             "Stock_As_Of_Date": current_date.strftime("%Y-%m-%d %H:%M:%S"),
             "Recommended_Order_Qty": recommended_qty,

@@ -77,6 +77,11 @@ def run_pipeline(start: str, end: str):
 # ---------------------------
 @app.get("/skus")
 def get_skus():
+    inv_df = safe_read_csv(INVENTORY_FILE, ["SKU", "Product"])
+    if not inv_df.empty and "SKU" in inv_df.columns:
+        inv_df = inv_df.drop_duplicates(subset=["SKU"]).sort_values("SKU")
+        return inv_df[["SKU", "Product"]].fillna("").to_dict(orient="records")
+
     df = safe_read_csv(METRICS_FILE, ["SKU"])
     if df.empty:
         return []
@@ -93,12 +98,14 @@ def get_metrics(sku: str, start: str, end: str):
     if df.empty:
         return []
 
-    df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
+    df["Date"] = pd.to_datetime(df["Date"], errors="coerce", format="mixed")
     start_dt = pd.to_datetime(start, errors="coerce")
     end_dt = pd.to_datetime(end, errors="coerce")
 
     if pd.isna(start_dt) or pd.isna(end_dt):
         return []
+
+    df = df.dropna(subset=["Date"])
 
     df = df[
         (df["SKU"] == sku) &
@@ -156,6 +163,7 @@ def place_order(sku: str, qty: int):
         inv = pd.read_csv(INVENTORY_FILE)
         lead = int(inv.loc[inv["SKU"] == sku, "Lead_Time_Days"].iloc[0])
     except:
+        inv = None
         lead = 7
 
     order_date = pd.Timestamp.now()
@@ -170,6 +178,15 @@ def place_order(sku: str, qty: int):
 
     orders_df = pd.concat([orders_df, pd.DataFrame([new_order])], ignore_index=True)
     orders_df.to_csv(ORDERS_FILE, index=False)
+
+    # Apply order immediately to make inventory recommendations dynamic
+    if inv is not None and "Current_Stock" in inv.columns:
+        try:
+            inv.loc[inv["SKU"] == sku, "Current_Stock"] -= int(qty)
+            inv.loc[inv["SKU"] == sku, "Stock_As_Of_Date"] = order_date
+            inv.to_csv(INVENTORY_FILE, index=False)
+        except Exception:
+            pass
 
     log_event("ORDER", f"{sku} order placed for {qty} units", order_date)
 

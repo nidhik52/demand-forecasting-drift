@@ -149,6 +149,9 @@ def run_pipeline(start_date, end_date):
 
         if Path(METRICS_FILE).exists():
             old = pd.read_csv(METRICS_FILE)
+            old["Date"] = pd.to_datetime(old["Date"], errors="coerce")
+            keep_mask = (old["Date"] < current_date) | (old["Date"] > end_date)
+            old = old[keep_mask]
             metrics_df = pd.concat([old, metrics_df], ignore_index=True)
 
         metrics_df.to_csv(METRICS_FILE, index=False)
