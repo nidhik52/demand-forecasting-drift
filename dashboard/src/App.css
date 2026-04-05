@@ -309,7 +309,7 @@ input::placeholder {
 }
 
 .chart-area {
-  min-height: 320px;
+  height: 320px;
   position: relative;
 }
 
@@ -418,6 +418,28 @@ input::placeholder {
   display: grid;
   gap: 0.5rem;
   padding-right: 0.2rem;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.6rem;
+}
+
+.panel-filters {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.panel-filters input,
+.panel-filters select {
+  padding: 0.4rem 0.6rem;
+  font-size: 0.78rem;
+  border-radius: 8px;
 }
 
 .scroll-panel.compact {
