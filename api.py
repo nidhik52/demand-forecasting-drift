@@ -128,9 +128,12 @@ def get_events(sku: str, start: str, end: str):
 
     df["timestamp"] = pd.to_datetime(df["timestamp"])
 
+    start_dt = pd.to_datetime(start)
+    end_dt = pd.to_datetime(end)
+
     df = df[
-        (df["timestamp"] >= start) &
-        (df["timestamp"] <= end) &
+        (df["timestamp"] >= start_dt) &
+        (df["timestamp"] <= end_dt) &
         (df["message"].str.contains(sku))
     ]
 
@@ -141,9 +144,22 @@ def get_events(sku: str, start: str, end: str):
 # INVENTORY
 # ---------------------------
 @app.get("/inventory")
-def get_inventory():
+def get_inventory(end: str):
     df = safe_read_csv(INVENTORY_RECOMMENDATIONS_FILE)
-    return df.to_dict(orient="records")
+
+    if df.empty:
+        return []
+
+    df["Stock_As_Of_Date"] = pd.to_datetime(df["Stock_As_Of_Date"])
+    end_dt = pd.to_datetime(end)
+
+    df = df[df["Stock_As_Of_Date"] <= end_dt]
+
+    return (
+        df.sort_values("Stock_As_Of_Date", ascending=False)
+        .drop_duplicates("SKU")
+        .to_dict(orient="records")
+    )
 
 
 # ---------------------------
@@ -179,18 +195,42 @@ def place_order(sku: str, qty: int):
     orders_df = pd.concat([orders_df, pd.DataFrame([new_order])], ignore_index=True)
     orders_df.to_csv(ORDERS_FILE, index=False)
 
-    # Apply order immediately to make inventory recommendations dynamic
-    if inv is not None and "Current_Stock" in inv.columns:
-        try:
-            inv.loc[inv["SKU"] == sku, "Current_Stock"] -= int(qty)
-            inv.loc[inv["SKU"] == sku, "Stock_As_Of_Date"] = order_date
-            inv.to_csv(INVENTORY_FILE, index=False)
-        except Exception:
-            pass
+    if inv is not None:
+        inv.loc[inv["SKU"] == sku, "Current_Stock"] -= int(qty)
+        inv.to_csv(INVENTORY_FILE, index=False)
 
     log_event("ORDER", f"{sku} order placed for {qty} units", order_date)
 
-    return {"status": "success"}
+    return {
+        "status": "success",
+        "restock_date": restock_date.strftime("%Y-%m-%d")
+    }
+
+
+########################################################
+#  Monitoring using Grafana
+########################################################
+
+@app.get("/monitoring")
+def monitoring():
+
+    def safe_read(path):
+        try:
+            return pd.read_csv(path)
+        except:
+            return pd.DataFrame()
+
+    metrics = safe_read(METRICS_FILE)
+    drift = safe_read("data/processed/drift_summary.csv")
+    runs = safe_read("data/processed/pipeline_runs.csv")
+
+    return {
+        "total_records": len(metrics),
+        "avg_mae": float(metrics["MAE"].mean()) if not metrics.empty else 0,
+        "drift_count": len(drift),
+        "pipeline_runs": len(runs),
+        "last_run": runs.tail(1).to_dict(orient="records") if not runs.empty else []
+    }
 
 
 if FRONTEND_BUILD_DIR.exists():

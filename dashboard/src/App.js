@@ -1,300 +1,148 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import {
   LineChart, Line, XAxis, YAxis, Tooltip,
-  CartesianGrid, ResponsiveContainer, Scatter
+  CartesianGrid, Scatter, Legend
 } from "recharts";
 
-const API = (process.env.REACT_APP_API || "").replace(/\/$/, "");
+const API = "";
 
 function App() {
 
-  const [sku, setSku] = useState("");
   const [skus, setSkus] = useState([]);
-
-  const [start, setStart] = useState("2025-07-01");
-  const [end, setEnd] = useState("2025-07-31");
-
+  const [selectedSKU, setSelectedSKU] = useState("");
   const [metrics, setMetrics] = useState([]);
   const [events, setEvents] = useState([]);
   const [inventory, setInventory] = useState([]);
   const [orderQty, setOrderQty] = useState({});
-
   const [loading, setLoading] = useState(false);
 
-  // --------------------------
+  const [start, setStart] = useState("2025-07-01");
+  const [end, setEnd] = useState("2025-07-31");
+
   // LOAD SKUs
-  // --------------------------
   useEffect(() => {
-    fetch(`${API}/skus`)
-      .then(res => res.json())
-      .then(data => {
-        const normalized = data.map(item =>
-          typeof item === "string" ? { SKU: item, Product: "" } : item
-        );
-        setSkus(normalized);
-        if (normalized.length > 0) setSku(normalized[0].SKU);
-      });
+    axios.get(`${API}/skus`).then(res => {
+      setSkus(res.data);
+      if (res.data.length > 0) {
+        setSelectedSKU(res.data[0].SKU);
+      }
+    });
   }, []);
 
-  // --------------------------
-  // FETCH DATA
-  // --------------------------
-  const fetchData = useCallback(async () => {
+  const fetchData = async () => {
+    if (!selectedSKU) return;
 
-    if (!sku) return;
+    const [m, e, i] = await Promise.all([
+      axios.get(`${API}/metrics`, { params: { sku: selectedSKU, start, end } }),
+      axios.get(`${API}/events`, { params: { sku: selectedSKU, start, end } }),
+      axios.get(`${API}/inventory`, { params: { end } })
+    ]);
 
-    try {
-      const [mRes, eRes, iRes] = await Promise.all([
-        fetch(`${API}/metrics?sku=${sku}&start=${start}&end=${end}`),
-        fetch(`${API}/events?sku=${sku}&start=${start}&end=${end}`),
-        fetch(`${API}/inventory`)
-      ]);
-
-      setMetrics(await mRes.json());
-      setEvents(await eRes.json());
-      setInventory(await iRes.json());
-
-    } catch (err) {
-      console.error("Fetch error:", err);
-    }
-
-  }, [sku, start, end]);
+    setMetrics(m.data);
+    setEvents(e.data);
+    setInventory(i.data);
+  };
 
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+  }, [selectedSKU, start, end]);
 
-  // --------------------------
-  // RUN PIPELINE
-  // --------------------------
   const runPipeline = async () => {
     setLoading(true);
-
-    try {
-      await fetch(`${API}/run_pipeline?start=${start}&end=${end}`, {
-        method: "POST"
-      });
-
-      // wait a bit for backend to update files
-      setTimeout(fetchData, 2000);
-
-    } catch (err) {
-      console.error(err);
-    }
-
+    await axios.post(`${API}/run_pipeline`, null, { params: { start, end } });
     setLoading(false);
+    setTimeout(fetchData, 2000);
   };
 
-  // --------------------------
-  // PLACE ORDER
-  // --------------------------
   const placeOrder = async (sku, qty) => {
-    if (qty === 0) return;
-
-    await fetch(`${API}/order?sku=${sku}&qty=${qty}`, {
-      method: "POST"
+    const res = await axios.post(`${API}/order`, null, {
+      params: { sku, qty }
     });
 
-    alert(`Order placed for ${sku}`);
+    alert(`✅ Order successful!\nRestock by: ${res.data.restock_date}`);
     fetchData();
   };
 
-  // --------------------------
-  // KPI
-  // --------------------------
-  const totalDrift = events.filter(e => e.event_type === "DRIFT").length;
-
-  const avgMAE =
-    metrics.length > 0
-      ? (metrics.reduce((s, x) => s + Number(x.Error ?? x.MAE ?? 0), 0) / metrics.length).toFixed(2)
-      : 0;
-
-  const criticalCount = inventory.filter(i => i.Risk_Level === "CRITICAL").length;
-
-  // --------------------------
-  // CHART
-  // --------------------------
-  const chartData = metrics
-    .map(d => ({
-      date: String(d.Date ?? "").split(" ")[0].split("T")[0],
-      mae: Number(d.Error ?? d.MAE ?? 0)
-    }))
-    .sort((a, b) => a.date.localeCompare(b.date));
+  const chartData = metrics.map(d => ({
+    date: d.Date.split("T")[0],
+    actual: d.Actual,
+    predicted: d.Predicted,
+    error: Math.abs(d.Actual - d.Predicted)
+  }));
 
   const driftPoints = events
-    .filter(e => e.event_type === "DRIFT")
-    .map(e => ({
-      date: String(e.timestamp ?? "").split(" ")[0].split("T")[0],
-      mae: Math.max(...chartData.map(d => d.mae), 2)
-    }));
+    .filter(e => e.event_type?.toUpperCase() === "DRIFT")
+    .map(e => {
+      const date = e.timestamp.split(" ")[0];
+      const match = chartData.find(d => d.date === date);
+      return match ? { ...match } : null;
+    })
+    .filter(Boolean);
 
   return (
-    <div style={container}>
+    <div style={{ padding: 20, background: "#0b1220", color: "white" }}>
 
-      <h1>📊 Drift-Aware Retail Intelligence</h1>
+      <h2>📊 Drift-Aware Dashboard</h2>
 
-      {/* FILTER */}
-      <div style={filterBar}>
-        <select value={sku} onChange={e => setSku(e.target.value)}>
-          {skus.map(item => (
-            <option key={item.SKU} value={item.SKU}>
-              {item.SKU}{item.Product ? ` — ${item.Product}` : ""}
-            </option>
-          ))}
-        </select>
+      <select value={selectedSKU} onChange={e => setSelectedSKU(e.target.value)}>
+        {skus.map(s => (
+          <option key={s.SKU} value={s.SKU}>
+            {s.SKU} - {s.Product}
+          </option>
+        ))}
+      </select>
 
-        <input type="date" value={start} onChange={e => setStart(e.target.value)} />
-        <input type="date" value={end} onChange={e => setEnd(e.target.value)} />
+      <input type="date" value={start} onChange={e => setStart(e.target.value)} />
+      <input type="date" value={end} onChange={e => setEnd(e.target.value)} />
 
-        <button onClick={fetchData}>Refresh</button>
+      <button onClick={runPipeline}>Run Pipeline</button>
+      {loading && <span> ⏳ Running...</span>}
 
-        <button onClick={runPipeline} disabled={loading}>
-          {loading ? "Running..." : "Run Pipeline"}
-        </button>
-      </div>
+      <LineChart width={800} height={300} data={chartData}>
+        <CartesianGrid stroke="#444" />
+        <XAxis dataKey="date" />
+        <YAxis />
+        <Tooltip />
+        <Legend />
 
-      {/* LOADING */}
-      {loading && <p>⏳ Pipeline running... please wait</p>}
+        <Line dataKey="actual" stroke="#60a5fa" />
+        <Line dataKey="predicted" stroke="#34d399" />
 
-      {/* KPI */}
-      <div style={grid3}>
-        <Card>⚠ Drift Events: {totalDrift}</Card>
-        <Card>📉 Avg MAE: {avgMAE}</Card>
-        <Card>🚨 Critical SKUs: {criticalCount}</Card>
-      </div>
+        <Scatter data={driftPoints} dataKey="actual" fill="red" name="Drift" />
+      </LineChart>
 
-      {/* MAIN */}
-      <div style={gridMain}>
+      <h3>Events</h3>
+      <ul>
+        {events.map((e, i) => (
+          <li key={i}>
+            {e.timestamp} - {e.event_type} - {e.message}
+          </li>
+        ))}
+      </ul>
 
-        {/* CHART */}
-        <Card>
-          <h3>Error Trend</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={chartData}>
-              <CartesianGrid stroke="#2a3f5f" />
-              <XAxis dataKey="date" stroke="#ccc" />
-              <YAxis stroke="#ccc" />
-              <Tooltip />
-              <Line dataKey="mae" stroke="#ff6b6b" dot={false} />
-              <Scatter data={driftPoints} fill="#facc15" />
-            </LineChart>
-          </ResponsiveContainer>
-        </Card>
+      <h3>Inventory</h3>
+      {inventory.map((item, i) => (
+        <div key={i}>
+          {item.SKU} | Stock: {item.Current_Stock} | Rec: {item.Recommended_Order_Qty}
 
-        {/* INVENTORY */}
-        <Card>
-          <h3>Inventory</h3>
-          {[...inventory]
-            .sort((a, b) => {
-              const weight = { CRITICAL: 3, WARNING: 2, SAFE: 1 };
-              const riskDiff = (weight[b.Risk_Level] || 0) - (weight[a.Risk_Level] || 0);
-              if (riskDiff !== 0) return riskDiff;
-              return Number(b.Recommended_Order_Qty || 0) - Number(a.Recommended_Order_Qty || 0);
-            })
-            .slice(0, 10)
-            .map((i, idx) => (
-            <div key={idx} style={{
-              marginBottom: "10px",
-              color:
-                i.Risk_Level === "CRITICAL" ? "#ff6b6b" :
-                i.Risk_Level === "WARNING" ? "#facc15" :
-                "#4ade80"
-            }}>
-              <b>{i.SKU}</b>{i.Product ? ` — ${i.Product}` : ""} ({i.Risk_Level})<br />
-              Stock: {i.Current_Stock} | Suggested: {i.Recommended_Order_Qty}
+          <input
+            type="number"
+            onChange={e =>
+              setOrderQty(prev => ({
+                ...prev,
+                [item.SKU]: e.target.value
+              }))
+            }
+          />
 
-              <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
-                <input
-                  type="number"
-                  min="0"
-                  value={orderQty[i.SKU] ?? i.Recommended_Order_Qty}
-                  onChange={e =>
-                    setOrderQty(prev => ({
-                      ...prev,
-                      [i.SKU]: Number(e.target.value)
-                    }))
-                  }
-                  style={{ width: "100px" }}
-                />
-
-                <button
-                  onClick={() => placeOrder(i.SKU, Number(orderQty[i.SKU] ?? i.Recommended_Order_Qty))}
-                  disabled={Number(orderQty[i.SKU] ?? i.Recommended_Order_Qty) === 0}
-                >
-                  Order
-                </button>
-              </div>
-            </div>
-          ))}
-        </Card>
-
-      </div>
-
-      {/* EVENTS */}
-      <div style={grid2}>
-        <Card>
-          <h3>Drift Events</h3>
-          {events.filter(e => e.event_type === "DRIFT").slice(-10).map((e, i) => (
-            <div key={i}>{e.timestamp} — {e.message}</div>
-          ))}
-        </Card>
-
-        <Card>
-          <h3>Retraining</h3>
-          {events.filter(e => e.event_type === "RETRAIN").slice(-10).map((e, i) => (
-            <div key={i}>{e.timestamp} — {e.message}</div>
-          ))}
-        </Card>
-      </div>
-
+          <button onClick={() => placeOrder(item.SKU, orderQty[item.SKU] || 0)}>
+            Order
+          </button>
+        </div>
+      ))}
     </div>
   );
 }
-
-// --------------------------
-const Card = ({ children }) => (
-  <div style={{
-    background: "#1e293b",
-    padding: "15px",
-    borderRadius: "12px",
-    boxShadow: "0 4px 10px rgba(0,0,0,0.3)"
-  }}>
-    {children}
-  </div>
-);
-
-// --------------------------
-const container = {
-  padding: "20px",
-  background: "#0f172a",
-  color: "white",
-  minHeight: "100vh"
-};
-
-const filterBar = {
-  marginBottom: "20px",
-  display: "flex",
-  gap: "10px"
-};
-
-const grid3 = {
-  display: "grid",
-  gridTemplateColumns: "repeat(3,1fr)",
-  gap: "20px",
-  marginBottom: "20px"
-};
-
-const gridMain = {
-  display: "grid",
-  gridTemplateColumns: "2fr 1fr",
-  gap: "20px"
-};
-
-const grid2 = {
-  display: "grid",
-  gridTemplateColumns: "1fr 1fr",
-  gap: "20px",
-  marginTop: "20px"
-};
 
 export default App;
