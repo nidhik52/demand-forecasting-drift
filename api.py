@@ -5,6 +5,7 @@ import subprocess
 import sys
 from pathlib import Path
 from fastapi.staticfiles import StaticFiles
+from typing import Iterable, Optional
 
 from src.config import (
     EVENT_LOG_FILE,
@@ -33,11 +34,11 @@ app.add_middleware(
 # ---------------------------
 # SAFE CSV LOADER
 # ---------------------------
-def safe_read_csv(path, columns=None):
+def safe_read_csv(path: Path, columns: Optional[Iterable[str]] = None) -> pd.DataFrame:
     try:
         return pd.read_csv(path)
     except:
-        return pd.DataFrame(columns=columns if columns else [])
+        return pd.DataFrame(columns=list(columns) if columns else [])
 
 
 # ---------------------------
@@ -79,8 +80,8 @@ def run_pipeline(start: str, end: str):
 def get_skus():
     inv_df = safe_read_csv(INVENTORY_FILE, ["SKU", "Product"])
     if not inv_df.empty and "SKU" in inv_df.columns:
-        inv_df = inv_df.drop_duplicates(subset=["SKU"]).sort_values("SKU")
-        return inv_df[["SKU", "Product"]].fillna("").to_dict(orient="records")
+        inv_df = inv_df.drop_duplicates(subset=["SKU"]).sort_values(by="SKU")
+        return inv_df[["SKU", "Product"]].fillna("").to_dict("records")
 
     df = safe_read_csv(METRICS_FILE, ["SKU"])
     if df.empty:
@@ -113,7 +114,7 @@ def get_metrics(sku: str, start: str, end: str):
         (df["Date"] <= end_dt)
     ]
 
-    return df.sort_values("Date").to_dict(orient="records")
+    return df.sort_values(by="Date").to_dict("records")
 
 
 # ---------------------------
@@ -137,7 +138,7 @@ def get_events(sku: str, start: str, end: str):
         (df["message"].str.contains(sku))
     ]
 
-    return df.sort_values("timestamp", ascending=False).to_dict(orient="records")
+    return df.sort_values(by="timestamp", ascending=False).to_dict("records")
 
 
 # ---------------------------
@@ -163,9 +164,9 @@ def get_inventory(end: str):
     df = df[df[date_col] <= end_dt].dropna(subset=[date_col])
 
     return (
-        df.sort_values(date_col, ascending=False)
+        df.sort_values(by=date_col, ascending=False)
         .drop_duplicates("SKU")
-        .to_dict(orient="records")
+        .to_dict("records")
     )
 
 
@@ -236,7 +237,7 @@ def monitoring():
         "avg_mae": float(metrics["MAE"].mean()) if not metrics.empty else 0,
         "drift_count": len(drift),
         "pipeline_runs": len(runs),
-        "last_run": runs.tail(1).to_dict(orient="records") if not runs.empty else []
+        "last_run": runs.tail(1).to_dict("records") if not runs.empty else []
     }
 
 
