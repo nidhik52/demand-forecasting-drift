@@ -150,13 +150,20 @@ def get_inventory(end: str):
     if df.empty:
         return []
 
-    df["Stock_As_Of_Date"] = pd.to_datetime(df["Stock_As_Of_Date"])
-    end_dt = pd.to_datetime(end)
+    date_col = "Stock_As_Of_Date" if "Stock_As_Of_Date" in df.columns else "Date"
+    if date_col not in df.columns:
+        return []
 
-    df = df[df["Stock_As_Of_Date"] <= end_dt]
+    df[date_col] = pd.to_datetime(df[date_col], errors="coerce")
+    end_dt = pd.to_datetime(end, errors="coerce")
+
+    if pd.isna(end_dt):
+        return []
+
+    df = df[df[date_col] <= end_dt].dropna(subset=[date_col])
 
     return (
-        df.sort_values("Stock_As_Of_Date", ascending=False)
+        df.sort_values(date_col, ascending=False)
         .drop_duplicates("SKU")
         .to_dict(orient="records")
     )
