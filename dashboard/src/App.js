@@ -5,7 +5,7 @@ import {
   CartesianGrid, Scatter, Legend
 } from "recharts";
 
-const API = "";
+const API = process.env.REACT_APP_API_BASE || "";
 
 function App() {
 
@@ -16,32 +16,47 @@ function App() {
   const [inventory, setInventory] = useState([]);
   const [orderQty, setOrderQty] = useState({});
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const [start, setStart] = useState("2025-07-01");
   const [end, setEnd] = useState("2025-07-31");
 
   // LOAD SKUs
   useEffect(() => {
-    axios.get(`${API}/skus`).then(res => {
-      setSkus(res.data);
-      if (res.data.length > 0) {
-        setSelectedSKU(res.data[0].SKU);
+    const loadSkus = async () => {
+      try {
+        setError("");
+        const res = await axios.get(`${API}/skus`);
+        const items = Array.isArray(res.data) ? res.data : [];
+        setSkus(items);
+        if (items.length > 0) {
+          setSelectedSKU(items[0].SKU);
+        }
+      } catch (err) {
+        setError("Failed to load SKUs. Check API URL and CORS.");
       }
-    });
+    };
+
+    loadSkus();
   }, []);
 
   const fetchData = async () => {
     if (!selectedSKU) return;
 
-    const [m, e, i] = await Promise.all([
-      axios.get(`${API}/metrics`, { params: { sku: selectedSKU, start, end } }),
-      axios.get(`${API}/events`, { params: { sku: selectedSKU, start, end } }),
-      axios.get(`${API}/inventory`, { params: { end } })
-    ]);
+    try {
+      setError("");
+      const [m, e, i] = await Promise.all([
+        axios.get(`${API}/metrics`, { params: { sku: selectedSKU, start, end } }),
+        axios.get(`${API}/events`, { params: { sku: selectedSKU, start, end } }),
+        axios.get(`${API}/inventory`, { params: { end } })
+      ]);
 
-    setMetrics(m.data);
-    setEvents(e.data);
-    setInventory(i.data);
+      setMetrics(Array.isArray(m.data) ? m.data : []);
+      setEvents(Array.isArray(e.data) ? e.data : []);
+      setInventory(Array.isArray(i.data) ? i.data : []);
+    } catch (err) {
+      setError("Failed to load data. Check API URL and server logs.");
+    }
   };
 
   useEffect(() => {
@@ -49,27 +64,40 @@ function App() {
   }, [selectedSKU, start, end]);
 
   const runPipeline = async () => {
-    setLoading(true);
-    await axios.post(`${API}/run_pipeline`, null, { params: { start, end } });
-    setLoading(false);
-    setTimeout(fetchData, 2000);
+    try {
+      setError("");
+      setLoading(true);
+      await axios.post(`${API}/run_pipeline`, null, { params: { start, end } });
+      setTimeout(fetchData, 2000);
+    } catch (err) {
+      setError("Failed to run pipeline. Check API URL and server logs.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const placeOrder = async (sku, qty) => {
-    const res = await axios.post(`${API}/order`, null, {
-      params: { sku, qty }
-    });
+    try {
+      setError("");
+      const res = await axios.post(`${API}/order`, null, {
+        params: { sku, qty }
+      });
 
-    alert(`✅ Order successful!\nRestock by: ${res.data.restock_date}`);
-    fetchData();
+      alert(`✅ Order successful!\nRestock by: ${res.data.restock_date}`);
+      fetchData();
+    } catch (err) {
+      setError("Failed to place order. Check API URL and server logs.");
+    }
   };
 
-  const chartData = metrics.map(d => ({
-    date: d.Date.split("T")[0],
-    actual: d.Actual,
-    predicted: d.Predicted,
-    error: Math.abs(d.Actual - d.Predicted)
-  }));
+  const chartData = metrics
+    .filter(d => d && d.Date && d.Actual != null && d.Predicted != null)
+    .map(d => ({
+      date: String(d.Date).split("T")[0],
+      actual: d.Actual,
+      predicted: d.Predicted,
+      error: Math.abs(d.Actual - d.Predicted)
+    }));
 
   const driftPoints = events
     .filter(e => e.event_type?.toUpperCase() === "DRIFT")
@@ -84,6 +112,8 @@ function App() {
     <div style={{ padding: 20, background: "#0b1220", color: "white" }}>
 
       <h2>📊 Drift-Aware Dashboard</h2>
+
+      {error && <div style={{ color: "#fca5a5" }}>{error}</div>}
 
       <select value={selectedSKU} onChange={e => setSelectedSKU(e.target.value)}>
         {skus.map(s => (

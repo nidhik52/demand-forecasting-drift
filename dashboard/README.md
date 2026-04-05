@@ -6,6 +6,14 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 In the project directory, you can run:
 
+## Environment Variables
+
+Create a `.env` file based on `.env.example` and set the API base URL:
+
+```bash
+REACT_APP_API_BASE=https://your-api-domain.onrender.com
+```
+
 ### `npm start`
 
 Runs the app in the development mode.\
