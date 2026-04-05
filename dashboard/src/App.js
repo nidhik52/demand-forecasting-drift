@@ -5,7 +5,10 @@ import {
   CartesianGrid, Scatter, Legend
 } from "recharts";
 
-const API = process.env.REACT_APP_API_BASE || "";
+const API =
+  process.env.NODE_ENV === "production"
+    ? "https://demand-forecasting-drift.onrender.com"
+    : "http://localhost:8000";
 
 function App() {
 
