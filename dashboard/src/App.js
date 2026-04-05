@@ -1,14 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import {
   LineChart, Line, XAxis, YAxis, Tooltip,
-  CartesianGrid, Scatter, Legend
+  CartesianGrid, Scatter, Legend, ResponsiveContainer
 } from "recharts";
+import "./App.css";
 
 const API =
-  process.env.NODE_ENV === "production"
+  process.env.REACT_APP_API_BASE ||
+  (process.env.NODE_ENV === "production"
     ? "https://demand-forecasting-drift.onrender.com"
-    : "http://localhost:8001";
+    : "http://localhost:8000");
 
 function App() {
 
@@ -19,7 +21,11 @@ function App() {
   const [inventory, setInventory] = useState([]);
   const [orderQty, setOrderQty] = useState({});
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [apiHealthy, setApiHealthy] = useState(true);
   const [error, setError] = useState("");
+  const [monitoring, setMonitoring] = useState(null);
+  const [lastUpdated, setLastUpdated] = useState(null);
 
   const [start, setStart] = useState("2025-07-01");
   const [end, setEnd] = useState("2025-07-31");
@@ -35,8 +41,10 @@ function App() {
         if (items.length > 0) {
           setSelectedSKU(items[0].SKU);
         }
+        setApiHealthy(true);
       } catch (err) {
         setError("Failed to load SKUs. Check API URL and CORS.");
+        setApiHealthy(false);
       }
     };
 
@@ -48,6 +56,7 @@ function App() {
 
     try {
       setError("");
+      setRefreshing(true);
       const [m, e, i] = await Promise.all([
         axios.get(`${API}/metrics`, { params: { sku: selectedSKU, start, end } }),
         axios.get(`${API}/events`, { params: { sku: selectedSKU, start, end } }),
@@ -57,14 +66,34 @@ function App() {
       setMetrics(Array.isArray(m.data) ? m.data : []);
       setEvents(Array.isArray(e.data) ? e.data : []);
       setInventory(Array.isArray(i.data) ? i.data : []);
+      setApiHealthy(true);
+      setLastUpdated(new Date());
     } catch (err) {
       setError("Failed to load data. Check API URL and server logs.");
+      setApiHealthy(false);
+    } finally {
+      setRefreshing(false);
     }
   };
 
   useEffect(() => {
     fetchData();
   }, [selectedSKU, start, end]);
+
+  useEffect(() => {
+    const fetchMonitoring = async () => {
+      try {
+        const res = await axios.get(`${API}/monitoring`);
+        setMonitoring(res.data || null);
+      } catch (err) {
+        setMonitoring(null);
+      }
+    };
+
+    fetchMonitoring();
+    const timer = setInterval(fetchMonitoring, 30000);
+    return () => clearInterval(timer);
+  }, []);
 
   const runPipeline = async () => {
     try {
@@ -111,69 +140,258 @@ function App() {
     })
     .filter(Boolean);
 
+  const retrainEvents = useMemo(
+    () => events.filter(e => String(e.event_type || "").toUpperCase().includes("RETRAIN")),
+    [events]
+  );
+
+  const driftEvents = useMemo(
+    () => events.filter(e => String(e.event_type || "").toUpperCase().includes("DRIFT")),
+    [events]
+  );
+
+  const lastRun = monitoring?.last_run?.[0];
+
+  const formatDate = value => {
+    if (!value) return "--";
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return String(value);
+    return parsed.toLocaleString();
+  };
+
+  const kpiCards = [
+    {
+      title: "Total SKUs Monitored",
+      value: skus.length || monitoring?.total_records || "--"
+    },
+    {
+      title: "Drift Events Detected",
+      value: monitoring?.drift_count ?? driftEvents.length
+    },
+    {
+      title: "Average MAE",
+      value: monitoring?.avg_mae ? monitoring.avg_mae.toFixed(2) : "--"
+    }
+  ];
+
+  const riskClass = level => {
+    const normalized = String(level || "SAFE").toUpperCase();
+    if (normalized.includes("CRIT")) return "risk-badge risk-critical";
+    if (normalized.includes("WARN")) return "risk-badge risk-warning";
+    return "risk-badge risk-low";
+  };
+
   return (
-    <div style={{ padding: 20, background: "#0b1220", color: "white" }}>
+    <div className="dashboard-shell">
+      <div className="dashboard-bg-glow" />
+      <div className="dashboard-bg-grid" />
 
-      <h2>📊 Drift-Aware Dashboard</h2>
-
-      {error && <div style={{ color: "#fca5a5" }}>{error}</div>}
-
-      <select value={selectedSKU} onChange={e => setSelectedSKU(e.target.value)}>
-        {skus.map(s => (
-          <option key={s.SKU} value={s.SKU}>
-            {s.SKU} - {s.Product}
-          </option>
-        ))}
-      </select>
-
-      <input type="date" value={start} onChange={e => setStart(e.target.value)} />
-      <input type="date" value={end} onChange={e => setEnd(e.target.value)} />
-
-      <button onClick={runPipeline}>Run Pipeline</button>
-      {loading && <span> ⏳ Running...</span>}
-
-      <LineChart width={800} height={300} data={chartData}>
-        <CartesianGrid stroke="#444" />
-        <XAxis dataKey="date" />
-        <YAxis />
-        <Tooltip />
-        <Legend />
-
-        <Line dataKey="actual" stroke="#60a5fa" />
-        <Line dataKey="predicted" stroke="#34d399" />
-
-        <Scatter data={driftPoints} dataKey="actual" fill="red" name="Drift" />
-      </LineChart>
-
-      <h3>Events</h3>
-      <ul>
-        {events.map((e, i) => (
-          <li key={i}>
-            {e.timestamp} - {e.event_type} - {e.message}
-          </li>
-        ))}
-      </ul>
-
-      <h3>Inventory</h3>
-      {inventory.map((item, i) => (
-        <div key={i}>
-          {item.SKU} | Stock: {item.Current_Stock} | Rec: {item.Recommended_Order_Qty}
-
-          <input
-            type="number"
-            onChange={e =>
-              setOrderQty(prev => ({
-                ...prev,
-                [item.SKU]: e.target.value
-              }))
-            }
-          />
-
-          <button onClick={() => placeOrder(item.SKU, orderQty[item.SKU] || 0)}>
-            Order
-          </button>
+      <header className="dashboard-header glass-card card-hover">
+        <div>
+          <h1>Drift-Aware Dashboard</h1>
+          <p>Real-time drift signals, inventory posture, and pipeline health.</p>
         </div>
-      ))}
+        <div className="status-pill-group">
+          <span className="status-pill">
+            <span
+              className="status-dot"
+              style={{ background: apiHealthy ? "#4cd7a0" : "#ffd166" }}
+            />
+            {apiHealthy ? "API Connected" : "API Degraded"}
+          </span>
+          <span className="status-pill">
+            Updated {lastUpdated ? formatDate(lastUpdated) : "--"}
+          </span>
+        </div>
+      </header>
+
+      {error && <div className="error-banner">{error}</div>}
+
+      <section className="filter-card glass-card">
+        <p className="section-title">Filters</p>
+        <div className="filter-grid">
+          <label>
+            SKU
+            <select value={selectedSKU} onChange={e => setSelectedSKU(e.target.value)}>
+              {skus.map(s => (
+                <option key={s.SKU} value={s.SKU}>
+                  {s.SKU} - {s.Product}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Start date
+            <input
+              className="date-input"
+              type="date"
+              value={start}
+              onChange={e => setStart(e.target.value)}
+            />
+          </label>
+          <label>
+            End date
+            <input
+              className="date-input"
+              type="date"
+              value={end}
+              onChange={e => setEnd(e.target.value)}
+            />
+          </label>
+          <div className="button-row">
+            <button className="btn btn-primary" onClick={runPipeline} disabled={loading}>
+              {loading ? "Running…" : "Run Pipeline"}
+            </button>
+            <button className="btn btn-secondary" onClick={fetchData} disabled={refreshing}>
+              {refreshing ? "Refreshing…" : "Refresh"}
+            </button>
+          </div>
+        </div>
+        <div className="pipeline-meta">
+          <p>Pipeline runs: {monitoring?.pipeline_runs ?? "--"}</p>
+          <p>Last run: {lastRun ? formatDate(lastRun.timestamp || lastRun.time) : "--"}</p>
+        </div>
+      </section>
+
+      <section className="kpi-grid">
+        {kpiCards.map(card => (
+          <div key={card.title} className="kpi-card glass-card card-hover">
+            <p className="kpi-title">{card.title}</p>
+            <p className="kpi-value">{card.value}</p>
+          </div>
+        ))}
+      </section>
+
+      <section className="main-grid">
+        <div className="chart-card glass-card">
+          <p className="section-title">Forecast vs Actual</p>
+          <div className="chart-area">
+            {refreshing ? (
+              <div className="overlay">
+                <div className="spinner-group">
+                  <span className="spinner-circle" />
+                  <span className="spinner-circle spinner-circle-2" />
+                  <span className="spinner-circle spinner-circle-3" />
+                </div>
+                <p>Refreshing series…</p>
+              </div>
+            ) : chartData.length === 0 ? (
+              <div className="overlay">
+                <p>No forecast data for this range.</p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData}>
+                  <CartesianGrid stroke="#1c2b4a" strokeDasharray="3 3" />
+                  <XAxis dataKey="date" stroke="#c2d9ff" tick={{ fontSize: 12 }} />
+                  <YAxis stroke="#c2d9ff" tick={{ fontSize: 12 }} />
+                  <Tooltip
+                    content={({ active, payload, label }) => {
+                      if (!active || !payload?.length) return null;
+                      return (
+                        <div className="chart-tooltip">
+                          <p>{label}</p>
+                          {payload.map(item => (
+                            <p key={item.name} style={{ color: item.color }}>
+                              {item.name}: {item.value}
+                            </p>
+                          ))}
+                        </div>
+                      );
+                    }}
+                  />
+                  <Legend />
+                  <Line dataKey="actual" stroke="#60a5fa" strokeWidth={2.3} dot={false} />
+                  <Line dataKey="predicted" stroke="#34d399" strokeWidth={2.3} dot={false} />
+                  <Scatter data={driftPoints} dataKey="actual" fill="#ff7b7b" name="Drift" />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+
+        <div className="chart-card glass-card">
+          <p className="section-title">Drift & Events</p>
+          <div className="scroll-panel">
+            {events.length === 0 ? (
+              <p className="empty-text">No events logged for this range.</p>
+            ) : (
+              events.map((event, idx) => (
+                <div className="event-row" key={`${event.timestamp}-${idx}`}>
+                  <time>{formatDate(event.timestamp)}</time>
+                  <p>{event.event_type || "EVENT"} • {event.message || ""}</p>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section className="main-grid lower-grid">
+        <div className="chart-card glass-card">
+          <p className="section-title">Inventory Risk</p>
+          <div className="inventory-list">
+            {inventory.length === 0 ? (
+              <p className="empty-text">No inventory data yet.</p>
+            ) : (
+              inventory.map(item => (
+                <div key={item.SKU} className="inventory-item">
+                  <div className="inventory-row">
+                    <div>
+                      <h3>{item.SKU}</h3>
+                      <p>{item.Product || ""}</p>
+                    </div>
+                    <span className={riskClass(item.Risk_Level)}>
+                      {item.Risk_Level || "SAFE"}
+                    </span>
+                  </div>
+                  <p>
+                    Stock: {item.Current_Stock ?? "--"}
+                    <span className="divider-dot" />
+                    Rec: {item.Recommended_Order_Qty ?? "--"}
+                  </p>
+                  <div className="inventory-order-row">
+                    <input
+                      type="number"
+                      min="0"
+                      value={orderQty[item.SKU] || ""}
+                      onChange={e =>
+                        setOrderQty(prev => ({
+                          ...prev,
+                          [item.SKU]: e.target.value
+                        }))
+                      }
+                      placeholder="Order qty"
+                    />
+                    <button
+                      className="btn btn-order"
+                      onClick={() => placeOrder(item.SKU, orderQty[item.SKU] || 0)}
+                    >
+                      Order
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        <div className="chart-card glass-card">
+          <p className="section-title">Retrain Timeline</p>
+          <div className="scroll-panel compact">
+            {retrainEvents.length === 0 ? (
+              <p className="empty-text">No retrain events yet.</p>
+            ) : (
+              retrainEvents.map((event, idx) => (
+                <div className="retrain-row" key={`${event.timestamp}-${idx}`}>
+                  <time>{formatDate(event.timestamp)}</time>
+                  <span>{event.message || event.event_type || "RETRAIN"}</span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
