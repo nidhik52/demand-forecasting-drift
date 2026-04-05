@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demand-forecast-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: demand-api
+  template:
+    metadata:
+      labels:
+        app: demand-api
+    spec:
+      containers:
+        - name: api
+          image: python:3.11
+          command: ["sh", "-c"]
+          args:
+            - pip install fastapi uvicorn pandas numpy scikit-learn &&
+              python api.py
+          ports:
+            - containerPort: 8000
