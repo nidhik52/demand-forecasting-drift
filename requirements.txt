@@ -1,6 +1,6 @@
 fastapi==0.115.13
 uvicorn[standard]==0.34.3
 pandas==2.2.3
-numpy==2.2.6
+numpy==1.26.4
 scikit-learn==1.6.1
 mlflow==2.14.1
