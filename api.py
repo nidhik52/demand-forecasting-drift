@@ -174,7 +174,7 @@ def get_inventory(end: str):
 # PLACE ORDER
 # ---------------------------
 @app.post("/order")
-def place_order(sku: str, qty: int):
+def place_order(sku: str, qty: int, end: Optional[str] = None):
 
     ORDERS_FILE.parent.mkdir(parents=True, exist_ok=True)
 
@@ -190,7 +190,20 @@ def place_order(sku: str, qty: int):
         inv = None
         lead = 7
 
-    order_date = pd.Timestamp.now()
+    if end:
+        order_date = pd.to_datetime(end, errors="coerce")
+    else:
+        order_date = pd.NaT
+
+    if pd.isna(order_date):
+        metrics_df = safe_read_csv(METRICS_FILE, ["Date"])
+        if not metrics_df.empty and "Date" in metrics_df.columns:
+            metrics_df["Date"] = pd.to_datetime(metrics_df["Date"], errors="coerce")
+            order_date = metrics_df["Date"].max()
+
+    if pd.isna(order_date):
+        order_date = pd.Timestamp("2000-01-01")
+
     restock_date = order_date + pd.Timedelta(days=lead)
 
     new_order = {
