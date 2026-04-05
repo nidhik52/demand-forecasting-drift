@@ -1,339 +1,273 @@
-# Drift-Aware Continuous Learning for Retail Demand Forecasting
+# 🚀 Drift-Aware Continuous Learning for Retail Demand Forecasting
 
-## Project Overview
+## 📌 Overview
 
-This project implements an end-to-end machine learning system for retail demand forecasting with automated concept drift detection and continuous learning.
+This project implements a **drift-aware, end-to-end machine learning system** for retail demand forecasting with continuous learning capabilities.
 
-The system forecasts product demand using historical sales data, continuously monitors incoming sales behavior, and retrains models when demand patterns change significantly.
+The system forecasts product demand, monitors model performance over time, detects **concept drift**, and automatically retrains models when performance degrades. It also generates **inventory replenishment recommendations** based on updated forecasts.
 
-It also generates inventory replenishment recommendations from forecasted demand.
+In addition, the project integrates **modern MLOps practices** including experiment tracking, orchestration, CI/CD, and monitoring.
 
-## Key Features
+---
 
-- Demand forecasting using Prophet
-- Simulated real-time data streaming
-- Concept drift detection
-- Automated model retraining
-- Inventory replenishment recommendations
-- System event logging
-- Prediction error tracking (metrics)
-- Model versioning
+## 🎯 Key Features
 
-## System Architecture
+* 📈 Demand forecasting using historical sales data
+* 🔍 Concept drift detection using prediction error (MAE)
+* 🔁 Automated model retraining on drift
+* 💾 Model versioning with timestamped artifacts
+* 📊 Metrics tracking over time
+* 🧾 System event logging (drift, retrain, orders)
+* 📦 Inventory replenishment recommendations
+* 🌐 FastAPI backend for serving data
+* ⚛️ React dashboard for visualization
+* 🧪 MLflow integration for experiment tracking
+* ⏱️ Airflow DAG for pipeline orchestration
+* 🔄 CI/CD using GitHub Actions
+
+---
+
+## 🧠 System Architecture
 
 ```text
-Historical Sales Data
-        |
-        v
-Data Preprocessing
-        |
-        v
-Demand Forecasting (Prophet)
-        |
-        v
-Streaming Simulation
-        |
-        v
-Drift Detection
-        |
-        v
-Model Retraining
-        |
-        v
+Historical Data
+     ↓
+Data Processing
+     ↓
+Model Training
+     ↓
+Prediction + Evaluation
+     ↓
+Drift Detection (MAE Threshold)
+     ↓
+Retraining (if drift detected)
+     ↓
+Model Versioning + MLflow Logging
+     ↓
 Inventory Recommendation
-        |
-        v
-Metrics and Event Logging
+     ↓
+API + Dashboard + Monitoring
 ```
 
-## Project Structure
+---
+
+## 📁 Project Structure
 
 ```text
 demand-forecasting-drift/
+│
 ├── data/
 │   └── processed/
 │       ├── daily_demand.csv
-│       ├── forecast_2025.csv
 │       ├── metrics.csv
 │       ├── system_events.csv
-│       ├── inventory_recommendations.csv
-│       └── current_stream.csv
+│       └── inventory_recommendations.csv
+│
 ├── models/
-│   ├── prophet_initial_model.pkl
-│   └── prophet_retrained_YYYY-MM-DD.pkl
+│   └── (saved models with SKU + timestamp)
+│
 ├── src/
-│   ├── preprocessing.py
-│   ├── forecasting.py
-│   ├── streaming.py
-│   ├── drift_detection.py
-│   ├── retraining.py
-│   ├── inventory.py
-│   └── event_logger.py
-├── pipeline.py
+│   ├── config.py
+│   ├── event_logger.py
+│   └── inventory.py
+│
+├── dashboard/        # React frontend
+├── api.py            # FastAPI backend
+├── pipeline.py       # Core pipeline
+├── requirements.txt
 └── README.md
 ```
 
-## Installation
+---
 
-### 1. Create virtual environment
+## ⚙️ Installation & Setup
+
+### 1. Create Virtual Environment
 
 ```bash
 python -m venv .venv
 ```
 
-### 2. Activate environment
-
-Linux or macOS:
+### 2. Activate Environment
 
 ```bash
-source .venv/bin/activate
+source .venv/bin/activate   # Mac/Linux
+.venv\Scripts\activate      # Windows
 ```
 
-Windows:
-
-```powershell
-.venv\Scripts\activate
-```
-
-### 3. Install dependencies
+### 3. Install Dependencies
 
 ```bash
-pip install pandas prophet scikit-learn tqdm joblib
+pip install -r requirements.txt
 ```
 
-## Docker Deployment (Low Disk Usage)
+---
 
-This repository supports a single Docker image that serves both backend and frontend.
+## ▶️ Running the System
 
-### 1. Build and run
+### 🔹 Step 1: Run Pipeline
 
 ```bash
-docker compose up -d --build
+python pipeline.py --start 2025-07-01 --end 2025-07-10
 ```
 
-App endpoint:
+This will:
 
-- http://localhost:8000
+* Train models
+* Detect drift
+* Retrain if needed
+* Save models
+* Update metrics
+* Generate inventory recommendations
 
-### 2. Auto rebuild on local file changes
+---
 
-Use Docker Compose watch to rebuild and restart when backend or dashboard files change:
+### 🔹 Step 2: Start Backend (FastAPI)
 
 ```bash
-docker compose watch
+uvicorn api:app --reload
 ```
 
-Or use the helper script:
+Open:
+
+```
+http://127.0.0.1:8000/docs
+```
+
+---
+
+### 🔹 Step 3: Start Frontend (React Dashboard)
 
 ```bash
-./scripts/auto-build-watch.sh
+cd dashboard
+npm install
+npm start
 ```
 
-The container image now includes the contents of `models/`, while `data/` remains mounted from the host so runtime outputs persist without bloating the image.
+---
 
-### 3. Auto redeploy on remote git changes (Docker-only)
-
-If you deploy on a server and want Docker redeploy without CI/CD changes, run:
+### 🔹 Step 4: Run MLflow (Experiment Tracking)
 
 ```bash
-chmod +x scripts/auto-redeploy.sh
-./scripts/auto-redeploy.sh
+mlflow ui
 ```
 
-This script:
+Open:
 
-- polls origin/main for new commits
-- runs git pull
-- rebuilds and restarts with docker compose up -d --build
-- prunes old images to control disk usage
+```
+http://127.0.0.1:5000
+```
 
-Optional environment variables:
+---
 
-- REPO_DIR: repository path to watch
-- BRANCH: branch name (default main)
-- INTERVAL_SECONDS: poll interval (default 60)
-
-### 4. Disk cleanup recommendations
-
-Run periodically on the deployment host:
+### 🔹 Step 5: Run Airflow (Pipeline Orchestration)
 
 ```bash
-docker image prune -af
-docker builder prune -af
-docker container prune -f
+airflow webserver --port 8080
+airflow scheduler
 ```
 
-## First-Time Setup
+---
 
-Run these once to prepare the system.
+## 📊 Outputs Generated
 
-### 1. Preprocess dataset
+After running the pipeline:
 
-```bash
-python src/preprocessing.py
-```
+| File                            | Description                         |
+| ------------------------------- | ----------------------------------- |
+| `metrics.csv`                   | MAE over time (for drift detection) |
+| `system_events.csv`             | Drift + retrain logs                |
+| `inventory_recommendations.csv` | Stock decisions                     |
+| `models/`                       | Saved models (only on drift)        |
 
-Creates:
+---
 
-- data/processed/daily_demand.csv
+## 🧪 Drift Detection Logic
 
-### 2. Generate baseline forecast
-
-```bash
-python src/forecasting.py
-```
-
-Outputs:
-
-- data/processed/forecast_2025.csv
-- models/prophet_initial_model.pkl
-
-### 3. Generate initial inventory recommendations
-
-```bash
-python src/inventory.py
-```
-
-Outputs:
-
-- data/processed/inventory_recommendations.csv
-
-## Running the Streaming Pipeline
-
-To simulate real-time demand monitoring:
-
-```bash
-python pipeline.py
-```
-
-The pipeline does the following:
-
-- Streams simulated sales data
-- Compares predicted demand with actual demand
-- Detects concept drift
-- Retrains forecasting model when drift is detected
-- Saves new model versions
-- Updates inventory recommendations
-- Logs system events
-- Records prediction errors
-
-## Generated Output Files
-
-After running the pipeline, these files are created or updated:
-
-- data/processed/current_stream.csv
-- data/processed/metrics.csv
-- data/processed/system_events.csv
-- data/processed/inventory_recommendations.csv
-
-## Model Versioning
-
-Models are stored in the models directory.
-
-Example:
+Drift is detected using:
 
 ```text
-models/
-├── prophet_initial_model.pkl
-├── prophet_retrained_2025-08-01.pkl
-└── prophet_retrained_2025-09-10.pkl
+MAE > Threshold
 ```
 
-Each retrained model includes the drift date in its filename to track model evolution.
+If drift is detected:
 
-## Concept Drift Detection
+* Event is logged
+* Model is retrained
+* New model is saved
+* MLflow run is created
 
-Concept drift occurs when the relationship between input data and demand changes over time.
+---
 
-The system compares:
+## 📦 Inventory Logic
 
-- Actual demand
-- Predicted demand
+Inventory recommendations are based on:
 
-If error exceeds a configured threshold across monitored SKUs, the system:
+* Forecasted demand
+* Current stock
+* Lead time
 
-- Logs a drift event
-- Retrains the forecasting model
-- Saves a new model version
-- Updates inventory recommendations
+Risk levels:
 
-## Monitoring Model Performance
+* 🟢 SAFE
+* 🟡 WARNING
+* 🔴 CRITICAL
 
-Prediction metrics are stored in:
+---
 
-- data/processed/metrics.csv
+## 📊 Dashboard Features
 
-Example:
+* SKU-wise demand visualization
+* Drift points highlighted on graph
+* Metrics trend (MAE over time)
+* Inventory risk panel
+* Order placement system
+* Event timeline (drift + retrain logs)
 
-```text
-Date,SKU,Actual_Demand,Predicted_Demand,Error
-2025-07-01,ELEC-001,12,11.8,0.2
-```
+---
 
-These metrics support analysis of:
+## 🔁 CI/CD Pipeline
 
-- Prediction accuracy
-- Drift events
-- Demand fluctuations
+Implemented using **GitHub Actions**:
 
-## Inventory Recommendation Logic
+* Automated pipeline execution
+* Output validation
+* API testing
+* Frontend build verification
 
-Inventory decisions are based on:
+---
 
-- Average forecast demand
-- Lead time
-- Safety stock
-- Current inventory
+## 🧠 MLOps Components Implemented
 
-Example action:
+| Component                    | Status          |
+| ---------------------------- | --------------  |
+| MLflow (Experiment Tracking) | ✅              |
+| Airflow (Orchestration)      | ✅              |
+| CI/CD (GitHub Actions)       | ✅              |
+| FastAPI (Serving)            | ✅              |
+| React Dashboard              | ✅              |
+| Grafana (Monitoring)         | ✅              |
+| Docker / K8s / Kafka         | 📌 Future Work  |
 
-- Order 25 units by 2025-08-10
+---
 
-This helps avoid stockouts while reducing overstock risk.
+## 🚧 Future Work
 
-## Adjusting Forecast Horizon
+* Kafka for real-time streaming
+* Kubernetes deployment
+* SageMaker integration
+* Advanced drift detection methods
+* Real-time monitoring with Prometheus + Grafana
 
-You can modify the horizon in src/forecasting.py.
+---
 
-Current pattern:
+## 👩‍💻 Author
 
-```python
-future = model.make_future_dataframe(periods=365)
-```
+**Nidhi Kambadkone**
+M.Tech Data Science
 
-Common alternatives:
+---
 
-- periods=30 for next 30 days
-- periods=90 for next 3 months
-- periods=365 for next 1 year
+## 💡 Final Note
 
-## System Event Logging
-
-All system events are recorded in:
-
-- data/processed/system_events.csv
-
-Example events:
-
-```text
-2025-08-01 Drift detected
-2025-08-01 Model retraining started
-2025-08-01 Model retraining completed
-```
-
-This provides traceability across the model lifecycle.
-
-## Future Improvements
-
-- Real-time streaming with Kafka
-- Advanced drift detection algorithms
-- Real-time monitoring dashboards
-- Containerization with Docker
-- Kubernetes deployment
-
-## Author
-
-Nidhi Kambadkone
-M.Tech Data Science, 1MS24SDS08
-
-Drift-Aware Continuous Learning Framework for Retail Demand Forecasting and Inventory Replenishment
+This project demonstrates how **machine learning systems evolve in production**, handling changing data patterns through **drift-aware continuous learning and MLOps practices**.
