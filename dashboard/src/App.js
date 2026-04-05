@@ -117,7 +117,7 @@ function App() {
     try {
       setError("");
       const res = await axios.post(`${API}/order`, null, {
-        params: { sku, qty }
+        params: { sku, qty, end }
       });
 
       alert(`✅ Order successful!\nRestock by: ${res.data.restock_date}`);
