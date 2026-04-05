@@ -19,6 +19,7 @@ from src.config import (
 )
 
 from src.event_logger import log_event
+from src.preprocessing import load_data as load_raw_data, preprocess_data, save_processed_data
 
 
 # ----------------------------
@@ -54,6 +55,36 @@ def load_data():
     return df
 
 
+def ensure_data_range(start, end):
+    start_dt = pd.to_datetime(start, errors="coerce")
+    end_dt = pd.to_datetime(end, errors="coerce")
+
+    if pd.isna(start_dt) or pd.isna(end_dt):
+        return
+
+    needs_refresh = False
+
+    if not DAILY_DEMAND_FILE.exists():
+        needs_refresh = True
+    else:
+        try:
+            existing = pd.read_csv(DAILY_DEMAND_FILE)
+            existing["Date"] = pd.to_datetime(existing["Date"], errors="coerce")
+            min_date = existing["Date"].min()
+            max_date = existing["Date"].max()
+            if pd.isna(min_date) or pd.isna(max_date):
+                needs_refresh = True
+            elif start_dt < min_date or end_dt > max_date:
+                needs_refresh = True
+        except Exception:
+            needs_refresh = True
+
+    if needs_refresh:
+        raw_df = load_raw_data()
+        demand = preprocess_data(raw_df)
+        save_processed_data(demand)
+
+
 # ----------------------------
 # MAIN PIPELINE
 # ----------------------------
@@ -61,6 +92,7 @@ def run_pipeline(start, end, run_id="manual"):
 
     print(f"\n🚀 Starting pipeline | {start} → {end}")
 
+    ensure_data_range(start, end)
     df = load_data()
     df = df[(df["Date"] >= start) & (df["Date"] <= end)]
 
