@@ -1,8 +1,0 @@
-name: Commit results
-run: |
-	git config --global user.name "github-actions"
-	git config --global user.email "actions@github.com"
-
-	git add data/processed/*.csv || true
-	git commit -m "Auto update results" || echo "No changes"
-	git push
