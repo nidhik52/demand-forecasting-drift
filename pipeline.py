@@ -1,189 +1,194 @@
 import pandas as pd
 import numpy as np
-import pickle
-import random
-from datetime import datetime, timedelta
 from pathlib import Path
 import argparse
+import pickle
+from datetime import datetime
 
-# -----------------------------
-# IMPORT CONFIG FIRST (IMPORTANT FIX)
-# -----------------------------
+import mlflow
+import mlflow.sklearn
+
 from src.config import (
     DAILY_DEMAND_FILE,
-    FORECAST_FILE,
-    MODELS_DIR,
     METRICS_FILE,
+    EVENT_LOG_FILE,
     INVENTORY_FILE,
-    DRIFT_THRESHOLD,
-    DRIFT_THRESHOLD_PCT
+    INVENTORY_RECOMMENDATIONS_FILE,
+    MODELS_DIR,
+    DRIFT_THRESHOLD
 )
 
 from src.event_logger import log_event
 
-from src.inventory import (
-    load_data as load_inventory_data,
-    generate_inventory_recommendations,
-    save_inventory
-)
 
-# -----------------------------
-# CREATE DIRECTORIES
-# -----------------------------
+# ----------------------------
+# INIT
+# ----------------------------
 MODELS_DIR.mkdir(parents=True, exist_ok=True)
-Path("data/processed").mkdir(parents=True, exist_ok=True)
 
-# -----------------------------
+mlflow.set_tracking_uri("file:./mlruns")
+mlflow.set_experiment("Drift-Aware Retail Forecasting")
+
+
+# ----------------------------
+# MODEL
+# ----------------------------
+def train_model(df):
+    return df["Demand"].mean()
+
+
+def predict(model, df):
+    return np.full(len(df), model)
+
+
+def calculate_mae(actual, pred):
+    return np.mean(np.abs(actual - pred))
+
+
+# ----------------------------
 # LOAD DATA
-# -----------------------------
+# ----------------------------
 def load_data():
-    return pd.read_csv(DAILY_DEMAND_FILE)
+    df = pd.read_csv(DAILY_DEMAND_FILE)
+    df["Date"] = pd.to_datetime(df["Date"])
+    return df
 
-# -----------------------------
-# SIMPLE FORECAST MODEL
-# -----------------------------
-def train_model(data):
-    # Simple moving average (replaceable later)
-    return data["demand"].mean()
 
-def forecast(model):
-    return model + random.uniform(-2, 2)
-
-# -----------------------------
-# DRIFT DETECTION
-# -----------------------------
-def detect_drift(actual, predicted):
-    error = abs(actual - predicted)
-    denom = max(abs(actual), 1.0)
-    pct_error = error / denom
-    return error, error > DRIFT_THRESHOLD and pct_error > DRIFT_THRESHOLD_PCT
-
-# -----------------------------
-# SAVE MODEL
-# -----------------------------
-def save_model(model, sku, timestamp):
-    filename = f"{sku}_{timestamp}.pkl"
-    path = MODELS_DIR / filename
-
-    with open(path, "wb") as f:
-        pickle.dump(model, f)
-
-    print(f"💾 Saving model at {path}")
-
-# -----------------------------
+# ----------------------------
 # MAIN PIPELINE
-# -----------------------------
-def run_pipeline(start_date, end_date):
+# ----------------------------
+def run_pipeline(start, end, run_id="manual"):
+
+    print(f"\n🚀 Starting pipeline | {start} → {end}")
+
     df = load_data()
+    df = df[(df["Date"] >= start) & (df["Date"] <= end)]
 
-    # Normalize columns
-    df.columns = df.columns.str.lower()
+    results = []
+    inventory_results = []
 
-    df["date"] = pd.to_datetime(df["date"])
+    for current_date in sorted(df["Date"].unique()):
 
-    current_date = pd.to_datetime(start_date)
-    end_date = pd.to_datetime(end_date)
+        day_df = df[df["Date"] == current_date]
 
-    while current_date <= end_date:
+        for sku in day_df["SKU"].unique():
 
-        print(f"\n📡 Processing {current_date.date()}")
+            sku_df = df[(df["SKU"] == sku) & (df["Date"] <= current_date)].sort_values("Date")
 
-        daily_data = df[df["date"] == current_date]
+            if len(sku_df) < 3:
+                continue
 
-        metrics = []
+            train_df = sku_df.iloc[:-1]
+            test_df = sku_df.iloc[-1:]
 
-        for sku in daily_data["sku"].unique():
+            # ----------------------------
+            # TRAIN
+            # ----------------------------
+            model = train_model(train_df)
+            preds = predict(model, test_df)
 
-            sku_data = daily_data[daily_data["sku"] == sku]
+            mae = calculate_mae(test_df["Demand"].values, preds)
 
-            actual = sku_data["demand"].values[0]
-    
+            drift_flag = 1 if mae > DRIFT_THRESHOLD else 0
 
-            # -----------------------------
-            # TRAIN MODEL (INITIAL)
-            # -----------------------------
-            model = train_model(sku_data)
+            # 🔥 USE PIPELINE DATE (NOT SYSTEM TIME)
+            event_time = pd.to_datetime(current_date) + pd.Timedelta(minutes=5)
 
-            predicted = forecast(model)
+            timestamp_str = event_time.strftime("%Y%m%d_%H%M%S")
 
-            error, drift = detect_drift(actual, predicted)
+            # ----------------------------
+            # SAVE MODEL ONLY IF DRIFT
+            # ----------------------------
+            if drift_flag:
+                model_path = MODELS_DIR / f"{sku}_DRIFT_{timestamp_str}.pkl"
 
-            time_of_day = datetime.now() - datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-            drift_time = current_date + time_of_day
-            timestamp = drift_time.strftime("%Y-%m-%d_%H-%M-%S")
+                with open(model_path, "wb") as f:
+                    pickle.dump(model, f)
 
-            # -----------------------------
-            # DRIFT HANDLING
-            # -----------------------------
-            if drift:
-                log_event("DRIFT", f"Drift detected for {sku} ({actual:.2f} → {predicted:.2f})", drift_time)
+            # ----------------------------
+            # MLFLOW LOGGING
+            # ----------------------------
+            with mlflow.start_run(run_name=f"{sku}_{timestamp_str}"):
 
-                model = train_model(sku_data)
+                mlflow.log_param("sku", sku)
+                mlflow.log_param("start_date", str(start))
+                mlflow.log_param("end_date", str(end))
 
-                save_model(model, sku, timestamp)
+                mlflow.log_metric("mae", float(mae))
+                mlflow.log_metric("drift", int(drift_flag))
 
-                log_event("RETRAIN", f"{sku} retrained and saved model", drift_time)
+                # 🔥 DAG INTEGRATION
+                mlflow.set_tag("airflow_run_id", run_id)
+                mlflow.set_tag("pipeline_stage", "drift_detection")
 
-                print(f"✅ {sku} retrained")
+                if drift_flag:
+                    mlflow.sklearn.log_model(model, f"model_{sku}")
 
+            # ----------------------------
+            # EVENTS
+            # ----------------------------
+            if drift_flag:
+                log_event("DRIFT", f"{sku} drift detected ({mae:.2f})", event_time)
+                log_event("RETRAIN", f"{sku} retrained and model saved", event_time)
             else:
-                log_event("NO_DRIFT", f"{sku} stable, model reused", drift_time)
+                log_event("STABLE", f"{sku} stable ({mae:.2f})", event_time)
 
-                print(f"ℹ️ {sku} no drift, using existing model")
-
-            # -----------------------------
-            # STORE METRICS
-            # -----------------------------
-            metrics.append({
-                "Date": current_date,
+            # ----------------------------
+            # METRICS
+            # ----------------------------
+            results.append({
+                "Date": test_df["Date"].iloc[0],
                 "SKU": sku,
-                "Actual": actual,
-                "Predicted": predicted,
-                "Error": error
+                "Actual": float(test_df["Demand"].iloc[0]),
+                "Predicted": float(preds[0]),
+                "MAE": float(mae),
+                "Drift": drift_flag
             })
 
-        # -----------------------------
-        # SAVE METRICS
-        # -----------------------------
-        metrics_df = pd.DataFrame(metrics)
+            # ----------------------------
+            # INVENTORY (USES END DATE)
+            # ----------------------------
+            current_stock = np.random.randint(0, 500)
+            demand = float(preds[0])
 
-        if Path(METRICS_FILE).exists():
-            old = pd.read_csv(METRICS_FILE)
-            old["Date"] = pd.to_datetime(old["Date"], errors="coerce")
-            keep_mask = (old["Date"] < current_date) | (old["Date"] > end_date)
-            old = old[keep_mask]
-            metrics_df = pd.concat([old, metrics_df], ignore_index=True)
+            reorder_qty = max(0, int(demand * 1.2 - current_stock))
 
-        metrics_df.to_csv(METRICS_FILE, index=False)
+            if reorder_qty > 100:
+                risk = "CRITICAL"
+            elif reorder_qty > 0:
+                risk = "WARNING"
+            else:
+                risk = "SAFE"
 
-        # -----------------------------
-        # INVENTORY UPDATE
-        # -----------------------------
-        forecast_df, inv_df = load_inventory_data()
-        if "Stock_As_Of_Date" in inv_df.columns:
-            inv_df["Stock_As_Of_Date"] = end_date
-        recommendations = generate_inventory_recommendations(
-            forecast_df,
-            inv_df,
-            end_date
-        )
-        save_inventory(recommendations)
-        inv_df.to_csv(INVENTORY_FILE, index=False)
+            inventory_results.append({
+                "Date": current_date,
+                "SKU": sku,
+                "Product": f"Product_{sku}",
+                "Current_Stock": current_stock,
+                "Recommended_Order_Qty": reorder_qty,
+                "Risk_Level": risk
+            })
 
-        print("📦 Inventory updated")
+            print(f"[{event_time}] {sku} | MAE={mae:.2f} | Drift={drift_flag}")
 
-        current_date += timedelta(days=1)
+    # ----------------------------
+    # SAVE OUTPUTS
+    # ----------------------------
+    pd.DataFrame(results).to_csv(METRICS_FILE, index=False)
+    pd.DataFrame(inventory_results).to_csv(INVENTORY_RECOMMENDATIONS_FILE, index=False)
 
-    print("\n✅ Pipeline completed")
+    print("\n✅ Pipeline completed\n")
 
-# -----------------------------
-# CLI ENTRY
-# -----------------------------
+
+# ----------------------------
+# CLI
+# ----------------------------
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--start", required=True)
     parser.add_argument("--end", required=True)
+    parser.add_argument("--run_id", default="manual")
 
     args = parser.parse_args()
 
-    run_pipeline(args.start, args.end)
+    run_pipeline(args.start, args.end, args.run_id)
