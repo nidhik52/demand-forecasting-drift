@@ -26,6 +26,11 @@ function App() {
   const [error, setError] = useState("");
   const [monitoring, setMonitoring] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [eventQuery, setEventQuery] = useState("");
+  const [eventType, setEventType] = useState("ALL");
+  const [inventoryQuery, setInventoryQuery] = useState("");
+  const [riskFilter, setRiskFilter] = useState("ALL");
+  const [retrainQuery, setRetrainQuery] = useState("");
 
   const [start, setStart] = useState("2025-07-01");
   const [end, setEnd] = useState("2025-07-31");
@@ -181,6 +186,40 @@ function App() {
     return "risk-badge risk-low";
   };
 
+  const filteredEvents = useMemo(() => {
+    const query = eventQuery.trim().toLowerCase();
+    return events.filter(event => {
+      const typeValue = String(event.event_type || "").toUpperCase();
+      const matchesType = eventType === "ALL" || typeValue === eventType;
+      const matchesQuery = !query ||
+        String(event.message || "").toLowerCase().includes(query) ||
+        String(event.timestamp || "").toLowerCase().includes(query) ||
+        String(event.event_type || "").toLowerCase().includes(query);
+      return matchesType && matchesQuery;
+    });
+  }, [events, eventQuery, eventType]);
+
+  const filteredInventory = useMemo(() => {
+    const query = inventoryQuery.trim().toLowerCase();
+    return inventory.filter(item => {
+      const risk = String(item.Risk_Level || "SAFE").toUpperCase();
+      const matchesRisk = riskFilter === "ALL" || risk === riskFilter;
+      const matchesQuery = !query ||
+        String(item.SKU || "").toLowerCase().includes(query) ||
+        String(item.Product || "").toLowerCase().includes(query);
+      return matchesRisk && matchesQuery;
+    });
+  }, [inventory, inventoryQuery, riskFilter]);
+
+  const filteredRetrain = useMemo(() => {
+    const query = retrainQuery.trim().toLowerCase();
+    return retrainEvents.filter(event => {
+      if (!query) return true;
+      return String(event.message || "").toLowerCase().includes(query) ||
+        String(event.timestamp || "").toLowerCase().includes(query);
+    });
+  }, [retrainEvents, retrainQuery]);
+
   return (
     <div className="dashboard-shell">
       <div className="dashboard-bg-glow" />
@@ -311,12 +350,28 @@ function App() {
         </div>
 
         <div className="chart-card glass-card">
-          <p className="section-title">Drift & Events</p>
+          <div className="panel-header">
+            <p className="section-title">Drift & Events</p>
+            <div className="panel-filters">
+              <select value={eventType} onChange={e => setEventType(e.target.value)}>
+                <option value="ALL">All types</option>
+                <option value="DRIFT">Drift</option>
+                <option value="RETRAIN">Retrain</option>
+                <option value="ORDER">Order</option>
+              </select>
+              <input
+                type="text"
+                value={eventQuery}
+                onChange={e => setEventQuery(e.target.value)}
+                placeholder="Search events"
+              />
+            </div>
+          </div>
           <div className="scroll-panel">
-            {events.length === 0 ? (
+            {filteredEvents.length === 0 ? (
               <p className="empty-text">No events logged for this range.</p>
             ) : (
-              events.map((event, idx) => (
+              filteredEvents.map((event, idx) => (
                 <div className="event-row" key={`${event.timestamp}-${idx}`}>
                   <time>{formatDate(event.timestamp)}</time>
                   <p>{event.event_type || "EVENT"} • {event.message || ""}</p>
@@ -329,12 +384,28 @@ function App() {
 
       <section className="main-grid lower-grid">
         <div className="chart-card glass-card">
-          <p className="section-title">Inventory Risk</p>
+          <div className="panel-header">
+            <p className="section-title">Inventory Risk</p>
+            <div className="panel-filters">
+              <select value={riskFilter} onChange={e => setRiskFilter(e.target.value)}>
+                <option value="ALL">All risk</option>
+                <option value="CRITICAL">Critical</option>
+                <option value="WARNING">Warning</option>
+                <option value="SAFE">Safe</option>
+              </select>
+              <input
+                type="text"
+                value={inventoryQuery}
+                onChange={e => setInventoryQuery(e.target.value)}
+                placeholder="Search SKU"
+              />
+            </div>
+          </div>
           <div className="inventory-list">
-            {inventory.length === 0 ? (
+            {filteredInventory.length === 0 ? (
               <p className="empty-text">No inventory data yet.</p>
             ) : (
-              inventory.map(item => (
+              filteredInventory.map(item => (
                 <div key={item.SKU} className="inventory-item">
                   <div className="inventory-row">
                     <div>
@@ -377,12 +448,22 @@ function App() {
         </div>
 
         <div className="chart-card glass-card">
-          <p className="section-title">Retrain Timeline</p>
+          <div className="panel-header">
+            <p className="section-title">Retrain Timeline</p>
+            <div className="panel-filters">
+              <input
+                type="text"
+                value={retrainQuery}
+                onChange={e => setRetrainQuery(e.target.value)}
+                placeholder="Search retrain"
+              />
+            </div>
+          </div>
           <div className="scroll-panel compact">
-            {retrainEvents.length === 0 ? (
+            {filteredRetrain.length === 0 ? (
               <p className="empty-text">No retrain events yet.</p>
             ) : (
-              retrainEvents.map((event, idx) => (
+              filteredRetrain.map((event, idx) => (
                 <div className="retrain-row" key={`${event.timestamp}-${idx}`}>
                   <time>{formatDate(event.timestamp)}</time>
                   <span>{event.message || event.event_type || "RETRAIN"}</span>
