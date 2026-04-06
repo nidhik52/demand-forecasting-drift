@@ -4,25 +4,14 @@ import pandas as pd
 import subprocess
 import sys
 from pathlib import Path
-from fastapi.staticfiles import StaticFiles
-from typing import Iterable, Optional
+from datetime import datetime, timedelta
+from typing import Optional, List, Dict, Any, cast
+import os
 
-from src.config import (
-    EVENT_LOG_FILE,
-    INVENTORY_RECOMMENDATIONS_FILE,
-    METRICS_FILE,
-    PROJECT_ROOT,
-    ORDERS_FILE,
-    INVENTORY_FILE
-)
-from src.event_logger import log_event
+from src.config import PROJECT_ROOT, METRICS_FILE, EVENT_LOG_FILE
+from src.db import SessionLocal, Inventory, Order
 
 app = FastAPI()
-FRONTEND_BUILD_DIR = PROJECT_ROOT / "dashboard" / "build"
-
-# ---------------------------
-# CORS (IMPORTANT)
-# ---------------------------
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -31,228 +20,117 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ---------------------------
-# SAFE CSV LOADER
-# ---------------------------
-def safe_read_csv(path: Path, columns: Optional[Iterable[str]] = None) -> pd.DataFrame:
+def safe_read_csv(path: Path, columns: Optional[List[str]] = None) -> pd.DataFrame:
     try:
         return pd.read_csv(path)
     except:
-        return pd.DataFrame(columns=list(columns) if columns else [])
+        return pd.DataFrame(columns=columns or [])
 
+def _as_int(value: Optional[int], default: int) -> int:
+    return int(value) if value is not None else default
 
-# ---------------------------
-# RUN PIPELINE
-# ---------------------------
-@app.post("/run_pipeline")
-def run_pipeline(start: str, end: str):
-    try:
-        cmd = [
-            sys.executable,
-            str(PROJECT_ROOT / "pipeline.py"),
-            "--start", start,
-            "--end", end
-        ]
-
-        result = subprocess.run(
-            cmd,
-            cwd=PROJECT_ROOT,
-            capture_output=True,
-            text=True
-        )
-
-        print("STDOUT:", result.stdout)
-        print("STDERR:", result.stderr)
-
-        return {
-            "status": "success",
-            "logs": result.stdout[-1000:]
-        }
-
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
-
-
-# ---------------------------
-# GET SKUs (FIX DROPDOWN)
-# ---------------------------
 @app.get("/skus")
-def get_skus():
-    inv_df = safe_read_csv(INVENTORY_FILE, ["SKU", "Product"])
-    if not inv_df.empty and "SKU" in inv_df.columns:
-        inv_df = inv_df.drop_duplicates(subset=["SKU"]).sort_values(by="SKU")
-        return inv_df[["SKU", "Product"]].fillna("").to_dict("records")
-
+def get_skus() -> List[Dict]:
+    session = SessionLocal()
+    inv = session.query(Inventory).all()
+    session.close()
+    if inv:
+        return [{"SKU": i.sku, "Product": f"Product_{i.sku}"} for i in inv]
     df = safe_read_csv(METRICS_FILE, ["SKU"])
     if df.empty:
         return []
-    return sorted(df["SKU"].unique().tolist())
+    return [{"SKU": s} for s in df["SKU"].unique()]
 
-
-# ---------------------------
-# METRICS
-# ---------------------------
 @app.get("/metrics")
-def get_metrics(sku: str, start: str, end: str):
+def get_metrics(sku: str, start: str, end: str) -> List[Dict]:
     df = safe_read_csv(METRICS_FILE)
-
     if df.empty:
         return []
-
-    df["Date"] = pd.to_datetime(df["Date"], errors="coerce", format="mixed")
-    start_dt = pd.to_datetime(start, errors="coerce")
-    end_dt = pd.to_datetime(end, errors="coerce")
-
-    if pd.isna(start_dt) or pd.isna(end_dt):
-        return []
-
-    df = df.dropna(subset=["Date"])
-
-    df = df[
-        (df["SKU"] == sku) &
-        (df["Date"] >= start_dt) &
-        (df["Date"] <= end_dt)
-    ]
-
-    return df.sort_values(by="Date").to_dict("records")
-
-
-# ---------------------------
-# EVENTS
-# ---------------------------
-@app.get("/events")
-def get_events(sku: str, start: str, end: str):
-    df = safe_read_csv(EVENT_LOG_FILE)
-
-    if df.empty:
-        return []
-
-    df["timestamp"] = pd.to_datetime(df["timestamp"])
-
+    df["Date"] = pd.to_datetime(df["Date"])
     start_dt = pd.to_datetime(start)
     end_dt = pd.to_datetime(end)
+    filtered = df[(df["SKU"] == sku) & (df["Date"] >= start_dt) & (df["Date"] <= end_dt)]
+    return filtered.sort_values("Date").to_dict("records")
 
-    df = df[
-        (df["timestamp"] >= start_dt) &
-        (df["timestamp"] <= end_dt) &
-        (df["message"].str.contains(sku))
-    ]
-
-    return df.sort_values(by="timestamp", ascending=False).to_dict("records")
-
-
-# ---------------------------
-# INVENTORY
-# ---------------------------
-@app.get("/inventory")
-def get_inventory(end: str):
-    df = safe_read_csv(INVENTORY_RECOMMENDATIONS_FILE)
-
+@app.get("/events")
+def get_events(sku: str, start: str, end: str) -> List[Dict]:
+    df = safe_read_csv(EVENT_LOG_FILE)
     if df.empty:
         return []
+    df["timestamp"] = pd.to_datetime(df["timestamp"])
+    start_dt = pd.to_datetime(start)
+    end_dt = pd.to_datetime(end)
+    filtered = df[(df["timestamp"] >= start_dt) & (df["timestamp"] <= end_dt) & (df["message"].str.contains(sku))]
+    return filtered.sort_values("timestamp", ascending=False).to_dict("records")
 
-    date_col = "Stock_As_Of_Date" if "Stock_As_Of_Date" in df.columns else "Date"
-    if date_col not in df.columns:
-        return []
+@app.get("/inventory")
+def get_inventory(end: str) -> List[Dict]:
+    session = SessionLocal()
+    inv = session.query(Inventory).all()
+    session.close()
+    result = []
+    for i in inv:
+        current = _as_int(cast(Optional[int], i.current_stock), 0)
+        safety = _as_int(cast(Optional[int], i.safety_stock), 10)
+        risk = "CRITICAL" if current < safety // 2 else "WARNING" if current < safety else "SAFE"
+        result.append({
+            "SKU": i.sku,
+            "Current_Stock": current,
+            "In_Transit": _as_int(cast(Optional[int], i.in_transit), 0),
+            "Lead_Time_Days": _as_int(cast(Optional[int], i.lead_time_days), 7),
+            "Safety_Stock": safety,
+            "Risk_Level": risk
+        })
+    return result
 
-    df[date_col] = pd.to_datetime(df[date_col], errors="coerce")
-    end_dt = pd.to_datetime(end, errors="coerce")
-
-    if pd.isna(end_dt):
-        return []
-
-    df = df[df[date_col] <= end_dt].dropna(subset=[date_col])
-
-    return (
-        df.sort_values(by=date_col, ascending=False)
-        .drop_duplicates("SKU")
-        .to_dict("records")
-    )
-
-
-# ---------------------------
-# PLACE ORDER
-# ---------------------------
 @app.post("/order")
-def place_order(sku: str, qty: int, end: Optional[str] = None):
-
-    ORDERS_FILE.parent.mkdir(parents=True, exist_ok=True)
-
-    orders_df = safe_read_csv(
-        ORDERS_FILE,
-        ["SKU", "Order_Qty", "Order_Date", "Restock_Date"]
-    )
-
+def place_order(sku: str, qty: int, end: Optional[str] = None) -> Dict:
+    session = SessionLocal()
+    inv = session.query(Inventory).filter_by(sku=sku).first()
+    if not inv:
+        inv = Inventory(sku=sku, current_stock=0, lead_time_days=7, safety_stock=10)
+        session.add(inv)
+        session.commit()
+        session.refresh(inv)
+    in_transit = _as_int(cast(Optional[int], inv.in_transit), 0)
+    inv.in_transit = in_transit + qty  # type: ignore
+    order_date = pd.to_datetime(end).to_pydatetime() if end else datetime.utcnow()
+    lead = _as_int(cast(Optional[int], inv.lead_time_days), 7)
+    restock_date = order_date + timedelta(days=lead)
+    order = Order(sku=sku, order_qty=qty, order_date=order_date, restock_date=restock_date, received=0)
+    session.add(order)
+    session.commit()
+    session.close()
+    # Safe event logging
     try:
-        inv = pd.read_csv(INVENTORY_FILE)
-        lead = int(inv.loc[inv["SKU"] == sku, "Lead_Time_Days"].iloc[0])
-    except:
-        inv = None
-        lead = 7
+        from src.event_logger import log_event
+        log_event("ORDER", f"{sku} order placed for {qty} units (restock {restock_date.date()})", order_date)
+    except ImportError:
+        pass
+    return {"status": "success", "restock_date": restock_date.strftime("%Y-%m-%d")}
 
-    if end:
-        order_date = pd.to_datetime(end, errors="coerce")
-    else:
-        order_date = pd.NaT
-
-    if pd.isna(order_date):
-        metrics_df = safe_read_csv(METRICS_FILE, ["Date"])
-        if not metrics_df.empty and "Date" in metrics_df.columns:
-            metrics_df["Date"] = pd.to_datetime(metrics_df["Date"], errors="coerce")
-            order_date = metrics_df["Date"].max()
-
-    if pd.isna(order_date):
-        order_date = pd.Timestamp("2000-01-01")
-
-    restock_date = order_date + pd.Timedelta(days=lead)
-
-    new_order = {
-        "SKU": sku,
-        "Order_Qty": int(qty),
-        "Order_Date": order_date.strftime("%Y-%m-%d %H:%M:%S"),
-        "Restock_Date": restock_date.strftime("%Y-%m-%d %H:%M:%S"),
-    }
-
-    orders_df = pd.concat([orders_df, pd.DataFrame([new_order])], ignore_index=True)
-    orders_df.to_csv(ORDERS_FILE, index=False)
-
-    if inv is not None:
-        inv.loc[inv["SKU"] == sku, "Current_Stock"] -= int(qty)
-        inv.to_csv(INVENTORY_FILE, index=False)
-
-    log_event("ORDER", f"{sku} order placed for {qty} units", order_date)
-
-    return {
-        "status": "success",
-        "restock_date": restock_date.strftime("%Y-%m-%d")
-    }
-
-
-########################################################
-#  Monitoring using Grafana
-########################################################
+@app.post("/run_pipeline")
+def run_pipeline(start: str, end: str, model: str = "prophet") -> Dict:
+    try:
+        cmd = [sys.executable, "pipeline.py", "--start", start, "--end", end]
+        env = os.environ.copy()
+        env["MODEL_TYPE"] = "prophet" if model == "prophet" else "baseline"
+        result = subprocess.run(cmd, cwd=PROJECT_ROOT, env=env, capture_output=True, text=True)
+        if result.returncode != 0:
+            return {"status": "error", "message": result.stderr[-1000:] or "Pipeline failed"}
+        return {"status": "success", "logs": result.stdout[-1000:]}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 @app.get("/monitoring")
-def monitoring():
-
-    def safe_read(path):
-        try:
-            return pd.read_csv(path)
-        except:
-            return pd.DataFrame()
-
-    metrics = safe_read(METRICS_FILE)
-    drift = safe_read("data/processed/drift_summary.csv")
-    runs = safe_read("data/processed/pipeline_runs.csv")
-
+def monitoring() -> Dict:
+    metrics = safe_read_csv(METRICS_FILE)
     return {
         "total_records": len(metrics),
         "avg_mae": float(metrics["MAE"].mean()) if not metrics.empty else 0,
-        "drift_count": len(drift),
-        "pipeline_runs": len(runs),
-        "last_run": runs.tail(1).to_dict("records") if not runs.empty else []
+        "pipeline_runs": len(safe_read_csv(Path("data/processed/pipeline_runs.csv")))
     }
 
-
-if FRONTEND_BUILD_DIR.exists():
-    app.mount("/", StaticFiles(directory=FRONTEND_BUILD_DIR, html=True), name="frontend")
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

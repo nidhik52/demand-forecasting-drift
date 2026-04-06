@@ -183,6 +183,52 @@ def extend_dataset_to_2025(demand):
 
 
 # --------------------------------------------------
+# Inject random drift windows
+# --------------------------------------------------
+def inject_random_drift(demand, seed=42, window_count=4, window_size=12):
+    print("🧪 Injecting random drift windows...")
+
+    rng = np.random.default_rng(seed)
+    demand = demand.copy()
+    demand["Date"] = pd.to_datetime(demand["Date"])
+
+    min_date = demand["Date"].min()
+    max_date = demand["Date"].max()
+
+    if pd.isna(min_date) or pd.isna(max_date):
+        return demand
+
+    total_days = (max_date - min_date).days
+    if total_days <= window_size:
+        return demand
+
+    sku_list = demand["SKU"].unique().tolist()
+    if not sku_list:
+        return demand
+
+    for _ in range(window_count):
+        start_offset = int(rng.integers(0, total_days - window_size))
+        window_start = min_date + pd.Timedelta(days=start_offset)
+        window_end = window_start + pd.Timedelta(days=window_size)
+
+        drift_skus = rng.choice(sku_list, size=max(1, len(sku_list) // 6), replace=False)
+        multiplier = float(rng.uniform(1.6, 2.4))
+
+        mask = (
+            demand["Date"].between(window_start, window_end)
+            & demand["SKU"].isin(drift_skus)
+        )
+
+        demand.loc[mask, "Demand"] = (demand.loc[mask, "Demand"] * multiplier).round(0)
+
+    demand["Demand"] = demand["Demand"].clip(lower=0)
+
+    print("✅ Drift windows injected")
+
+    return demand
+
+
+# --------------------------------------------------
 # Save processed dataset
 # --------------------------------------------------
 def save_processed_data(demand):
@@ -202,6 +248,7 @@ def preprocess_data(raw_df):
     demand = create_daily_demand(df)
     demand = fill_missing_dates(demand)
     demand = extend_dataset_to_2025(demand)
+    demand = inject_random_drift(demand)
 
     return demand
 
@@ -220,6 +267,7 @@ if __name__ == "__main__":
     demand = create_daily_demand(df)
     demand = fill_missing_dates(demand)
     demand = extend_dataset_to_2025(demand)
+    demand = inject_random_drift(demand)
 
     save_processed_data(demand)
 

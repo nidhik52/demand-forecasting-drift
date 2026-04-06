@@ -6,25 +6,23 @@ on:
   pull_request:
 
 jobs:
-
   full-pipeline:
     runs-on: ubuntu-latest
+    
+    env:
+      CMDSTAN_VERSION: "2.33.1"
 
     steps:
-
-      # =========================
-      # CHECKOUT
-      # =========================
       - name: Checkout code
         uses: actions/checkout@v4
 
       # =========================
-      # PYTHON SETUP
+      # PYTHON SETUP - CHANGE TO 3.11
       # =========================
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.11"  # Changed from 3.12 to 3.11
 
       # =========================
       # CACHE BACKEND
@@ -38,11 +36,82 @@ jobs:
             ${{ runner.os }}-pip-
 
       # =========================
+      # CACHE CMDSTAN
+      # =========================
+      - name: Cache CmdStan
+        uses: actions/cache@v4
+        with:
+          path: ~/.cmdstan
+          key: ${{ runner.os }}-cmdstan-${{ env.CMDSTAN_VERSION }}
+          restore-keys: |
+            ${{ runner.os }}-cmdstan-
+
+      # =========================
+      # INSTALL SYSTEM DEPENDENCIES
+      # =========================
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential g++ gcc make
+
+      # =========================
       # INSTALL BACKEND DEPS
       # =========================
       - name: Install backend dependencies
         run: |
+          python -m pip install --upgrade pip setuptools wheel
+          # Pin setuptools for compatibility
+          pip install setuptools==68.2.2
           pip install -r requirements.txt
+
+      # =========================
+      # INSTALL CMDSTAN FOR PROPHET (FIXED)
+      # =========================
+      - name: Install CmdStan
+        run: |
+          python - <<'PY'
+          import cmdstanpy
+          import os
+          
+          # Set environment variables for compilation
+          os.environ["CXXFLAGS"] = "-O0 -g0 -std=c++14"
+          os.environ["MAKEFLAGS"] = "-j2"
+          
+          # Install CmdStan to a fixed location
+          cmdstanpy.install_cmdstan(
+              version="2.33.1",
+              dir=os.path.expanduser("~/.cmdstan"),
+              overwrite=True,
+              progress=True
+          )
+          
+          # Verify installation
+          cmdstanpy.set_cmdstan_path(os.path.expanduser("~/.cmdstan/cmdstan-2.33.1"))
+          print(f"CmdStan installed at: {cmdstanpy.cmdstan_path()}")
+          PY
+
+      # =========================
+      # TEST PROPHET INSTALLATION
+      # =========================
+      - name: Test Prophet and CmdStanPy
+        run: |
+          python -c "
+          import cmdstanpy
+          import prophet
+          from prophet import Prophet
+          print(f'CmdStanPy version: {cmdstanpy.__version__}')
+          print(f'Prophet version: {prophet.__version__}')
+          print(f'CmdStan path: {cmdstanpy.cmdstan_path()}')
+          # Try a simple model to verify compilation works
+          import pandas as pd
+          df = pd.DataFrame({
+              'ds': pd.date_range('2023-01-01', periods=100),
+              'y': range(100)
+          })
+          model = Prophet()
+          model.fit(df)
+          print('Prophet model compiled successfully!')
+          "
 
       # =========================
       # RUN PIPELINE

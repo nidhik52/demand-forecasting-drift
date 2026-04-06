@@ -5,6 +5,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 RAW_DIR = PROJECT_ROOT / "data/raw"
 PROCESSED_DIR = PROJECT_ROOT / "data/processed"
 MODELS_DIR = PROJECT_ROOT / "models"
+PROPHET_MODELS_DIR = MODELS_DIR / "prophet"
 
 FORECAST_DAYS = 90
 
