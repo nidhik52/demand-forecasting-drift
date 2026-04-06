@@ -50,3 +50,7 @@ dashboard/build/
 dashboard/.env
 dashboard/.env.*
 !dashboard/.env.example
+
+# DB files
+inventory.db
+mlflow.db
