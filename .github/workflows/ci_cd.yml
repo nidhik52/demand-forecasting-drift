@@ -11,6 +11,7 @@ jobs:
     
     env:
       CMDSTAN_VERSION: "2.33.1"
+      ENABLE_PROPHET: "0"
 
     steps:
       - name: Checkout code
@@ -36,9 +37,10 @@ jobs:
             ${{ runner.os }}-pip-
 
       # =========================
-      # CACHE CMDSTAN
+      # CACHE CMDSTAN (OPTIONAL)
       # =========================
       - name: Cache CmdStan
+        if: env.ENABLE_PROPHET == '1'
         uses: actions/cache@v4
         with:
           path: ~/.cmdstan
@@ -63,11 +65,15 @@ jobs:
           # Pin setuptools for compatibility
           pip install setuptools==68.2.2
           pip install -r requirements.txt
+          if [ "${ENABLE_PROPHET}" = "1" ]; then
+            pip install -r requirements-prophet.txt
+          fi
 
       # =========================
-      # INSTALL CMDSTAN FOR PROPHET (FIXED)
+      # INSTALL CMDSTAN FOR PROPHET (OPTIONAL)
       # =========================
       - name: Install CmdStan
+        if: env.ENABLE_PROPHET == '1'
         run: |
           python - <<'PY'
           import cmdstanpy
@@ -91,9 +97,10 @@ jobs:
           PY
 
       # =========================
-      # TEST PROPHET INSTALLATION
+      # TEST PROPHET INSTALLATION (OPTIONAL)
       # =========================
       - name: Test Prophet and CmdStanPy
+        if: env.ENABLE_PROPHET == '1'
         run: |
           python -c "
           import cmdstanpy
@@ -118,7 +125,7 @@ jobs:
       # =========================
       - name: Run pipeline
         run: |
-          python pipeline.py --start 2025-07-01 --end 2025-07-05
+          MODEL_TYPE=baseline python pipeline.py --start 2025-07-01 --end 2025-07-05
 
       # =========================
       # VALIDATE OUTPUTS
