@@ -1,8 +1,0 @@
-{
-  "venvPath": ".",
-  "venv": ".venv",
-  "diagnosticSeverityOverrides": {
-    "reportMissingImports": "none",
-    "reportMissingModuleSource": "none"
-  }
-}
