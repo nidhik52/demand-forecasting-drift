@@ -27,3 +27,4 @@ timestamp,event_type,message
 2025-07-10 11:28:00,RETRAIN,JWLY-003 retrained and model saved
 2025-07-07 00:00:00,ORDER,OFFC-002 order placed for 0 units (restock 2025-07-14)
 2025-07-07 00:00:00,ORDER,OUTD-002 order placed for 0 units (restock 2025-07-14)
+2025-07-07 00:00:00,ORDER,DIY0-002 order placed for 0 units (restock 2025-07-14)
