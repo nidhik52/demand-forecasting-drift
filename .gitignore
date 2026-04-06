@@ -54,3 +54,6 @@ dashboard/.env.*
 # DB files
 inventory.db
 mlflow.db
+*.db
+data/**/*.db
+mlruns/**/mlflow.db
