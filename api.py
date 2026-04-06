@@ -115,10 +115,8 @@ def run_pipeline(start: str, end: str, model: str = "prophet") -> Dict:
         cmd = [sys.executable, "pipeline.py", "--start", start, "--end", end]
         env = os.environ.copy()
         env["MODEL_TYPE"] = "prophet" if model == "prophet" else "baseline"
-        result = subprocess.run(cmd, cwd=PROJECT_ROOT, env=env, capture_output=True, text=True)
-        if result.returncode != 0:
-            return {"status": "error", "message": result.stderr[-1000:] or "Pipeline failed"}
-        return {"status": "success", "logs": result.stdout[-1000:]}
+        subprocess.Popen(cmd, cwd=PROJECT_ROOT, env=env)
+        return {"status": "started"}
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
