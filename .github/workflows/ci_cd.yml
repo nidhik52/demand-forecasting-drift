@@ -64,6 +64,7 @@ jobs:
           python -m pip install --upgrade pip setuptools wheel
           # Pin setuptools for compatibility
           pip install setuptools==68.2.2
+          pip install tqdm
           pip install -r requirements.txt
           if [ "${ENABLE_PROPHET}" = "1" ]; then
             pip install -r requirements-prophet.txt
