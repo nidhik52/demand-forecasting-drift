@@ -8,6 +8,8 @@ services:
     buildCommand: |
       pip install --upgrade pip setuptools wheel
       pip install -r requirements.txt
+      pip install tqdm
+      pip install mlflow
       if [ "${ENABLE_PROPHET}" = "1" ]; then
         pip install -r requirements-prophet.txt
       fi

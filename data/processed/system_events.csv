@@ -1,30 +1,119 @@
 timestamp,event_type,message
-2026-04-06 11:29:46,ORDER,APPL-001 order placed for 25 units (restock 2026-04-13)
-2026-04-06 11:33:41,ORDER,MUSC-003 order placed for 10 units (restock 2026-04-13)
-2026-04-06 11:34:21,ORDER,MUSC-003 order placed for 10 units (restock 2026-04-13)
-2025-07-31 00:00:00,ORDER,APPL-001 order placed for 25 units (restock 2025-08-07)
-2025-07-10 16:03:00,DRIFT,OUTD-002 drift detected (MAE=25.00)
-2025-07-10 16:03:00,RETRAIN,OUTD-002 retrained and model saved
-2025-07-10 13:37:00,DRIFT,OUTD-001 drift detected (MAE=8.00)
-2025-07-10 13:37:00,RETRAIN,OUTD-001 retrained and model saved
-2025-07-10 15:14:00,DRIFT,OFFC-003 drift detected (MAE=16.00)
-2025-07-10 15:14:00,RETRAIN,OFFC-003 retrained and model saved
-2025-07-10 16:37:00,DRIFT,OFFC-002 drift detected (MAE=11.00)
-2025-07-10 16:37:00,RETRAIN,OFFC-002 retrained and model saved
-2025-07-10 14:43:00,DRIFT,OFFC-001 drift detected (MAE=7.00)
-2025-07-10 14:43:00,RETRAIN,OFFC-001 retrained and model saved
-2025-07-10 12:20:00,DRIFT,MUSC-003 drift detected (MAE=6.00)
-2025-07-10 12:20:00,RETRAIN,MUSC-003 retrained and model saved
-2025-07-10 11:16:00,DRIFT,MUSC-002 drift detected (MAE=12.00)
-2025-07-10 11:16:00,RETRAIN,MUSC-002 retrained and model saved
-2025-07-10 15:26:00,DRIFT,MOVI-001 drift detected (MAE=23.00)
-2025-07-10 15:26:00,RETRAIN,MOVI-001 retrained and model saved
-2025-07-10 10:14:00,DRIFT,MOVI-003 drift detected (MAE=13.00)
-2025-07-10 10:14:00,RETRAIN,MOVI-003 retrained and model saved
-2025-07-10 16:31:00,DRIFT,MOVI-002 drift detected (MAE=18.00)
-2025-07-10 16:31:00,RETRAIN,MOVI-002 retrained and model saved
-2025-07-10 11:28:00,DRIFT,JWLY-003 drift detected (MAE=10.00)
-2025-07-10 11:28:00,RETRAIN,JWLY-003 retrained and model saved
-2025-07-07 00:00:00,ORDER,OFFC-002 order placed for 0 units (restock 2025-07-14)
-2025-07-07 00:00:00,ORDER,OUTD-002 order placed for 0 units (restock 2025-07-14)
-2025-07-07 00:00:00,ORDER,DIY0-002 order placed for 0 units (restock 2025-07-14)
+2025-07-10 15:16:00,DRIFT,OFFC-001 drift detected (MAE=7.00)
+2025-07-10 15:16:00,RETRAIN,OFFC-001 retrained and model saved
+2025-07-10 09:14:00,DRIFT,MUSC-003 drift detected (MAE=6.00)
+2025-07-10 09:14:00,RETRAIN,MUSC-003 retrained and model saved
+2025-07-10 12:00:00,DRIFT,MUSC-003 drift detected (MAE=6.00)
+2025-07-10 12:00:00,RETRAIN,MUSC-003 retrained and model saved
+2025-07-10 09:42:00,DRIFT,MUSC-002 drift detected (MAE=12.00)
+2025-07-10 09:42:00,RETRAIN,MUSC-002 retrained and model saved
+2025-07-10 10:25:00,DRIFT,MUSC-002 drift detected (MAE=12.00)
+2025-07-10 10:25:00,RETRAIN,MUSC-002 retrained and model saved
+2025-07-10 10:01:00,DRIFT,MOVI-001 drift detected (MAE=23.00)
+2025-07-10 10:01:00,RETRAIN,MOVI-001 retrained and model saved
+2025-07-10 17:12:00,DRIFT,MOVI-001 drift detected (MAE=23.00)
+2025-07-10 17:12:00,RETRAIN,MOVI-001 retrained and model saved
+2025-07-10 10:39:00,DRIFT,MOVI-003 drift detected (MAE=13.00)
+2025-07-10 10:39:00,RETRAIN,MOVI-003 retrained and model saved
+2025-07-10 09:54:00,DRIFT,MOVI-003 drift detected (MAE=13.00)
+2025-07-10 09:54:00,RETRAIN,MOVI-003 retrained and model saved
+2025-07-10 16:42:00,DRIFT,MOVI-002 drift detected (MAE=18.00)
+2025-07-10 16:42:00,RETRAIN,MOVI-002 retrained and model saved
+2025-07-10 13:21:00,DRIFT,MOVI-002 drift detected (MAE=18.00)
+2025-07-10 13:21:00,RETRAIN,MOVI-002 retrained and model saved
+2025-07-10 16:30:00,DRIFT,JWLY-003 drift detected (MAE=10.00)
+2025-07-10 16:30:00,RETRAIN,JWLY-003 retrained and model saved
+2025-07-10 11:56:00,DRIFT,JWLY-003 drift detected (MAE=10.00)
+2025-07-10 11:56:00,RETRAIN,JWLY-003 retrained and model saved
+2025-07-10 15:54:00,DRIFT,JWLY-002 drift detected (MAE=14.00)
+2025-07-10 15:54:00,RETRAIN,JWLY-002 retrained and model saved
+2025-07-10 11:59:00,DRIFT,JWLY-002 drift detected (MAE=14.00)
+2025-07-10 11:59:00,RETRAIN,JWLY-002 retrained and model saved
+2025-07-10 17:54:00,DRIFT,JWLY-001 drift detected (MAE=14.00)
+2025-07-10 17:54:00,RETRAIN,JWLY-001 retrained and model saved
+2025-07-10 11:17:00,DRIFT,JWLY-001 drift detected (MAE=14.00)
+2025-07-10 11:17:00,RETRAIN,JWLY-001 retrained and model saved
+2025-07-10 14:13:00,DRIFT,HOMK-003 drift detected (MAE=12.00)
+2025-07-10 14:13:00,RETRAIN,HOMK-003 retrained and model saved
+2025-07-10 14:38:00,DRIFT,HOMK-003 drift detected (MAE=12.00)
+2025-07-10 14:38:00,RETRAIN,HOMK-003 retrained and model saved
+2025-07-10 14:06:00,DRIFT,MUSC-001 drift detected (MAE=9.00)
+2025-07-10 14:06:00,RETRAIN,MUSC-001 retrained and model saved
+2025-07-10 17:46:00,DRIFT,MUSC-001 drift detected (MAE=9.00)
+2025-07-10 17:46:00,RETRAIN,MUSC-001 retrained and model saved
+2025-07-10 11:28:00,DRIFT,OUTD-003 drift detected (MAE=26.00)
+2025-07-10 11:28:00,RETRAIN,OUTD-003 retrained and model saved
+2025-07-10 17:27:00,DRIFT,OUTD-003 drift detected (MAE=26.00)
+2025-07-10 17:27:00,RETRAIN,OUTD-003 retrained and model saved
+2025-07-10 16:16:00,DRIFT,HOMK-002 drift detected (MAE=11.00)
+2025-07-10 16:16:00,RETRAIN,HOMK-002 retrained and model saved
+2025-07-10 17:05:00,DRIFT,HOMK-002 drift detected (MAE=11.00)
+2025-07-10 17:05:00,RETRAIN,HOMK-002 retrained and model saved
+2025-07-10 11:17:00,DRIFT,PCAR-002 drift detected (MAE=8.00)
+2025-07-10 11:17:00,RETRAIN,PCAR-002 retrained and model saved
+2025-07-10 17:02:00,DRIFT,PCAR-002 drift detected (MAE=8.00)
+2025-07-10 17:02:00,RETRAIN,PCAR-002 retrained and model saved
+2025-07-10 15:56:00,DRIFT,TOYS-002 drift detected (MAE=10.00)
+2025-07-10 15:56:00,RETRAIN,TOYS-002 retrained and model saved
+2025-07-10 09:54:00,DRIFT,TOYS-002 drift detected (MAE=10.00)
+2025-07-10 09:54:00,RETRAIN,TOYS-002 retrained and model saved
+2025-07-10 15:26:00,DRIFT,TOYS-001 drift detected (MAE=14.00)
+2025-07-10 15:26:00,RETRAIN,TOYS-001 retrained and model saved
+2025-07-10 10:00:00,DRIFT,TOYS-001 drift detected (MAE=14.00)
+2025-07-10 10:00:00,RETRAIN,TOYS-001 retrained and model saved
+2025-07-10 11:47:00,DRIFT,TOOL-003 drift detected (MAE=12.00)
+2025-07-10 11:47:00,RETRAIN,TOOL-003 retrained and model saved
+2025-07-10 09:54:00,DRIFT,TOOL-003 drift detected (MAE=12.00)
+2025-07-10 09:54:00,RETRAIN,TOOL-003 retrained and model saved
+2025-07-10 17:24:00,DRIFT,TOOL-002 drift detected (MAE=7.00)
+2025-07-10 17:24:00,RETRAIN,TOOL-002 retrained and model saved
+2025-07-10 17:07:00,DRIFT,TOOL-002 drift detected (MAE=7.00)
+2025-07-10 17:07:00,RETRAIN,TOOL-002 retrained and model saved
+2025-07-10 13:48:00,DRIFT,SPRT-003 drift detected (MAE=16.00)
+2025-07-10 13:48:00,RETRAIN,SPRT-003 retrained and model saved
+2025-07-10 13:37:00,DRIFT,TOOL-001 drift detected (MAE=0.00)
+2025-07-10 13:37:00,RETRAIN,TOOL-001 retrained and model saved
+2025-07-10 13:57:00,DRIFT,SPRT-002 drift detected (MAE=13.00)
+2025-07-10 13:57:00,RETRAIN,SPRT-002 retrained and model saved
+2025-07-10 11:11:00,DRIFT,SPRT-003 drift detected (MAE=16.00)
+2025-07-10 11:11:00,RETRAIN,SPRT-003 retrained and model saved
+2025-07-10 10:27:00,DRIFT,SPRT-001 drift detected (MAE=11.00)
+2025-07-10 10:27:00,RETRAIN,SPRT-001 retrained and model saved
+2025-07-10 16:49:00,DRIFT,SPRT-002 drift detected (MAE=13.00)
+2025-07-10 16:49:00,RETRAIN,SPRT-002 retrained and model saved
+2025-07-10 09:05:00,DRIFT,SOFT-002 drift detected (MAE=44.00)
+2025-07-10 09:05:00,RETRAIN,SOFT-002 retrained and model saved
+2025-07-10 16:34:00,DRIFT,SPRT-001 drift detected (MAE=11.00)
+2025-07-10 16:34:00,RETRAIN,SPRT-001 retrained and model saved
+2025-07-10 09:35:00,DRIFT,SOFT-001 drift detected (MAE=8.00)
+2025-07-10 09:35:00,RETRAIN,SOFT-001 retrained and model saved
+2025-07-10 14:47:00,DRIFT,SOFT-002 drift detected (MAE=44.00)
+2025-07-10 14:47:00,RETRAIN,SOFT-002 retrained and model saved
+2025-07-10 14:31:00,DRIFT,PETS-003 drift detected (MAE=33.00)
+2025-07-10 14:31:00,RETRAIN,PETS-003 retrained and model saved
+2025-07-10 15:35:00,DRIFT,SOFT-001 drift detected (MAE=8.00)
+2025-07-10 15:35:00,RETRAIN,SOFT-001 retrained and model saved
+2025-07-10 11:25:00,DRIFT,PETS-002 drift detected (MAE=24.00)
+2025-07-10 11:25:00,RETRAIN,PETS-002 retrained and model saved
+2025-07-10 14:59:00,DRIFT,PETS-003 drift detected (MAE=33.00)
+2025-07-10 14:59:00,RETRAIN,PETS-003 retrained and model saved
+2025-07-10 10:18:00,DRIFT,PETS-001 drift detected (MAE=2.00)
+2025-07-10 10:18:00,RETRAIN,PETS-001 retrained and model saved
+2025-07-10 10:24:00,DRIFT,PETS-002 drift detected (MAE=24.00)
+2025-07-10 10:24:00,RETRAIN,PETS-002 retrained and model saved
+2025-07-10 09:20:00,DRIFT,PCAR-003 drift detected (MAE=0.00)
+2025-07-10 09:20:00,RETRAIN,PCAR-003 retrained and model saved
+2025-07-10 10:42:00,DRIFT,PCAR-001 drift detected (MAE=6.00)
+2025-07-10 10:42:00,RETRAIN,PCAR-001 retrained and model saved
+2025-07-10 11:10:00,DRIFT,PCAR-001 drift detected (MAE=6.00)
+2025-07-10 11:10:00,RETRAIN,PCAR-001 retrained and model saved
+2025-07-10 12:45:00,DRIFT,HOMK-001 drift detected (MAE=20.00)
+2025-07-10 12:45:00,RETRAIN,HOMK-001 retrained and model saved
+2025-07-10 15:41:00,DRIFT,HOMK-001 drift detected (MAE=20.00)
+2025-07-10 15:41:00,RETRAIN,HOMK-001 retrained and model saved
+2025-07-10 17:06:00,DRIFT,TOYS-003 drift detected (MAE=15.00)
+2025-07-10 17:06:00,RETRAIN,TOYS-003 retrained and model saved
+2025-07-10 15:07:00,DRIFT,TOYS-003 drift detected (MAE=15.00)
+2025-07-10 15:07:00,RETRAIN,TOYS-003 retrained and model saved
+2025-07-10 09:20:00,DRIFT,HLTH-002 drift detected (MAE=1.00)
+2025-07-10 09:20:00,RETRAIN,HLTH-002 retrained and model saved
