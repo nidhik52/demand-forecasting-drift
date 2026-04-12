@@ -465,6 +465,15 @@ def run_pipeline(start: str, end: str, run_id: str = "manual",
 
     print(f"\n✅ Pipeline done. {len(results)} predictions written.")
 
+    # --- Generate forecast_2025.csv for dashboard and notebook validation ---
+    try:
+        from src.forecasting import run_forecasting
+        print("\n🔮 Generating forecast_2025.csv for dashboard/notebook...")
+        run_forecasting(df, silent=True)
+        print("✅ forecast_2025.csv generated.")
+    except Exception as e:
+        print(f"❌ Failed to generate forecast_2025.csv: {e}")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
