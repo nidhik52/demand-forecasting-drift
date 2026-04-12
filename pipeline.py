@@ -371,14 +371,16 @@ def run_pipeline(start: str, end: str, run_id: str = "manual",
                     retrain_happened = True
 
                     # FIX: save model with sim date timestamp
-                    model_dir  = Path("models") / ("prophet" if MODEL_TYPE == "prophet" else "baseline")
+
+                    # Use a relative, writable path for model artifacts (CI/CD safe)
+                    model_dir = Path("./models") / ("prophet" if MODEL_TYPE == "prophet" else "baseline")
                     model_dir.mkdir(parents=True, exist_ok=True)
-                    ts_str     = current_date.strftime("%Y%m%d_%H%M%S")
+                    ts_str = current_date.strftime("%Y%m%d_%H%M%S")
                     model_path = model_dir / f"{sku}_{ts_str}.pkl"
                     with open(model_path, "wb") as f:
                         pickle.dump(new_model, f)
 
-                    # FIX: use log_artifact for Prophet (not mlflow_sklearn)
+                    # Log artifact using a relative path
                     with mlflow.start_run(run_name=f"{sku}_{current_date.strftime('%Y%m%d')}"):
                         mlflow.log_param("sku", sku)
                         mlflow.log_param("model_type", MODEL_TYPE)
