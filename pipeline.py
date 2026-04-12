@@ -310,7 +310,15 @@ def run_pipeline(start: str, end: str, run_id: str = "manual",
             log_path.unlink()
 
     mlflow.set_tracking_uri("sqlite:///mlflow.db")
-    mlflow.set_experiment("demand_forecasting_drift")
+    # Ensure experiment uses a local, writable artifact location
+    experiment_name = "demand_forecasting_drift"
+    artifact_location = str(Path("./mlruns").absolute())
+    try:
+        mlflow.create_experiment(experiment_name, artifact_location=artifact_location)
+    except Exception:
+        # If already exists, ignore
+        pass
+    mlflow.set_experiment(experiment_name)
 
     session = SessionLocal()
 
