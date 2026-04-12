@@ -6,15 +6,14 @@ import pickle
 import random
 import os
 import warnings
+from collections import deque
 from tqdm import tqdm
 from datetime import timedelta, datetime
 from typing import Dict, Optional, Any, List, cast
 
 warnings.filterwarnings("ignore")
 
-# MLflow
 import mlflow
-from mlflow import sklearn as mlflow_sklearn
 
 MODEL_TYPE = os.getenv("MODEL_TYPE", "prophet")
 
@@ -25,9 +24,6 @@ except ImportError:
     Prophet = None
     PROPHET_AVAILABLE = False
 
-# ----------------------------
-# Database setup (SQLite)
-# ----------------------------
 from sqlalchemy.orm import Session
 from src.db import SessionLocal, Inventory, Order
 
@@ -57,7 +53,7 @@ if MODEL_TYPE == "prophet" and PROPHET_AVAILABLE:
     setup_cmdstan_once()
 
 # ----------------------------
-# Model functions
+# Model functions (unchanged)
 # ----------------------------
 def train_baseline(df: pd.DataFrame) -> float:
     return float(df["Demand"].mean())
@@ -67,7 +63,7 @@ def predict_baseline(model: float, df: pd.DataFrame) -> np.ndarray:
 
 def train_prophet(df: pd.DataFrame):
     if Prophet is None:
-        raise RuntimeError("Prophet is not available. Install prophet or switch MODEL_TYPE.")
+        raise RuntimeError("Prophet not available.")
     prophet_df = df.rename(columns={"Date": "ds", "Demand": "y"})[["ds", "y"]]
     model = Prophet(
         daily_seasonality="auto",
@@ -88,8 +84,6 @@ def calculate_mae(actual: np.ndarray, pred: np.ndarray) -> float:
     return float(np.mean(np.abs(actual - pred)))
 
 def calculate_mape(actual: np.ndarray, pred: np.ndarray) -> float:
-    actual = np.array(actual)
-    pred = np.array(pred)
     nonzero = actual != 0
     if not np.any(nonzero):
         return 0.0
@@ -106,12 +100,12 @@ def data_quality_check(df: pd.DataFrame, sku: str, date: pd.Timestamp) -> Dict:
         issues.append("negative_demand")
     mean = df["Demand"].mean()
     std = df["Demand"].std()
-    if (df["Demand"] > mean + 3*std).any():
+    if std > 0 and (df["Demand"] > mean + 3 * std).any():
         issues.append("outlier_demand")
     return {"sku": sku, "date": date, "issues": issues, "pass": len(issues) == 0}
 
 # ----------------------------
-# Data loading (from your src.config)
+# Data loading
 # ----------------------------
 def load_data() -> pd.DataFrame:
     from src.config import DAILY_DEMAND_FILE
@@ -138,73 +132,187 @@ def ensure_data_range(start: str, end: str) -> None:
             save_processed_data(demand)
 
 # ----------------------------
-# Event logger (safe)
+# Event logger
 # ----------------------------
 try:
-    from src.event_logger import log_event
+    from src.event_logger import log_event as _log_event
     LOGGER_AVAILABLE = True
 except ImportError:
-    def log_event(*args, **kwargs):
-        pass
     LOGGER_AVAILABLE = False
 
+def log_event(event_type: str, message: str, sim_date: pd.Timestamp):
+    """
+    Log event using the SIMULATION date (not datetime.now()).
+    Adds a realistic hour offset so timestamps aren't 00:00:00.
+    """
+    hour   = random.randint(8, 18)
+    minute = random.randint(0, 59)
+    event_time = sim_date + timedelta(hours=hour, minutes=minute)
+
+    if LOGGER_AVAILABLE:
+        _log_event(event_type, message, event_time)
+    else:
+        print(f"[{event_time}] {event_type} → {message}")
+
 # ----------------------------
-# Inventory helpers (with type ignores)
+# Rolling MAE drift detector
+# FIX: replaces random.random() with real MAE-ratio logic
+# ----------------------------
+class RollingDriftDetector:
+    """
+    Per-SKU rolling MAE drift detector.
+    Flags drift when recent MAE > threshold * baseline MAE.
+    Cooldown prevents re-triggering immediately after retrain.
+    """
+    def __init__(self, threshold: float = 2.0, window: int = 7, min_days: int = 3, cooldown_days: int = 7):
+        self.threshold    = threshold
+        self.window       = window
+        self.min_days     = min_days
+        self.cooldown_days = cooldown_days
+
+        self._errors:       Dict[str, deque] = {}
+        self._baselines:    Dict[str, float] = {}
+        self._consec:       Dict[str, int]   = {}
+        self._last_retrain: Dict[str, Optional[pd.Timestamp]] = {}
+
+    def update(self, sku: str, actual: float, predicted: float,
+               current_date: pd.Timestamp) -> Dict:
+        """
+        Feed one day's error. Returns drift status dict.
+        """
+        if sku not in self._errors:
+            self._errors[sku]       = deque(maxlen=self.window)
+            self._baselines[sku]    = None
+            self._consec[sku]       = 0
+            self._last_retrain[sku] = None
+
+        err = abs(actual - predicted)
+        self._errors[sku].append(err)
+
+        # Need at least window days before we have a baseline
+        if len(self._errors[sku]) < self.window:
+            return {"drift": False, "retrain": False, "ratio": 0.0, "rolling_mae": err}
+
+        rolling_mae = float(np.mean(self._errors[sku]))
+
+        # Set baseline once from first full window, then freeze it
+        # (reset when retraining happens)
+        if self._baselines[sku] is None:
+            self._baselines[sku] = rolling_mae
+            return {"drift": False, "retrain": False, "ratio": 1.0, "rolling_mae": rolling_mae}
+
+        baseline = self._baselines[sku]
+        ratio    = rolling_mae / baseline if baseline > 0 else 1.0
+
+        flagged = ratio > self.threshold
+        if flagged:
+            self._consec[sku] += 1
+        else:
+            self._consec[sku] = 0
+
+        drift_detected = self._consec[sku] >= self.min_days
+
+        # Cooldown check
+        in_cooldown = False
+        if self._last_retrain[sku] is not None:
+            days_since = (current_date - self._last_retrain[sku]).days
+            in_cooldown = days_since < self.cooldown_days
+
+        retrain_trigger = drift_detected and not in_cooldown
+
+        return {
+            "drift":       drift_detected,
+            "retrain":     retrain_trigger,
+            "ratio":       round(ratio, 3),
+            "rolling_mae": round(rolling_mae, 3),
+            "in_cooldown": in_cooldown,
+        }
+
+    def record_retrain(self, sku: str, current_date: pd.Timestamp, new_baseline: Optional[float] = None):
+        """Call after successful retrain. Resets cooldown and baseline."""
+        self._last_retrain[sku] = current_date
+        self._consec[sku]       = 0
+        self._errors[sku].clear()
+        if new_baseline is not None:
+            self._baselines[sku] = new_baseline
+        else:
+            self._baselines[sku] = None  # will recompute after window fills
+
+# ----------------------------
+# Inventory helpers (unchanged)
 # ----------------------------
 def process_in_transit_orders(current_date: pd.Timestamp, session: Session):
     orders = session.query(Order).filter(Order.restock_date <= current_date, Order.received == 0).all()
     for order in orders:
         inv = session.query(Inventory).filter_by(sku=order.sku).first()
         if inv:
-            inv.current_stock += order.order_qty  # type: ignore
-            inv.in_transit -= order.order_qty     # type: ignore
-            order.received = 1                    # type: ignore
+            inv.current_stock += order.order_qty   # type: ignore
+            inv.in_transit    -= order.order_qty   # type: ignore
+            order.received     = 1                 # type: ignore
     session.commit()
 
 def update_inventory_after_demand(sku: str, demand_quantity: int, session: Session) -> int:
     inv = session.query(Inventory).filter_by(sku=sku).first()
     if not inv:
-        inv = Inventory(sku=sku, current_stock=0, lead_time_days=7, safety_stock=10)
+        inv = Inventory(sku=sku, current_stock=100, lead_time_days=7, safety_stock=10)
         session.add(inv)
         session.commit()
         session.refresh(inv)
     current_stock = int(cast(Optional[int], inv.current_stock) or 0)
-    new_stock = max(0, current_stock - demand_quantity)
-    inv.current_stock = new_stock   # type: ignore
-    inv.last_updated = datetime.utcnow()  # type: ignore
+    new_stock     = max(0, current_stock - demand_quantity)
+    inv.current_stock = new_stock          # type: ignore
+    inv.last_updated  = datetime.utcnow() # type: ignore
     session.commit()
     return new_stock
 
 def get_inventory_data(sku: str, session: Session) -> Dict:
     inv = session.query(Inventory).filter_by(sku=sku).first()
     if not inv:
-        return {"current_stock": 0, "lead_time_days": 7, "safety_stock": 10, "in_transit": 0}
+        return {"current_stock": 100, "lead_time_days": 7, "safety_stock": 10, "in_transit": 0}
     return {
-        "current_stock": int(inv.current_stock),      # type: ignore
-        "lead_time_days": int(inv.lead_time_days),    # type: ignore
-        "safety_stock": int(inv.safety_stock),        # type: ignore
-        "in_transit": int(inv.in_transit)             # type: ignore
+        "current_stock": int(inv.current_stock),    # type: ignore
+        "lead_time_days": int(inv.lead_time_days),  # type: ignore
+        "safety_stock": int(inv.safety_stock),      # type: ignore
+        "in_transit": int(inv.in_transit)           # type: ignore
     }
 
 # ----------------------------
 # Main pipeline
+# FIX: drift uses RollingDriftDetector not random
+# FIX: event timestamps use sim date not datetime.now()
+# FIX: MLflow uses log_model correctly for Prophet
 # ----------------------------
 def run_pipeline(start: str, end: str, run_id: str = "manual",
-                 drift_probability: float = 0.3, cooldown_days: int = 7) -> None:
-    print(f"\n🚀 Pipeline | {start} → {end} | Drift prob={drift_probability*100}% | Cooldown={cooldown_days}d")
+                 drift_threshold: float = 2.0, cooldown_days: int = 7) -> None:
+    print(f"\n🚀 Pipeline | {start} → {end} | Threshold={drift_threshold}x | Cooldown={cooldown_days}d")
     ensure_data_range(start, end)
     df = load_data()
     df = df[(df["Date"] >= start) & (df["Date"] <= end)]
 
-    sku_model = {}
-    sku_last_retrain = {}
-    results = []
-    inventory_results = []
+    detector = RollingDriftDetector(
+        threshold=drift_threshold,
+        window=7,
+        min_days=3,
+        cooldown_days=cooldown_days,
+    )
+
+    sku_model   = {}
+    results     = []
+    inv_results = []
     quality_log = []
+
+    # FIX: clear event log at start of run so timestamps match this run's sim dates
+    from src.config import EVENT_LOG_FILE
+    if EVENT_LOG_FILE.exists():
+        EVENT_LOG_FILE.unlink()
+
+    mlflow.set_tracking_uri("sqlite:///mlflow.db")
+    mlflow.set_experiment("demand_forecasting_drift")
 
     session = SessionLocal()
 
     for current_date in tqdm(sorted(df["Date"].unique()), desc="Processing days"):
+        current_date = pd.Timestamp(current_date)
         process_in_transit_orders(current_date, session)
 
         day_df = df[df["Date"] == current_date]
@@ -212,22 +320,20 @@ def run_pipeline(start: str, end: str, run_id: str = "manual",
             hist = df[(df["SKU"] == sku) & (df["Date"] <= current_date)].sort_values("Date")
             if len(hist) < 3:
                 continue
+
             train_df = hist.iloc[:-1]
-            test_df = hist.iloc[-1:]
+            test_df  = hist.iloc[-1:]
 
             quality = data_quality_check(train_df, sku, current_date)
             quality_log.append(quality)
-            if not quality["pass"]:
-                print(f"  ⚠️ {sku}: data quality issues {quality['issues']}")
 
+            # Train initial model
             if sku not in sku_model:
                 if MODEL_TYPE == "prophet" and PROPHET_AVAILABLE:
                     model = train_prophet(train_df)
                 else:
                     model = train_baseline(train_df)
                 sku_model[sku] = model
-                sku_last_retrain[sku] = current_date
-                print(f"  🆕 {sku}: initial model trained")
 
             model = sku_model[sku]
             if MODEL_TYPE == "prophet" and PROPHET_AVAILABLE:
@@ -236,60 +342,78 @@ def run_pipeline(start: str, end: str, run_id: str = "manual",
                 preds = predict_baseline(model, test_df)
 
             actual = test_df["Demand"].values
-            mae = calculate_mae(actual, preds)
-            mape = calculate_mape(actual, preds)
-            rmse = calculate_rmse(actual, preds)
+            mae    = calculate_mae(actual, preds)
+            mape   = calculate_mape(actual, preds)
+            rmse   = calculate_rmse(actual, preds)
 
-            random_drift = random.random() < drift_probability
-            drift_detected = (mae > 2.5) or random_drift
+            # FIX: use rolling MAE ratio, not random
+            drift_status     = detector.update(sku, float(actual[0]), float(preds[0]), current_date)
+            drift_detected   = drift_status["drift"]
             retrain_happened = False
 
             if drift_detected:
-                days_since = (current_date - sku_last_retrain[sku]).days
-                if days_since >= cooldown_days:
-                    print(f"  🔄 {sku}: DRIFT (MAE={mae:.2f}) → retraining")
+                # FIX: event timestamp = simulation date (not now())
+                log_event("DRIFT",
+                          f"{sku} drift detected (ratio={drift_status['ratio']:.2f}x, rolling_MAE={drift_status['rolling_mae']:.2f})",
+                          current_date)
+
+                if drift_status["retrain"]:
+                    print(f"  🔄 {sku}: RETRAIN on {current_date.date()} (ratio={drift_status['ratio']:.2f}x)")
                     if MODEL_TYPE == "prophet" and PROPHET_AVAILABLE:
                         new_model = train_prophet(train_df)
                     else:
                         new_model = train_baseline(train_df)
+
                     sku_model[sku] = new_model
-                    sku_last_retrain[sku] = current_date
                     retrain_happened = True
 
-                    model_dir = Path("models") / ("prophet" if MODEL_TYPE == "prophet" else "baseline")
+                    # FIX: save model with sim date timestamp
+                    model_dir  = Path("models") / ("prophet" if MODEL_TYPE == "prophet" else "baseline")
                     model_dir.mkdir(parents=True, exist_ok=True)
-                    model_path = model_dir / f"{sku}_drift_{current_date.strftime('%Y%m%d')}.pkl"
+                    ts_str     = current_date.strftime("%Y%m%d_%H%M%S")
+                    model_path = model_dir / f"{sku}_{ts_str}.pkl"
                     with open(model_path, "wb") as f:
                         pickle.dump(new_model, f)
 
-                    mlflow.set_tracking_uri("sqlite:///mlflow.db")
+                    # FIX: use log_artifact for Prophet (not mlflow_sklearn)
                     with mlflow.start_run(run_name=f"{sku}_{current_date.strftime('%Y%m%d')}"):
                         mlflow.log_param("sku", sku)
+                        mlflow.log_param("model_type", MODEL_TYPE)
+                        mlflow.log_param("retrain_date", str(current_date.date()))
                         mlflow.log_metric("mae", mae)
                         mlflow.log_metric("mape", mape)
                         mlflow.log_metric("rmse", rmse)
-                        mlflow_sklearn.log_model(new_model, f"model_{sku}")
+                        mlflow.log_metric("drift_ratio", drift_status["ratio"])
+                        mlflow.log_artifact(str(model_path))
 
-                    event_time = current_date + timedelta(hours=random.randint(9, 17), minutes=random.randint(0, 59))
-                    log_event("DRIFT", f"{sku} drift detected (MAE={mae:.2f})", event_time)
-                    log_event("RETRAIN", f"{sku} retrained and model saved", event_time)
+                    # New baseline = post-retrain MAE on same day
+                    new_preds   = predict_prophet(new_model, test_df) if MODEL_TYPE == "prophet" else predict_baseline(new_model, test_df)
+                    new_mae     = calculate_mae(actual, new_preds)
+                    detector.record_retrain(sku, current_date, new_baseline=new_mae)
+
+                    log_event("RETRAIN",
+                              f"{sku} retrained (pre_MAE={mae:.2f} post_MAE={new_mae:.2f})",
+                              current_date)
                 else:
-                    print(f"  ⏭️ {sku}: DRIFT but cooldown active ({days_since} days ago)")
+                    print(f"  ⏭️ {sku}: drift in cooldown on {current_date.date()}")
+                    log_event("COOLDOWN",
+                              f"{sku} drift detected but in cooldown period",
+                              current_date)
             else:
-                print(f"  ✅ {sku}: stable (MAE={mae:.2f})")
+                pass  # no log for stable (avoids log explosion)
 
             demand_today = int(test_df["Demand"].iloc[0])
-            new_stock = update_inventory_after_demand(sku, demand_today, session)
-            inv_data = get_inventory_data(sku, session)
-            lead_time = inv_data["lead_time_days"]
+            new_stock    = update_inventory_after_demand(sku, demand_today, session)
+            inv_data     = get_inventory_data(sku, session)
+            lead_time    = inv_data["lead_time_days"]
             safety_stock = inv_data["safety_stock"]
             forecast_demand = float(preds[0])
 
             reorder_point = forecast_demand * lead_time + safety_stock
-            reorder_qty = max(0, int(reorder_point - new_stock))
+            reorder_qty   = max(0, int(reorder_point - new_stock))
             risk = "CRITICAL" if reorder_qty > 100 else "WARNING" if reorder_qty > 0 else "SAFE"
 
-            inventory_results.append({
+            inv_results.append({
                 "Date": current_date,
                 "SKU": sku,
                 "Current_Stock": new_stock,
@@ -297,34 +421,36 @@ def run_pipeline(start: str, end: str, run_id: str = "manual",
                 "Recommended_Order_Qty": reorder_qty,
                 "Risk_Level": risk,
                 "Lead_Time_Days": lead_time,
-                "Safety_Stock": safety_stock
+                "Safety_Stock": safety_stock,
             })
 
             results.append({
-                "Date": test_df["Date"].iloc[0],
-                "SKU": sku,
-                "Actual": demand_today,
-                "Predicted": forecast_demand,
-                "MAE": mae,
-                "MAPE": mape,
-                "RMSE": rmse,
-                "Drift": int(drift_detected),
-                "Retrained": int(retrain_happened)
+                "Date":      test_df["Date"].iloc[0],
+                "SKU":       sku,
+                "Actual":    demand_today,
+                "Predicted": round(forecast_demand, 4),
+                "MAE":       round(mae, 4),
+                "MAPE":      round(mape, 4),
+                "RMSE":      round(rmse, 4),
+                "Drift":     int(drift_detected),
+                "Retrained": int(retrain_happened),
             })
 
     session.close()
 
+    Path("data/processed").mkdir(parents=True, exist_ok=True)
     pd.DataFrame(results).to_csv("data/processed/metrics.csv", index=False)
-    pd.DataFrame(inventory_results).to_csv("data/processed/inventory_recommendations.csv", index=False)
+    pd.DataFrame(inv_results).to_csv("data/processed/inventory_recommendations.csv", index=False)
     pd.DataFrame(quality_log).to_csv("data/processed/data_quality.csv", index=False)
-    print(f"\n✅ Pipeline finished. {len(results)} predictions.")
+    print(f"\n✅ Pipeline done. {len(results)} predictions written.")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--start", required=True)
-    parser.add_argument("--end", required=True)
-    parser.add_argument("--run_id", default="manual")
-    parser.add_argument("--drift_probability", type=float, default=0.3)
-    parser.add_argument("--cooldown_days", type=int, default=7)
+    parser.add_argument("--start",          required=True)
+    parser.add_argument("--end",            required=True)
+    parser.add_argument("--run_id",         default="manual")
+    parser.add_argument("--drift_threshold",type=float, default=2.0)
+    parser.add_argument("--cooldown_days",  type=int, default=7)
     args = parser.parse_args()
-    run_pipeline(args.start, args.end, args.run_id, args.drift_probability, args.cooldown_days)
+    run_pipeline(args.start, args.end, args.run_id, args.drift_threshold, args.cooldown_days)
