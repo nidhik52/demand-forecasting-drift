@@ -1,3 +1,6 @@
+      # Upgrade MLflow DB schema before running pipeline
+      - name: Upgrade MLflow DB schema
+        run: mlflow db upgrade sqlite:///mlflow.db
 name: Full Self-Contained CI/CD Pipeline
 
 on:
