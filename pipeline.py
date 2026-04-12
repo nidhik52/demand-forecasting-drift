@@ -301,10 +301,13 @@ def run_pipeline(start: str, end: str, run_id: str = "manual",
     inv_results = []
     quality_log = []
 
-    # FIX: clear event log at start of run so timestamps match this run's sim dates
+    # Always clear event log at start so timestamps match this run's sim dates
     from src.config import EVENT_LOG_FILE
-    if EVENT_LOG_FILE.exists():
-        EVENT_LOG_FILE.unlink()
+    # Also clear the hardcoded path in event_logger (same file, different reference)
+    hardcoded_log = Path("data/processed/system_events.csv")
+    for log_path in set([EVENT_LOG_FILE, hardcoded_log]):
+        if log_path.exists():
+            log_path.unlink()
 
     mlflow.set_tracking_uri("sqlite:///mlflow.db")
     mlflow.set_experiment("demand_forecasting_drift")
@@ -442,6 +445,13 @@ def run_pipeline(start: str, end: str, run_id: str = "manual",
     pd.DataFrame(results).to_csv("data/processed/metrics.csv", index=False)
     pd.DataFrame(inv_results).to_csv("data/processed/inventory_recommendations.csv", index=False)
     pd.DataFrame(quality_log).to_csv("data/processed/data_quality.csv", index=False)
+
+    # FIX: always write system_events.csv even if empty (CI/CD validate step needs it)
+    event_log_path = Path("data/processed/system_events.csv")
+    if not event_log_path.exists():
+        pd.DataFrame(columns=["timestamp", "event_type", "message"]).to_csv(event_log_path, index=False)
+        print("  ℹ  No drift events — empty system_events.csv written")
+
     print(f"\n✅ Pipeline done. {len(results)} predictions written.")
 
 

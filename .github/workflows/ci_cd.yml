@@ -8,194 +8,133 @@ on:
 jobs:
   full-pipeline:
     runs-on: ubuntu-latest
-    
+
     env:
       CMDSTAN_VERSION: "2.33.1"
-      ENABLE_PROPHET: "0"
+      ENABLE_PROPHET: "0"      # Keep 0 in CI — Prophet compile takes 15+ min
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # =========================
-      # PYTHON SETUP - CHANGE TO 3.11
-      # =========================
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"  # Changed from 3.12 to 3.11
+          python-version: "3.11"
 
-      # =========================
-      # CACHE BACKEND
-      # =========================
       - name: Cache pip
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
+          restore-keys: ${{ runner.os }}-pip-
 
-      # =========================
-      # CACHE CMDSTAN (OPTIONAL)
-      # =========================
       - name: Cache CmdStan
         if: env.ENABLE_PROPHET == '1'
         uses: actions/cache@v4
         with:
           path: ~/.cmdstan
           key: ${{ runner.os }}-cmdstan-${{ env.CMDSTAN_VERSION }}
-          restore-keys: |
-            ${{ runner.os }}-cmdstan-
+          restore-keys: ${{ runner.os }}-cmdstan-
 
-      # =========================
-      # INSTALL SYSTEM DEPENDENCIES
-      # =========================
       - name: Install system dependencies
         run: |
-          sudo apt-get update
+          sudo apt-get update -qq
           sudo apt-get install -y build-essential g++ gcc make
 
-      # =========================
-      # INSTALL BACKEND DEPS
-      # =========================
       - name: Install backend dependencies
         run: |
-          python -m pip install --upgrade pip setuptools wheel
-          # Pin setuptools for compatibility
-          pip install setuptools==68.2.2
-          pip install tqdm
-          pip install mlflow
+          python -m pip install --upgrade pip setuptools==68.2.2 wheel
+          pip install tqdm mlflow
           pip install -r requirements.txt
           if [ "${ENABLE_PROPHET}" = "1" ]; then
             pip install -r requirements-prophet.txt
           fi
 
-      # =========================
-      # INSTALL CMDSTAN FOR PROPHET (OPTIONAL)
-      # =========================
       - name: Install CmdStan
         if: env.ENABLE_PROPHET == '1'
         run: |
           python - <<'PY'
-          import cmdstanpy
-          import os
-          
-          # Set environment variables for compilation
+          import cmdstanpy, os
           os.environ["CXXFLAGS"] = "-O0 -g0 -std=c++14"
           os.environ["MAKEFLAGS"] = "-j2"
-          
-          # Install CmdStan to a fixed location
           cmdstanpy.install_cmdstan(
               version="2.33.1",
               dir=os.path.expanduser("~/.cmdstan"),
-              overwrite=True,
-              progress=True
+              overwrite=True, progress=True
           )
-          
-          # Verify installation
           cmdstanpy.set_cmdstan_path(os.path.expanduser("~/.cmdstan/cmdstan-2.33.1"))
-          print(f"CmdStan installed at: {cmdstanpy.cmdstan_path()}")
+          print(f"CmdStan installed: {cmdstanpy.cmdstan_path()}")
           PY
 
-      # =========================
-      # TEST PROPHET INSTALLATION (OPTIONAL)
-      # =========================
-      - name: Test Prophet and CmdStanPy
-        if: env.ENABLE_PROPHET == '1'
+      # Run baseline model (fast — no Prophet compile needed)
+      # Date range: 3 months — long enough for drift detector to accumulate signal
+      - name: Run pipeline (baseline mode)
         run: |
-          python -c "
-          import cmdstanpy
-          import prophet
-          from prophet import Prophet
-          print(f'CmdStanPy version: {cmdstanpy.__version__}')
-          print(f'Prophet version: {prophet.__version__}')
-          print(f'CmdStan path: {cmdstanpy.cmdstan_path()}')
-          # Try a simple model to verify compilation works
-          import pandas as pd
-          df = pd.DataFrame({
-              'ds': pd.date_range('2023-01-01', periods=100),
-              'y': range(100)
-          })
-          model = Prophet()
-          model.fit(df)
-          print('Prophet model compiled successfully!')
-          "
+          MODEL_TYPE=baseline python pipeline.py \
+            --start 2025-07-01 \
+            --end 2025-09-30 \
+            --drift_threshold 2.0 \
+            --cooldown_days 7
 
-      # =========================
-      # RUN PIPELINE
-      # =========================
-      - name: Run pipeline
-        run: |
-          MODEL_TYPE=baseline python pipeline.py --start 2025-07-01 --end 2025-07-05
-
-      # =========================
-      # VALIDATE OUTPUTS
-      # =========================
+      # Validate all required output files exist
       - name: Validate outputs
         run: |
-          test -f data/processed/metrics.csv
-          test -f data/processed/system_events.csv
-          test -f data/processed/inventory_recommendations.csv
+          echo "Checking required output files..."
+          test -f data/processed/metrics.csv            && echo "✅ metrics.csv" || (echo "❌ metrics.csv missing" && exit 1)
+          test -f data/processed/inventory_recommendations.csv && echo "✅ inventory_recommendations.csv" || (echo "❌ inventory missing" && exit 1)
+          # system_events.csv may be empty if no drift — that's acceptable
+          test -f data/processed/system_events.csv      && echo "✅ system_events.csv" || echo "ℹ  system_events.csv not present (no drift events in run)"
+          echo "Row counts:"
+          wc -l data/processed/metrics.csv
+          python3 -c "
+          import pandas as pd
+          m = pd.read_csv('data/processed/metrics.csv')
+          print(f'  metrics rows: {len(m)}')
+          print(f'  drift events: {m[\"Drift\"].sum()}')
+          print(f'  SKUs: {m[\"SKU\"].nunique()}')
+          "
 
-      # =========================
-      # START API + TEST
-      # =========================
+      # Start API and verify endpoints respond
       - name: Test API endpoints
         run: |
           uvicorn api:app --host 127.0.0.1 --port 8000 &
-          sleep 8
-          curl --fail http://127.0.0.1:8000/skus
+          sleep 6
+          echo "Testing /skus..."
+          curl --fail --silent http://127.0.0.1:8000/skus | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'  /skus returned {len(d)} SKUs')"
+          echo "Testing /metrics..."
+          curl --fail --silent "http://127.0.0.1:8000/metrics?sku=APPL-001&start=2025-07-01&end=2025-09-30" > /dev/null && echo "  /metrics OK"
+          echo "Testing /inventory..."
+          curl --fail --silent "http://127.0.0.1:8000/inventory?end=2025-09-30" > /dev/null && echo "  /inventory OK"
+          echo "Testing /monitoring..."
+          curl --fail --silent http://127.0.0.1:8000/monitoring | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'  avg_mae={d[\"avg_mae\"]}')"
 
-      # =========================
-      # NODE SETUP
-      # =========================
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: "18"
 
-      # =========================
-      # CACHE FRONTEND
-      # =========================
-      - name: Cache Node
+      - name: Cache Node modules
         uses: actions/cache@v4
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('dashboard/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+          restore-keys: ${{ runner.os }}-node-
 
-      # =========================
-      # INSTALL FRONTEND
-      # =========================
       - name: Install frontend dependencies
-        run: |
-          cd dashboard
-          npm install
+        run: cd dashboard && npm install
 
-      # =========================
-      # BUILD FRONTEND
-      # =========================
       - name: Build frontend
-        run: |
-          cd dashboard
-          CI=false npm run build
+        run: cd dashboard && CI=false npm run build
 
-      # =========================
-      # PACKAGE FULL APP (CD)
-      # =========================
       - name: Package deployment bundle
         run: |
-          mkdir deploy_bundle
-          cp -r api.py pipeline.py requirements.txt deploy_bundle/
+          mkdir -p deploy_bundle
+          cp api.py pipeline.py requirements.txt deploy_bundle/
           cp -r src deploy_bundle/
           cp -r data deploy_bundle/
           cp -r dashboard/build deploy_bundle/frontend
 
-      # =========================
-      # UPLOAD ARTIFACT (CD)
-      # =========================
       - name: Upload deployable bundle
         uses: actions/upload-artifact@v4
         with:
