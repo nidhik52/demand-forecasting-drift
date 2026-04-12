@@ -57,3 +57,4 @@ mlflow.db
 *.db
 data/**/*.db
 mlruns/**/mlflow.db
+mlflow.db
