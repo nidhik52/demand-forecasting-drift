@@ -23,44 +23,43 @@ def generate_inventory_recommendations(forecast, inventory, current_date):
     recs = []
 
     for _, item in inventory.iterrows():
-
         sku = item["SKU"]
         product = item.get("Product", "")
-
         stock = max(0.0, float(item.get("Current_Stock", 0) or 0))
         lead_time = int(item.get("Lead_Time_Days", 7))
-
         horizon_end = current_date + pd.Timedelta(days=lead_time)
-
         sku_forecast = forecast[
             (forecast["SKU"] == sku)
             & (forecast["Date"] > current_date)
             & (forecast["Date"] <= horizon_end)
         ]
-
-        demand = sku_forecast["Forecast_Demand"].clip(lower=0).sum()
-
-        # 🔥 avoid zero bug
-        if demand == 0:
-            demand = 0.01
-
-        safety_stock = 0.2 * demand
-        reorder_point = demand + safety_stock
-        recommended_qty = int(max(0, reorder_point - stock))
-
-        if stock <= 0:
-            risk = "CRITICAL"
-            recommendation = "URGENT: reorder immediately"
-        elif stock < demand:
-            risk = "CRITICAL"
-            recommendation = "Stock will run out"
-        elif stock < reorder_point:
-            risk = "WARNING"
-            recommendation = "Plan reorder"
+        if sku_forecast.empty:
+            # No forecast for this SKU in the window
+            demand = 0
+            safety_stock = 0
+            reorder_point = 0
+            recommended_qty = 0
+            risk = "NO DATA"
+            recommendation = "No forecast available for this SKU"
         else:
-            risk = "SAFE"
-            recommendation = "Stock sufficient"
-
+            demand = sku_forecast["Forecast_Demand"].clip(lower=0).sum()
+            if demand == 0:
+                demand = 0.01
+            safety_stock = 0.2 * demand
+            reorder_point = demand + safety_stock
+            recommended_qty = int(max(0, reorder_point - stock))
+            if stock <= 0:
+                risk = "CRITICAL"
+                recommendation = "URGENT: reorder immediately"
+            elif stock < demand:
+                risk = "CRITICAL"
+                recommendation = "Stock will run out"
+            elif stock < reorder_point:
+                risk = "WARNING"
+                recommendation = "Plan reorder"
+            else:
+                risk = "SAFE"
+                recommendation = "Stock sufficient"
         recs.append({
             "SKU": sku,
             "Product": product,

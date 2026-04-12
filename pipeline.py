@@ -450,6 +450,37 @@ def run_pipeline(start: str, end: str, run_id: str = "manual",
                 "Retrained": int(retrain_happened),
             })
 
+
+    # --- Sync inventory_master.csv with DB ---
+    from src.config import INVENTORY_FILE
+    inventory_db = session.query(Inventory).all()
+    inv_rows = []
+    for inv in inventory_db:
+        inv_rows.append({
+            "SKU": inv.sku,
+            "Current_Stock": inv.current_stock,
+            "In_Transit": inv.in_transit,
+            "Lead_Time_Days": inv.lead_time_days,
+            "Safety_Stock": inv.safety_stock,
+            "Stock_As_Of_Date": inv.last_updated.strftime("%Y-%m-%d") if inv.last_updated else ""
+        })
+    inv_df = pd.DataFrame(inv_rows)
+    INVENTORY_FILE.parent.mkdir(parents=True, exist_ok=True)
+    inv_df.to_csv(INVENTORY_FILE, index=False)
+    print(f"Inventory DB exported to {INVENTORY_FILE}")
+
+    # --- Regenerate inventory_recommendations.csv ---
+    try:
+        from src.inventory import load_data as load_inv_data, generate_inventory_recommendations, save_inventory
+        forecast, inventory = load_inv_data()
+        # Use the latest date in inventory as current_date
+        current_date = inventory["Stock_As_Of_Date"].max() if not inventory.empty else pd.Timestamp.now()
+        recs_df = generate_inventory_recommendations(forecast, inventory, current_date)
+        save_inventory(recs_df)
+        print("Inventory recommendations regenerated.")
+    except Exception as e:
+        print(f"Failed to regenerate inventory recommendations: {e}")
+
     session.close()
 
     Path("data/processed").mkdir(parents=True, exist_ok=True)
