@@ -1,6 +1,3 @@
-      # Upgrade MLflow DB schema before running pipeline
-      - name: Upgrade MLflow DB schema
-        run: mlflow db upgrade sqlite:///mlflow.db
 name: Full Self-Contained CI/CD Pipeline
 
 on:
@@ -69,6 +66,10 @@ jobs:
           cmdstanpy.set_cmdstan_path(os.path.expanduser("~/.cmdstan/cmdstan-2.33.1"))
           print(f"CmdStan installed: {cmdstanpy.cmdstan_path()}")
           PY
+
+      # Upgrade MLflow DB schema before running pipeline
+      - name: Upgrade MLflow DB schema
+        run: mlflow db upgrade sqlite:///mlflow.db
 
       # Run baseline model (fast — no Prophet compile needed)
       # Date range: 3 months — long enough for drift detector to accumulate signal
