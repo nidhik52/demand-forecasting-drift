@@ -271,3 +271,259 @@ timestamp,event_type,message
 2025-08-14 11:10:00,RETRAIN,JWLY-003 retrained (pre_MAE=7.80 post_MAE=0.27)
 2025-08-14 18:50:00,DRIFT,"TOYS-002 drift detected (ratio=4.10x, rolling_MAE=1.75)"
 2025-08-14 18:21:00,RETRAIN,TOYS-002 retrained (pre_MAE=1.17 post_MAE=0.76)
+2025-08-15 15:02:00,DRIFT,"TOYS-003 drift detected (ratio=2.34x, rolling_MAE=7.38)"
+2025-08-15 16:26:00,RETRAIN,TOYS-003 retrained (pre_MAE=8.55 post_MAE=1.57)
+2025-08-05 08:14:00,DRIFT,"OUTD-001 drift detected (ratio=9.81x, rolling_MAE=1.36)"
+2025-08-15 08:00:00,DRIFT,"CLTH-002 drift detected (ratio=2.83x, rolling_MAE=1.92)"
+2025-08-05 09:29:00,RETRAIN,OUTD-001 retrained (pre_MAE=1.26 post_MAE=0.60)
+2025-08-15 10:29:00,RETRAIN,CLTH-002 retrained (pre_MAE=2.31 post_MAE=1.16)
+2025-08-05 15:36:00,DRIFT,"TOYS-002 drift detected (ratio=4.76x, rolling_MAE=2.30)"
+2025-08-05 08:41:00,RETRAIN,TOYS-002 retrained (pre_MAE=0.51 post_MAE=0.43)
+2025-08-16 12:52:00,DRIFT,"BEAU-001 drift detected (ratio=2.29x, rolling_MAE=5.20)"
+2025-08-05 12:05:00,DRIFT,"GROC-002 drift detected (ratio=3.29x, rolling_MAE=3.27)"
+2025-08-16 16:40:00,RETRAIN,BEAU-001 retrained (pre_MAE=5.82 post_MAE=0.20)
+2025-08-05 08:44:00,RETRAIN,GROC-002 retrained (pre_MAE=1.51 post_MAE=1.39)
+2025-08-18 15:54:00,DRIFT,"ELEC-002 drift detected (ratio=2.15x, rolling_MAE=2.36)"
+2025-08-18 12:14:00,RETRAIN,ELEC-002 retrained (pre_MAE=1.20 post_MAE=0.85)
+2025-08-19 15:32:00,DRIFT,"MOVI-001 drift detected (ratio=2.40x, rolling_MAE=7.23)"
+2025-08-19 15:05:00,RETRAIN,MOVI-001 retrained (pre_MAE=6.38 post_MAE=0.50)
+2025-08-19 11:24:00,DRIFT,"GROC-003 drift detected (ratio=2.76x, rolling_MAE=5.60)"
+2025-08-19 10:09:00,RETRAIN,GROC-003 retrained (pre_MAE=6.55 post_MAE=1.73)
+2025-08-20 14:40:00,DRIFT,"BOOK-003 drift detected (ratio=2.02x, rolling_MAE=1.53)"
+2025-08-20 09:31:00,RETRAIN,BOOK-003 retrained (pre_MAE=0.93 post_MAE=0.05)
+2025-08-11 15:41:00,DRIFT,"BOOK-003 drift detected (ratio=2.28x, rolling_MAE=3.50)"
+2025-08-11 13:19:00,RETRAIN,BOOK-003 retrained (pre_MAE=2.09 post_MAE=0.76)
+2025-08-11 09:18:00,DRIFT,"GROC-001 drift detected (ratio=2.11x, rolling_MAE=5.29)"
+2025-08-11 13:15:00,RETRAIN,GROC-001 retrained (pre_MAE=5.00 post_MAE=1.47)
+2025-08-12 11:41:00,DRIFT,"OFFC-001 drift detected (ratio=2.20x, rolling_MAE=3.18)"
+2025-08-12 12:04:00,RETRAIN,OFFC-001 retrained (pre_MAE=4.84 post_MAE=1.62)
+2025-08-23 13:31:00,DRIFT,"JWLY-003 drift detected (ratio=6.30x, rolling_MAE=1.73)"
+2025-08-23 18:01:00,RETRAIN,JWLY-003 retrained (pre_MAE=3.21 post_MAE=2.33)
+2025-08-23 11:43:00,DRIFT,"TOYS-002 drift detected (ratio=3.09x, rolling_MAE=2.34)"
+2025-08-23 14:40:00,RETRAIN,TOYS-002 retrained (pre_MAE=1.55 post_MAE=1.98)
+2025-08-13 12:02:00,DRIFT,"OUTD-003 drift detected (ratio=2.09x, rolling_MAE=4.58)"
+2025-08-13 18:16:00,RETRAIN,OUTD-003 retrained (pre_MAE=5.08 post_MAE=1.29)
+2025-08-24 10:05:00,DRIFT,"HOMK-003 drift detected (ratio=2.33x, rolling_MAE=4.89)"
+2025-08-24 09:31:00,RETRAIN,HOMK-003 retrained (pre_MAE=6.35 post_MAE=2.12)
+2025-08-14 18:02:00,DRIFT,"OUTD-001 drift detected (ratio=2.71x, rolling_MAE=1.63)"
+2025-08-14 15:46:00,RETRAIN,OUTD-001 retrained (pre_MAE=2.27 post_MAE=1.86)
+2025-08-14 12:18:00,DRIFT,"JWLY-003 drift detected (ratio=2.30x, rolling_MAE=6.68)"
+2025-08-14 18:12:00,RETRAIN,JWLY-003 retrained (pre_MAE=7.80 post_MAE=0.27)
+2025-08-14 18:18:00,DRIFT,"TOYS-002 drift detected (ratio=4.10x, rolling_MAE=1.75)"
+2025-08-25 15:35:00,DRIFT,"HOMK-002 drift detected (ratio=2.26x, rolling_MAE=6.53)"
+2025-08-14 09:16:00,RETRAIN,TOYS-002 retrained (pre_MAE=1.17 post_MAE=0.76)
+2025-08-25 13:20:00,RETRAIN,HOMK-002 retrained (pre_MAE=5.74 post_MAE=1.91)
+2025-08-25 18:12:00,DRIFT,"BEAU-001 drift detected (ratio=10.56x, rolling_MAE=2.09)"
+2025-08-25 09:35:00,RETRAIN,BEAU-001 retrained (pre_MAE=1.23 post_MAE=1.15)
+2025-08-25 15:57:00,DRIFT,"AUTO-001 drift detected (ratio=2.69x, rolling_MAE=3.04)"
+2025-08-25 14:01:00,RETRAIN,AUTO-001 retrained (pre_MAE=5.05 post_MAE=3.09)
+2025-08-15 10:46:00,DRIFT,"TOYS-003 drift detected (ratio=2.34x, rolling_MAE=7.38)"
+2025-08-15 09:24:00,RETRAIN,TOYS-003 retrained (pre_MAE=8.55 post_MAE=1.57)
+2025-08-15 12:09:00,DRIFT,"CLTH-002 drift detected (ratio=2.83x, rolling_MAE=1.92)"
+2025-08-15 15:16:00,RETRAIN,CLTH-002 retrained (pre_MAE=2.31 post_MAE=1.16)
+2025-08-16 18:03:00,DRIFT,"BEAU-001 drift detected (ratio=2.29x, rolling_MAE=5.20)"
+2025-08-16 14:27:00,RETRAIN,BEAU-001 retrained (pre_MAE=5.82 post_MAE=0.20)
+2025-08-28 09:18:00,DRIFT,"MOVI-001 drift detected (ratio=2.13x, rolling_MAE=1.07)"
+2025-08-28 10:57:00,RETRAIN,MOVI-001 retrained (pre_MAE=0.63 post_MAE=0.33)
+2025-08-28 18:02:00,DRIFT,"DIY0-002 drift detected (ratio=2.29x, rolling_MAE=2.75)"
+2025-08-28 09:54:00,RETRAIN,DIY0-002 retrained (pre_MAE=1.00 post_MAE=2.48)
+2025-08-29 17:45:00,DRIFT,"BOOK-003 drift detected (ratio=26.75x, rolling_MAE=1.24)"
+2025-08-29 14:31:00,RETRAIN,BOOK-003 retrained (pre_MAE=0.84 post_MAE=1.74)
+2025-08-18 13:33:00,DRIFT,"ELEC-002 drift detected (ratio=2.15x, rolling_MAE=2.36)"
+2025-08-18 10:13:00,RETRAIN,ELEC-002 retrained (pre_MAE=1.20 post_MAE=0.85)
+2025-08-19 16:38:00,DRIFT,"MOVI-001 drift detected (ratio=2.40x, rolling_MAE=7.23)"
+2025-08-19 14:07:00,RETRAIN,MOVI-001 retrained (pre_MAE=6.38 post_MAE=0.50)
+2025-08-19 18:56:00,DRIFT,"GROC-003 drift detected (ratio=2.76x, rolling_MAE=5.60)"
+2025-08-19 11:54:00,RETRAIN,GROC-003 retrained (pre_MAE=6.55 post_MAE=1.73)
+2025-08-31 10:25:00,DRIFT,"OFFC-003 drift detected (ratio=2.27x, rolling_MAE=2.83)"
+2025-08-31 14:27:00,RETRAIN,OFFC-003 retrained (pre_MAE=4.47 post_MAE=2.98)
+2025-08-31 15:57:00,DRIFT,"SOFT-003 drift detected (ratio=2.63x, rolling_MAE=3.74)"
+2025-08-20 10:51:00,DRIFT,"BOOK-003 drift detected (ratio=2.02x, rolling_MAE=1.53)"
+2025-08-31 12:58:00,RETRAIN,SOFT-003 retrained (pre_MAE=3.05 post_MAE=1.12)
+2025-08-20 10:54:00,RETRAIN,BOOK-003 retrained (pre_MAE=0.93 post_MAE=0.05)
+2025-08-23 17:48:00,DRIFT,"JWLY-003 drift detected (ratio=6.30x, rolling_MAE=1.73)"
+2025-09-03 14:26:00,DRIFT,"MOVI-002 drift detected (ratio=2.35x, rolling_MAE=10.82)"
+2025-08-23 16:31:00,RETRAIN,JWLY-003 retrained (pre_MAE=3.21 post_MAE=2.33)
+2025-09-03 14:49:00,RETRAIN,MOVI-002 retrained (pre_MAE=14.43 post_MAE=3.21)
+2025-08-23 12:27:00,DRIFT,"TOYS-002 drift detected (ratio=3.09x, rolling_MAE=2.34)"
+2025-08-23 17:44:00,RETRAIN,TOYS-002 retrained (pre_MAE=1.55 post_MAE=1.98)
+2025-09-03 18:45:00,DRIFT,"FURN-003 drift detected (ratio=2.55x, rolling_MAE=2.67)"
+2025-08-24 09:23:00,DRIFT,"HOMK-003 drift detected (ratio=2.33x, rolling_MAE=4.89)"
+2025-08-24 10:56:00,RETRAIN,HOMK-003 retrained (pre_MAE=6.35 post_MAE=2.12)
+2025-09-03 15:31:00,RETRAIN,FURN-003 retrained (pre_MAE=0.05 post_MAE=1.02)
+2025-08-25 12:32:00,DRIFT,"HOMK-002 drift detected (ratio=2.26x, rolling_MAE=6.53)"
+2025-08-25 15:35:00,RETRAIN,HOMK-002 retrained (pre_MAE=5.74 post_MAE=1.91)
+2025-08-25 10:57:00,DRIFT,"BEAU-001 drift detected (ratio=10.56x, rolling_MAE=2.09)"
+2025-08-25 08:35:00,RETRAIN,BEAU-001 retrained (pre_MAE=1.23 post_MAE=1.15)
+2025-08-25 09:44:00,DRIFT,"AUTO-001 drift detected (ratio=2.69x, rolling_MAE=3.04)"
+2025-08-25 14:01:00,RETRAIN,AUTO-001 retrained (pre_MAE=5.05 post_MAE=3.09)
+2025-09-06 14:31:00,DRIFT,"MOVI-001 drift detected (ratio=5.97x, rolling_MAE=1.95)"
+2025-09-06 15:14:00,RETRAIN,MOVI-001 retrained (pre_MAE=3.18 post_MAE=2.69)
+2025-08-28 17:23:00,DRIFT,"MOVI-001 drift detected (ratio=2.13x, rolling_MAE=1.07)"
+2025-08-28 13:44:00,RETRAIN,MOVI-001 retrained (pre_MAE=0.63 post_MAE=0.33)
+2025-09-08 12:21:00,DRIFT,"PCAR-002 drift detected (ratio=2.05x, rolling_MAE=5.65)"
+2025-09-08 09:23:00,RETRAIN,PCAR-002 retrained (pre_MAE=5.33 post_MAE=0.69)
+2025-08-28 12:03:00,DRIFT,"DIY0-002 drift detected (ratio=2.29x, rolling_MAE=2.75)"
+2025-08-28 14:59:00,RETRAIN,DIY0-002 retrained (pre_MAE=1.00 post_MAE=2.48)
+2025-09-09 14:19:00,DRIFT,"PCAR-003 drift detected (ratio=2.04x, rolling_MAE=14.29)"
+2025-09-09 14:04:00,RETRAIN,PCAR-003 retrained (pre_MAE=13.00 post_MAE=0.85)
+2025-08-29 11:33:00,DRIFT,"BOOK-003 drift detected (ratio=26.75x, rolling_MAE=1.24)"
+2025-08-29 13:11:00,RETRAIN,BOOK-003 retrained (pre_MAE=0.84 post_MAE=1.74)
+2025-09-10 18:18:00,DRIFT,"SPRT-002 drift detected (ratio=2.44x, rolling_MAE=3.76)"
+2025-09-10 09:17:00,RETRAIN,SPRT-002 retrained (pre_MAE=2.88 post_MAE=0.66)
+2025-09-10 10:05:00,DRIFT,"BABY-002 drift detected (ratio=2.35x, rolling_MAE=7.51)"
+2025-09-10 11:36:00,RETRAIN,BABY-002 retrained (pre_MAE=7.56 post_MAE=1.00)
+2025-08-31 17:51:00,DRIFT,"OFFC-003 drift detected (ratio=2.27x, rolling_MAE=2.83)"
+2025-08-31 11:35:00,RETRAIN,OFFC-003 retrained (pre_MAE=4.47 post_MAE=2.98)
+2025-08-31 09:55:00,DRIFT,"SOFT-003 drift detected (ratio=2.63x, rolling_MAE=3.74)"
+2025-08-31 17:17:00,RETRAIN,SOFT-003 retrained (pre_MAE=3.05 post_MAE=1.12)
+2025-09-13 14:12:00,DRIFT,"DIY0-001 drift detected (ratio=2.04x, rolling_MAE=13.14)"
+2025-09-13 17:40:00,RETRAIN,DIY0-001 retrained (pre_MAE=11.00 post_MAE=2.24)
+2025-09-03 13:18:00,DRIFT,"MOVI-002 drift detected (ratio=2.35x, rolling_MAE=10.82)"
+2025-09-03 14:17:00,RETRAIN,MOVI-002 retrained (pre_MAE=14.43 post_MAE=3.21)
+2025-09-03 12:33:00,DRIFT,"FURN-003 drift detected (ratio=2.55x, rolling_MAE=2.67)"
+2025-09-03 11:24:00,RETRAIN,FURN-003 retrained (pre_MAE=0.05 post_MAE=1.02)
+2025-09-06 16:08:00,DRIFT,"MOVI-001 drift detected (ratio=5.97x, rolling_MAE=1.95)"
+2025-09-06 18:27:00,RETRAIN,MOVI-001 retrained (pre_MAE=3.18 post_MAE=2.69)
+2025-09-19 08:49:00,DRIFT,"PCAR-002 drift detected (ratio=2.09x, rolling_MAE=1.45)"
+2025-09-19 10:08:00,RETRAIN,PCAR-002 retrained (pre_MAE=0.22 post_MAE=0.02)
+2025-09-19 16:58:00,DRIFT,"SPRT-002 drift detected (ratio=2.47x, rolling_MAE=1.64)"
+2025-09-19 13:50:00,RETRAIN,SPRT-002 retrained (pre_MAE=2.83 post_MAE=3.13)
+2025-09-08 09:15:00,DRIFT,"PCAR-002 drift detected (ratio=2.05x, rolling_MAE=5.65)"
+2025-09-08 08:03:00,RETRAIN,PCAR-002 retrained (pre_MAE=5.33 post_MAE=0.69)
+2025-09-09 08:56:00,DRIFT,"PCAR-003 drift detected (ratio=2.04x, rolling_MAE=14.29)"
+2025-09-09 12:05:00,RETRAIN,PCAR-003 retrained (pre_MAE=13.00 post_MAE=0.85)
+2025-09-10 16:15:00,DRIFT,"SPRT-002 drift detected (ratio=2.44x, rolling_MAE=3.76)"
+2025-09-10 12:56:00,RETRAIN,SPRT-002 retrained (pre_MAE=2.88 post_MAE=0.66)
+2025-09-10 10:11:00,DRIFT,"BABY-002 drift detected (ratio=2.35x, rolling_MAE=7.51)"
+2025-09-10 08:16:00,RETRAIN,BABY-002 retrained (pre_MAE=7.56 post_MAE=1.00)
+2025-09-22 17:23:00,DRIFT,"GROC-002 drift detected (ratio=2.03x, rolling_MAE=2.81)"
+2025-09-22 10:16:00,RETRAIN,GROC-002 retrained (pre_MAE=3.64 post_MAE=1.51)
+2025-09-23 14:47:00,DRIFT,"GROC-001 drift detected (ratio=2.05x, rolling_MAE=3.01)"
+2025-09-23 09:58:00,RETRAIN,GROC-001 retrained (pre_MAE=1.18 post_MAE=4.46)
+2025-09-24 14:59:00,DRIFT,"SPRT-003 drift detected (ratio=2.20x, rolling_MAE=3.20)"
+2025-09-24 12:12:00,RETRAIN,SPRT-003 retrained (pre_MAE=7.46 post_MAE=2.70)
+2025-09-13 08:29:00,DRIFT,"DIY0-001 drift detected (ratio=2.04x, rolling_MAE=13.14)"
+2025-09-24 18:39:00,DRIFT,"DIY0-003 drift detected (ratio=2.06x, rolling_MAE=8.34)"
+2025-09-24 10:47:00,RETRAIN,DIY0-003 retrained (pre_MAE=12.05 post_MAE=2.21)
+2025-09-13 17:03:00,RETRAIN,DIY0-001 retrained (pre_MAE=11.00 post_MAE=2.24)
+2025-09-27 18:21:00,DRIFT,"BABY-002 drift detected (ratio=2.28x, rolling_MAE=2.28)"
+2025-09-27 16:31:00,RETRAIN,BABY-002 retrained (pre_MAE=2.17 post_MAE=1.84)
+2025-09-28 18:46:00,DRIFT,"PCAR-002 drift detected (ratio=63.72x, rolling_MAE=1.52)"
+2025-09-28 16:21:00,RETRAIN,PCAR-002 retrained (pre_MAE=0.75 post_MAE=0.69)
+2025-09-19 15:07:00,DRIFT,"PCAR-002 drift detected (ratio=2.09x, rolling_MAE=1.45)"
+2025-09-19 10:25:00,RETRAIN,PCAR-002 retrained (pre_MAE=0.22 post_MAE=0.02)
+2025-09-19 15:27:00,DRIFT,"SPRT-002 drift detected (ratio=2.47x, rolling_MAE=1.64)"
+2025-09-19 18:08:00,RETRAIN,SPRT-002 retrained (pre_MAE=2.83 post_MAE=3.13)
+2025-09-30 09:09:00,DRIFT,"PCAR-003 drift detected (ratio=2.47x, rolling_MAE=2.10)"
+2025-09-30 11:02:00,RETRAIN,PCAR-003 retrained (pre_MAE=2.01 post_MAE=2.12)
+2025-10-01 18:07:00,DRIFT,"TOYS-003 drift detected (ratio=2.49x, rolling_MAE=3.90)"
+2025-10-01 11:14:00,RETRAIN,TOYS-003 retrained (pre_MAE=4.29 post_MAE=2.52)
+2025-09-22 18:45:00,DRIFT,"GROC-002 drift detected (ratio=2.03x, rolling_MAE=2.81)"
+2025-09-22 18:38:00,RETRAIN,GROC-002 retrained (pre_MAE=3.64 post_MAE=1.51)
+2025-10-03 10:21:00,DRIFT,"APPL-001 drift detected (ratio=2.35x, rolling_MAE=3.86)"
+2025-10-03 17:43:00,RETRAIN,APPL-001 retrained (pre_MAE=3.48 post_MAE=0.01)
+2025-10-04 13:41:00,DRIFT,"TOOL-002 drift detected (ratio=2.08x, rolling_MAE=14.29)"
+2025-10-04 16:18:00,RETRAIN,TOOL-002 retrained (pre_MAE=14.00 post_MAE=0.96)
+2025-09-23 13:08:00,DRIFT,"GROC-001 drift detected (ratio=2.05x, rolling_MAE=3.01)"
+2025-09-23 08:28:00,RETRAIN,GROC-001 retrained (pre_MAE=1.18 post_MAE=4.46)
+2025-10-04 18:57:00,DRIFT,"BABY-001 drift detected (ratio=2.35x, rolling_MAE=2.15)"
+2025-10-04 17:42:00,RETRAIN,BABY-001 retrained (pre_MAE=1.86 post_MAE=0.85)
+2025-09-24 12:38:00,DRIFT,"SPRT-003 drift detected (ratio=2.20x, rolling_MAE=3.20)"
+2025-09-24 11:36:00,RETRAIN,SPRT-003 retrained (pre_MAE=7.46 post_MAE=2.70)
+2025-10-05 16:37:00,DRIFT,"MUSC-002 drift detected (ratio=2.25x, rolling_MAE=3.51)"
+2025-10-05 13:16:00,RETRAIN,MUSC-002 retrained (pre_MAE=0.69 post_MAE=1.75)
+2025-09-24 08:48:00,DRIFT,"DIY0-003 drift detected (ratio=2.06x, rolling_MAE=8.34)"
+2025-09-24 18:37:00,RETRAIN,DIY0-003 retrained (pre_MAE=12.05 post_MAE=2.21)
+2025-09-27 10:33:00,DRIFT,"BABY-002 drift detected (ratio=2.28x, rolling_MAE=2.28)"
+2025-09-27 12:38:00,RETRAIN,BABY-002 retrained (pre_MAE=2.17 post_MAE=1.84)
+2025-09-28 15:57:00,DRIFT,"PCAR-002 drift detected (ratio=63.72x, rolling_MAE=1.52)"
+2025-09-28 09:50:00,RETRAIN,PCAR-002 retrained (pre_MAE=0.75 post_MAE=0.69)
+2025-10-10 13:47:00,DRIFT,"PCAR-002 drift detected (ratio=2.46x, rolling_MAE=1.70)"
+2025-10-10 09:41:00,RETRAIN,PCAR-002 retrained (pre_MAE=2.80 post_MAE=2.52)
+2025-09-30 11:04:00,DRIFT,"PCAR-003 drift detected (ratio=2.47x, rolling_MAE=2.10)"
+2025-09-30 09:04:00,RETRAIN,PCAR-003 retrained (pre_MAE=2.01 post_MAE=2.12)
+2025-10-01 11:03:00,DRIFT,"TOYS-003 drift detected (ratio=2.49x, rolling_MAE=3.90)"
+2025-10-12 11:00:00,DRIFT,"APPL-001 drift detected (ratio=224.15x, rolling_MAE=1.68)"
+2025-10-01 18:44:00,RETRAIN,TOYS-003 retrained (pre_MAE=4.29 post_MAE=2.52)
+2025-10-12 16:16:00,RETRAIN,APPL-001 retrained (pre_MAE=3.20 post_MAE=3.41)
+2025-10-12 14:19:00,DRIFT,"FURN-003 drift detected (ratio=2.16x, rolling_MAE=2.20)"
+2025-10-12 09:13:00,RETRAIN,FURN-003 retrained (pre_MAE=1.40 post_MAE=1.48)
+2025-10-03 16:08:00,DRIFT,"APPL-001 drift detected (ratio=2.35x, rolling_MAE=3.86)"
+2025-10-03 09:55:00,RETRAIN,APPL-001 retrained (pre_MAE=3.48 post_MAE=0.01)
+2025-10-04 17:21:00,DRIFT,"TOOL-002 drift detected (ratio=2.08x, rolling_MAE=14.29)"
+2025-10-04 14:45:00,RETRAIN,TOOL-002 retrained (pre_MAE=14.00 post_MAE=0.96)
+2025-10-04 10:46:00,DRIFT,"BABY-001 drift detected (ratio=2.35x, rolling_MAE=2.15)"
+2025-10-04 18:31:00,RETRAIN,BABY-001 retrained (pre_MAE=1.86 post_MAE=0.85)
+2025-10-05 12:26:00,DRIFT,"MUSC-002 drift detected (ratio=2.25x, rolling_MAE=3.51)"
+2025-10-05 09:57:00,RETRAIN,MUSC-002 retrained (pre_MAE=0.69 post_MAE=1.75)
+2025-10-19 14:37:00,DRIFT,"OUTD-002 drift detected (ratio=2.02x, rolling_MAE=9.96)"
+2025-10-19 18:35:00,RETRAIN,OUTD-002 retrained (pre_MAE=7.04 post_MAE=1.47)
+2025-10-20 08:23:00,DRIFT,"JWLY-002 drift detected (ratio=2.13x, rolling_MAE=2.77)"
+2025-10-20 17:34:00,RETRAIN,JWLY-002 retrained (pre_MAE=0.40 post_MAE=0.61)
+2025-10-22 09:21:00,DRIFT,"OUTD-003 drift detected (ratio=2.20x, rolling_MAE=2.85)"
+2025-10-10 09:05:00,RETRAIN,PCAR-002 retrained (pre_MAE=2.80 post_MAE=2.52)
+2025-10-22 14:25:00,RETRAIN,OUTD-003 retrained (pre_MAE=1.75 post_MAE=2.24)
+2025-10-12 18:04:00,DRIFT,"APPL-001 drift detected (ratio=224.15x, rolling_MAE=1.68)"
+2025-10-12 15:57:00,RETRAIN,APPL-001 retrained (pre_MAE=3.20 post_MAE=3.41)
+2025-10-12 15:49:00,DRIFT,"FURN-003 drift detected (ratio=2.16x, rolling_MAE=2.20)"
+2025-10-12 16:35:00,RETRAIN,FURN-003 retrained (pre_MAE=1.40 post_MAE=1.48)
+2025-10-29 08:44:00,DRIFT,"JWLY-002 drift detected (ratio=2.79x, rolling_MAE=1.69)"
+2025-10-29 12:25:00,RETRAIN,JWLY-002 retrained (pre_MAE=0.94 post_MAE=0.93)
+2025-10-19 09:33:00,DRIFT,"OUTD-002 drift detected (ratio=2.02x, rolling_MAE=9.96)"
+2025-10-19 12:43:00,RETRAIN,OUTD-002 retrained (pre_MAE=7.04 post_MAE=1.47)
+2025-10-20 16:00:00,DRIFT,"JWLY-002 drift detected (ratio=2.13x, rolling_MAE=2.77)"
+2025-10-20 16:28:00,RETRAIN,JWLY-002 retrained (pre_MAE=0.40 post_MAE=0.61)
+2025-11-02 11:59:00,DRIFT,"BABY-001 drift detected (ratio=2.09x, rolling_MAE=1.77)"
+2025-11-02 16:15:00,RETRAIN,BABY-001 retrained (pre_MAE=0.77 post_MAE=1.05)
+2025-10-22 08:47:00,DRIFT,"OUTD-003 drift detected (ratio=2.20x, rolling_MAE=2.85)"
+2025-10-22 17:44:00,RETRAIN,OUTD-003 retrained (pre_MAE=1.75 post_MAE=2.24)
+2025-10-29 12:30:00,DRIFT,"JWLY-002 drift detected (ratio=2.79x, rolling_MAE=1.69)"
+2025-10-29 12:49:00,RETRAIN,JWLY-002 retrained (pre_MAE=0.94 post_MAE=0.93)
+2025-11-11 13:03:00,DRIFT,"PCAR-001 drift detected (ratio=2.17x, rolling_MAE=4.59)"
+2025-11-11 14:54:00,RETRAIN,PCAR-001 retrained (pre_MAE=3.13 post_MAE=0.73)
+2025-11-02 08:15:00,DRIFT,"BABY-001 drift detected (ratio=2.09x, rolling_MAE=1.77)"
+2025-11-02 14:47:00,RETRAIN,BABY-001 retrained (pre_MAE=0.77 post_MAE=1.05)
+2025-11-20 12:59:00,DRIFT,"PCAR-001 drift detected (ratio=2.63x, rolling_MAE=1.91)"
+2025-11-20 12:50:00,RETRAIN,PCAR-001 retrained (pre_MAE=1.33 post_MAE=1.00)
+2025-11-11 09:47:00,DRIFT,"PCAR-001 drift detected (ratio=2.17x, rolling_MAE=4.59)"
+2025-11-11 09:21:00,RETRAIN,PCAR-001 retrained (pre_MAE=3.13 post_MAE=0.73)
+2025-12-02 09:02:00,DRIFT,"TOYS-002 drift detected (ratio=2.08x, rolling_MAE=4.12)"
+2025-12-02 11:01:00,RETRAIN,TOYS-002 retrained (pre_MAE=2.04 post_MAE=1.58)
+2025-11-20 13:34:00,DRIFT,"PCAR-001 drift detected (ratio=2.63x, rolling_MAE=1.91)"
+2025-11-20 16:17:00,RETRAIN,PCAR-001 retrained (pre_MAE=1.33 post_MAE=1.00)
+2025-12-08 08:13:00,DRIFT,"GROC-002 drift detected (ratio=2.26x, rolling_MAE=3.42)"
+2025-12-08 18:00:00,RETRAIN,GROC-002 retrained (pre_MAE=2.71 post_MAE=2.94)
+2025-12-12 14:29:00,DRIFT,"OFFC-001 drift detected (ratio=2.07x, rolling_MAE=3.34)"
+2025-12-12 17:07:00,RETRAIN,OFFC-001 retrained (pre_MAE=4.47 post_MAE=1.72)
+2025-12-02 11:31:00,DRIFT,"TOYS-002 drift detected (ratio=2.08x, rolling_MAE=4.12)"
+2025-12-02 12:37:00,RETRAIN,TOYS-002 retrained (pre_MAE=2.04 post_MAE=1.58)
+2025-12-18 09:22:00,DRIFT,"BEAU-001 drift detected (ratio=2.33x, rolling_MAE=2.67)"
+2025-12-18 18:46:00,RETRAIN,BEAU-001 retrained (pre_MAE=0.20 post_MAE=2.16)
+2025-12-20 15:36:00,DRIFT,"SPRT-001 drift detected (ratio=2.25x, rolling_MAE=4.73)"
+2025-12-20 09:02:00,RETRAIN,SPRT-001 retrained (pre_MAE=7.07 post_MAE=2.34)
+2025-12-08 17:24:00,DRIFT,"GROC-002 drift detected (ratio=2.26x, rolling_MAE=3.42)"
+2025-12-08 08:56:00,RETRAIN,GROC-002 retrained (pre_MAE=2.71 post_MAE=2.94)
+2025-12-23 16:57:00,DRIFT,"PETS-002 drift detected (ratio=2.17x, rolling_MAE=1.86)"
+2025-12-23 17:22:00,RETRAIN,PETS-002 retrained (pre_MAE=1.00 post_MAE=1.09)
+2025-12-12 17:30:00,DRIFT,"OFFC-001 drift detected (ratio=2.07x, rolling_MAE=3.34)"
+2025-12-12 15:41:00,RETRAIN,OFFC-001 retrained (pre_MAE=4.47 post_MAE=1.72)
+2025-12-29 16:42:00,DRIFT,"TOOL-002 drift detected (ratio=2.05x, rolling_MAE=1.97)"
+2025-12-29 09:06:00,RETRAIN,TOOL-002 retrained (pre_MAE=0.40 post_MAE=1.10)
+2025-12-29 09:03:00,DRIFT,"BOOK-001 drift detected (ratio=2.04x, rolling_MAE=2.76)"
+2025-12-29 09:24:00,RETRAIN,BOOK-001 retrained (pre_MAE=2.43 post_MAE=1.83)
+2025-12-30 14:12:00,DRIFT,"HOMK-002 drift detected (ratio=2.46x, rolling_MAE=4.70)"
+2025-12-30 09:52:00,RETRAIN,HOMK-002 retrained (pre_MAE=4.91 post_MAE=1.22)
+2025-12-18 17:18:00,DRIFT,"BEAU-001 drift detected (ratio=2.33x, rolling_MAE=2.67)"
+2025-12-18 14:57:00,RETRAIN,BEAU-001 retrained (pre_MAE=0.20 post_MAE=2.16)
+2025-12-20 10:43:00,DRIFT,"SPRT-001 drift detected (ratio=2.25x, rolling_MAE=4.73)"
+2025-12-20 10:08:00,RETRAIN,SPRT-001 retrained (pre_MAE=7.07 post_MAE=2.34)
+2025-12-23 08:10:00,DRIFT,"PETS-002 drift detected (ratio=2.17x, rolling_MAE=1.86)"
+2025-12-23 15:22:00,RETRAIN,PETS-002 retrained (pre_MAE=1.00 post_MAE=1.09)
+2025-12-29 12:56:00,DRIFT,"TOOL-002 drift detected (ratio=2.05x, rolling_MAE=1.97)"
+2025-12-29 15:41:00,RETRAIN,TOOL-002 retrained (pre_MAE=0.40 post_MAE=1.10)
+2025-12-29 16:25:00,DRIFT,"BOOK-001 drift detected (ratio=2.04x, rolling_MAE=2.76)"
+2025-12-29 09:58:00,RETRAIN,BOOK-001 retrained (pre_MAE=2.43 post_MAE=1.83)
+2025-12-30 12:02:00,DRIFT,"HOMK-002 drift detected (ratio=2.46x, rolling_MAE=4.70)"
+2025-12-30 09:01:00,RETRAIN,HOMK-002 retrained (pre_MAE=4.91 post_MAE=1.22)
+2025-12-31 00:00:00,ORDER,APPL-001 order placed for 170 units (restock 2026-01-07)
