@@ -313,13 +313,12 @@ def run_pipeline(start: str, end: str, run_id: str = "manual",
     experiment_name = "demand_forecasting_drift"
     artifact_location = str(Path("./mlruns").absolute())
     exp = mlflow.get_experiment_by_name(experiment_name)
-    if exp is not None:
-        # If artifact location is not local, delete and recreate
-        if not exp.artifact_location.startswith("file://" + str(Path("./mlruns").absolute())):
-            mlflow.delete_experiment(exp.experiment_id)
-            exp = None
     if exp is None:
         mlflow.create_experiment(experiment_name, artifact_location=artifact_location)
+    else:
+        # If artifact location is not as desired, warn but do not delete (DB mode does not allow delete by name)
+        if not exp.artifact_location.startswith("file://" + str(Path("./mlruns").absolute())) and not exp.artifact_location.endswith("/mlruns"):
+            print(f"WARNING: MLflow experiment '{experiment_name}' exists with artifact location {exp.artifact_location}.\nArtifacts may not be stored in the desired location. To change, delete the experiment manually from the MLflow UI or DB.")
     mlflow.set_experiment(experiment_name)
 
     session = SessionLocal()
