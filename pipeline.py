@@ -457,6 +457,19 @@ def run_pipeline(start: str, end: str, run_id: str = "manual",
                         mlflow.log_metric("rmse", rmse)
                         mlflow.log_metric("drift_ratio", drift_status["ratio"])
                         mlflow.log_artifact(str(model_path))
+                        # Optionally log Prophet model to MLflow model registry
+                        if MODEL_TYPE == "prophet" and PROPHET_AVAILABLE:
+                            try:
+                                import cloudpickle
+                                mlflow.pyfunc.log_model(
+                                    artifact_path="prophet_model",
+                                    python_model=new_model,
+                                    code_path=None,
+                                    conda_env=None,
+                                    serialization_format="cloudpickle"
+                                )
+                            except Exception as e:
+                                print(f"MLflow model logging failed: {e}")
 
                     # New baseline = post-retrain MAE on same day
                     new_preds   = predict_prophet(new_model, test_df) if MODEL_TYPE == "prophet" else predict_baseline(new_model, test_df)
