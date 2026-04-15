@@ -184,7 +184,13 @@ def place_order(sku: str, qty: int, end: Optional[str] = None) -> Dict:
         log_event("ORDER", f"{sku} order placed for {qty} units (restock {restock_date.date()})", order_date)
     except ImportError:
         pass
-    return {"status": "success", "restock_date": restock_date.strftime("%Y-%m-%d")}
+    return {
+        "status":       "success",
+        "sku":          sku,
+        "qty":          qty,
+        "restock_date": restock_date.strftime("%Y-%m-%d"),
+        "message":      f"{qty} units ordered for {sku} and will arrive by {restock_date.strftime('%Y-%m-%d')}",
+    }
 
 # ----------------------------
 # /run_pipeline

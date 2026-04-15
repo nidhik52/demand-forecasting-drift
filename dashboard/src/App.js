@@ -123,7 +123,11 @@ function App() {
     try {
       setError("");
       const res = await axios.post(`${API}/order`, null, { params: { sku, qty, end } });
-      alert(`✅ Order placed!\nRestock by: ${res.data.restock_date}`);
+      // Use the server-provided message so the wording is always consistent
+      const msg =
+        res.data.message ||
+        `${qty} units ordered and will arrive by ${res.data.restock_date}`;
+      alert(`✅ ${msg}`);
       fetchData();
     } catch {
       setError("Failed to place order.");

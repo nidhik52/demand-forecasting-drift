@@ -1,33 +1,43 @@
+
 # 🚀 Drift-Aware Continuous Learning for Retail Demand Forecasting
 
 ## 📌 Overview
 
-This project implements a **drift-aware, end-to-end machine learning system** for retail demand forecasting with continuous learning capabilities.
 
-The system forecasts product demand, monitors model performance over time, detects **concept drift**, and automatically retrains models when performance degrades. It also generates **inventory replenishment recommendations** based on updated forecasts.
+This project implements a **drift-aware, end-to-end machine learning system** for retail demand forecasting with continuous learning and MLOps capabilities.
 
-In addition, the project integrates **modern MLOps practices** including experiment tracking, orchestration, CI/CD, and monitoring.
+
+The system forecasts product demand, monitors model performance over time, detects **concept drift**, and automatically retrains models when performance degrades. It also generates **inventory replenishment recommendations** based on updated forecasts, ensuring optimal stock levels and reducing the risk of stockouts or overstocking.
+
+
+In addition, the project integrates **modern MLOps practices** including experiment tracking, orchestration, CI/CD, and monitoring, making it production-ready and scalable.
 
 ---
+
 
 ## 🎯 Key Features
 
-* 📈 Demand forecasting using historical sales data
-* 🔍 Concept drift detection using prediction error (MAE)
-* 🔁 Automated model retraining on drift
-* 💾 Model versioning with timestamped artifacts
-* 📊 Metrics tracking over time
-* 🧾 System event logging (drift, retrain, orders)
-* 📦 Inventory replenishment recommendations
-* 🌐 FastAPI backend for serving data
-* ⚛️ React dashboard for visualization
-* 🧪 MLflow integration for experiment tracking
-* ⏱️ Airflow DAG for pipeline orchestration
-* 🔄 CI/CD using GitHub Actions
+
+- 📈 Demand forecasting using historical sales data
+- 🔍 Concept drift detection using prediction error (MAE)
+- 🔁 Automated model retraining on drift
+- 💾 Model versioning with timestamped artifacts
+- 📊 Metrics tracking over time
+- 🧾 System event logging (drift, retrain, orders)
+- 📦 Inventory replenishment recommendations
+- 🌐 FastAPI backend for serving data
+- ⚛️ React dashboard for visualization
+- 🧪 MLflow integration for experiment tracking
+- ⏱️ Airflow DAG for pipeline orchestration
+- 🔄 CI/CD using GitHub Actions
+- 🛡️ Robust error handling and logging
+- 🧩 Modular, extensible codebase
 
 ---
 
+
 ## 🧠 System Architecture
+
 
 ```text
 Historical Data
@@ -51,7 +61,9 @@ API + Dashboard + Monitoring
 
 ---
 
+
 ## 📁 Project Structure
+
 
 ```text
 demand-forecasting-drift/
@@ -69,7 +81,8 @@ demand-forecasting-drift/
 ├── src/
 │   ├── config.py
 │   ├── event_logger.py
-│   └── inventory.py
+│   ├── inventory.py
+│   └── ...
 │
 ├── dashboard/        # React frontend
 ├── api.py            # FastAPI backend
@@ -80,22 +93,31 @@ demand-forecasting-drift/
 
 ---
 
+
 ## ⚙️ Installation & Setup
 
-### 1. Create Virtual Environment
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/nidhik52/demand-forecasting-drift.git
+cd demand-forecasting-drift
+```
+
+### 2. Create Virtual Environment
 
 ```bash
 python -m venv .venv
 ```
 
-### 2. Activate Environment
+### 3. Activate Environment
 
 ```bash
 source .venv/bin/activate   # Mac/Linux
 .venv\Scripts\activate      # Windows
 ```
 
-### 3. Install Dependencies
+### 4. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -103,24 +125,28 @@ pip install -r requirements.txt
 
 ---
 
+
 ## ▶️ Running the System
 
-### 🔹 Step 1: Run Pipeline
+
+### 🔹 Step 1: Run the Pipeline
 
 ```bash
 python pipeline.py --start 2025-07-01 --end 2025-07-10
 ```
 
+
 This will:
 
-* Train models
-* Detect drift
-* Retrain if needed
-* Save models
-* Update metrics
-* Generate inventory recommendations
+- Train models
+- Detect drift
+- Retrain if needed
+- Save models (with drift timestamp)
+- Update metrics
+- Generate inventory recommendations
 
 ---
+
 
 ### 🔹 Step 2: Start Backend (FastAPI)
 
@@ -128,13 +154,13 @@ This will:
 uvicorn api:app --reload
 ```
 
-Open:
 
-```
+Open the interactive API docs at:
+
 http://127.0.0.1:8000/docs
-```
 
 ---
+
 
 ### 🔹 Step 3: Start Frontend (React Dashboard)
 
@@ -146,19 +172,20 @@ npm start
 
 ---
 
+
 ### 🔹 Step 4: Run MLflow (Experiment Tracking)
 
 ```bash
 mlflow ui
 ```
 
-Open:
 
-```
+Open the MLflow UI at:
+
 http://127.0.0.1:5000
-```
 
 ---
+
 
 ### 🔹 Step 5: Run Airflow (Pipeline Orchestration)
 
@@ -169,75 +196,87 @@ airflow scheduler
 
 ---
 
+
 ## 📊 Outputs Generated
 
 After running the pipeline:
 
+
 | File                            | Description                         |
 | ------------------------------- | ----------------------------------- |
 | `metrics.csv`                   | MAE over time (for drift detection) |
-| `system_events.csv`             | Drift + retrain logs                |
+| `system_events.csv`             | Drift, retrain, and order logs      |
 | `inventory_recommendations.csv` | Stock decisions                     |
-| `models/`                       | Saved models (only on drift)        |
+| `models/`                       | Saved models (with drift timestamp) |
 
 ---
+
 
 ## 🧪 Drift Detection Logic
 
+
 Drift is detected using:
 
-```text
-MAE > Threshold
-```
+     MAE > Threshold
+
 
 If drift is detected:
 
-* Event is logged
-* Model is retrained
-* New model is saved
-* MLflow run is created
+- Event is logged
+- Model is retrained
+- New model is saved (with timestamp)
+- MLflow run is created
 
 ---
+
 
 ## 📦 Inventory Logic
 
+
 Inventory recommendations are based on:
 
-* Forecasted demand
-* Current stock
-* Lead time
+- Forecasted demand
+- Current stock
+- Lead time
+
 
 Risk levels:
 
-* 🟢 SAFE
-* 🟡 WARNING
-* 🔴 CRITICAL
+- 🟢 SAFE
+- 🟡 WARNING
+- 🔴 CRITICAL
 
 ---
+
 
 ## 📊 Dashboard Features
 
-* SKU-wise demand visualization
-* Drift points highlighted on graph
-* Metrics trend (MAE over time)
-* Inventory risk panel
-* Order placement system
-* Event timeline (drift + retrain logs)
+
+- SKU-wise demand visualization
+- Drift points highlighted on graph
+- Metrics trend (MAE over time)
+- Inventory risk panel (SAFE, WARNING, CRITICAL)
+- Order placement system (with order logging)
+- Event timeline (drift, retrain, and order logs)
 
 ---
+
 
 ## 🔁 CI/CD Pipeline
 
+
 Implemented using **GitHub Actions**:
 
-* Automated pipeline execution
-* Output validation
-* API testing
-* Frontend build verification
+- Automated pipeline execution on push and PR
+- Output validation (checks for required files)
+- API testing
+- Frontend build verification
 
 ---
 
+
 ## 🧠 MLOps Components Implemented
+
 
 | Component                    | Status          |
 | ---------------------------- | --------------  |
@@ -251,23 +290,31 @@ Implemented using **GitHub Actions**:
 
 ---
 
+
 ## 🚧 Future Work
 
-* Kafka for real-time streaming
-* Kubernetes deployment
-* SageMaker integration
-* Advanced drift detection methods
-* Real-time monitoring with Prometheus + Grafana
+
+- Integrate Kafka for real-time data streaming and event processing
+- Deploy on Kubernetes for scalable, containerized infrastructure
+- Add SageMaker integration for managed model training and deployment
+- Implement advanced drift detection methods (e.g., KS test, ADWIN)
+- Real-time monitoring with Prometheus and Grafana dashboards
+- Add automated inventory restocking after order lead time
+- Enhance security and access control for production
 
 ---
 
+
 ## 👩‍💻 Author
 
-**Nidhi Kambadkone**
+
+**Nidhi Kambadkone**  
 M.Tech Data Science
 
 ---
 
+
 ## 💡 Final Note
 
-This project demonstrates how **machine learning systems evolve in production**, handling changing data patterns through **drift-aware continuous learning and MLOps practices**.
+
+This project demonstrates how **machine learning systems evolve in production**, handling changing data patterns through **drift-aware continuous learning and MLOps practices**. Contributions and suggestions are welcome!

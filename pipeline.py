@@ -430,12 +430,19 @@ def run_pipeline(start: str, end: str, run_id: str = "manual",
                     sku_model[sku] = new_model
                     retrain_happened = True
 
-                    # FIX: save model with sim date timestamp
+                    # FIX: save model with sim date timestamp + random hour:minute
+                    # current_date is a date-only Timestamp (time = 00:00:00).
+                    # Adding a random offset mirrors what log_event() does, so
+                    # model filenames reflect a realistic intra-day time rather
+                    # than always ending in _000000.
 
                     # Use a relative, writable path for model artifacts (CI/CD safe)
                     model_dir = Path("./models") / ("prophet" if MODEL_TYPE == "prophet" else "baseline")
                     model_dir.mkdir(parents=True, exist_ok=True)
-                    ts_str = current_date.strftime("%Y%m%d_%H%M%S")
+                    _save_hour   = random.randint(8, 18)
+                    _save_minute = random.randint(0, 59)
+                    _save_ts     = current_date + pd.Timedelta(hours=_save_hour, minutes=_save_minute)
+                    ts_str = _save_ts.strftime("%Y%m%d_%H%M%S")
                     model_path = model_dir / f"{sku}_{ts_str}.pkl"
                     with open(model_path, "wb") as f:
                         pickle.dump(new_model, f)
