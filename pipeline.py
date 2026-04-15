@@ -258,8 +258,22 @@ def update_inventory_after_demand(sku: str, demand_quantity: int, session: Sessi
         session.add(inv)
         session.commit()
         session.refresh(inv)
-    current_stock = int(cast(Optional[int], inv.current_stock) or 0)
+    def safe_int(val, default=0):
+        if isinstance(val, bytes):
+            try:
+                return int.from_bytes(val, 'little')
+            except Exception:
+                return default
+        try:
+            return int(float(val))
+        except Exception:
+            return default
+    current_stock = safe_int(inv.current_stock, 0)
     new_stock     = max(0, current_stock - demand_quantity)
+    # --- Simple replenishment: if stock falls below 20, restock to a random level (simulate delivery) ---
+    if new_stock < 20:
+        restock = np.random.choice([0, 30, 60, 120], p=[0.2, 0.4, 0.3, 0.1])
+        new_stock += restock
     inv.current_stock = new_stock          # type: ignore
     inv.last_updated  = datetime.utcnow() # type: ignore
     session.commit()
@@ -267,13 +281,23 @@ def update_inventory_after_demand(sku: str, demand_quantity: int, session: Sessi
 
 def get_inventory_data(sku: str, session: Session) -> Dict:
     inv = session.query(Inventory).filter_by(sku=sku).first()
+    def safe_int(val, default=0):
+        if isinstance(val, bytes):
+            try:
+                return int.from_bytes(val, 'little')
+            except Exception:
+                return default
+        try:
+            return int(float(val))
+        except Exception:
+            return default
     if not inv:
         return {"current_stock": 100, "lead_time_days": 7, "safety_stock": 10, "in_transit": 0}
     return {
-        "current_stock": int(inv.current_stock),    # type: ignore
-        "lead_time_days": int(inv.lead_time_days),  # type: ignore
-        "safety_stock": int(inv.safety_stock),      # type: ignore
-        "in_transit": int(inv.in_transit)           # type: ignore
+        "current_stock": safe_int(inv.current_stock),    # type: ignore
+        "lead_time_days": safe_int(inv.lead_time_days, 7),  # type: ignore
+        "safety_stock": safe_int(inv.safety_stock, 10),      # type: ignore
+        "in_transit": safe_int(inv.in_transit, 0)           # type: ignore
     }
 
 # ----------------------------
@@ -321,7 +345,34 @@ def run_pipeline(start: str, end: str, run_id: str = "manual",
             print(f"WARNING: MLflow experiment '{experiment_name}' exists with artifact location {exp.artifact_location}.\nArtifacts may not be stored in the desired location. To change, delete the experiment manually from the MLflow UI or DB.")
     mlflow.set_experiment(experiment_name)
 
+
     session = SessionLocal()
+    # --- Initialize DB from inventory_master.csv if DB is empty ---
+    if session.query(Inventory).count() == 0:
+        from src.config import INVENTORY_FILE
+        def safe_int(val, default=0):
+            if isinstance(val, bytes):
+                try:
+                    return int.from_bytes(val, 'little')
+                except Exception:
+                    return default
+            try:
+                return int(float(val))
+            except Exception:
+                return default
+        if INVENTORY_FILE.exists():
+            inv_df = pd.read_csv(INVENTORY_FILE)
+            for _, row in inv_df.iterrows():
+                inv = Inventory(
+                    sku=row["SKU"],
+                    current_stock=safe_int(row["Current_Stock"]),
+                    in_transit=safe_int(row.get("In_Transit", 0)),
+                    lead_time_days=safe_int(row.get("Lead_Time_Days", 7)),
+                    safety_stock=safe_int(row.get("Safety_Stock", 10)),
+                )
+                session.add(inv)
+            session.commit()
+            print("Initialized inventory DB from inventory_master.csv")
 
     for current_date in tqdm(sorted(df["Date"].unique()), desc="Processing days"):
         current_date = pd.Timestamp(current_date)
@@ -473,11 +524,18 @@ def run_pipeline(start: str, end: str, run_id: str = "manual",
     try:
         from src.inventory import load_data as load_inv_data, generate_inventory_recommendations, save_inventory
         forecast, inventory = load_inv_data()
-        # Use the latest date in inventory as current_date
-        current_date = inventory["Stock_As_Of_Date"].max() if not inventory.empty else pd.Timestamp.now()
+        # Use the last date in the forecast as the reference date for recommendations
+        if not forecast.empty:
+            date_col = 'Date' if 'Date' in forecast.columns else ('date' if 'date' in forecast.columns else None)
+            if date_col:
+                current_date = pd.to_datetime(forecast[date_col]).max()
+            else:
+                current_date = pd.Timestamp.now()
+        else:
+            current_date = pd.Timestamp.now()
         recs_df = generate_inventory_recommendations(forecast, inventory, current_date)
         save_inventory(recs_df)
-        print("Inventory recommendations regenerated.")
+        print(f"Inventory recommendations regenerated for reference date: {current_date.date()}.")
     except Exception as e:
         print(f"Failed to regenerate inventory recommendations: {e}")
 
