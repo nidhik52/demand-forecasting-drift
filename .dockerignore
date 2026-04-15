@@ -1,0 +1,23 @@
+# .dockerignore
+__pycache__/
+.venv/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+*.log
+
+mlruns/
+node_modules/
+dashboard/node_modules/
+# dashboard/build/ (allow build output to be included in Docker image)
+.DS_Store
+.env
+.env.*
+.git
+.gitignore
+
+# Ignore local data and models (optional, keep only sample data/models in image)
+data/
+models/

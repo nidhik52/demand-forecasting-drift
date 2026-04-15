@@ -5,3 +5,4 @@ numpy==1.26.4
 scikit-learn==1.6.1
 setuptools==68.2.2
 wheel==0.42.0
+sqlalchemy==2.0.29

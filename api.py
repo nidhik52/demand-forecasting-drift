@@ -11,6 +11,7 @@ import os
 from src.config import PROJECT_ROOT, METRICS_FILE, EVENT_LOG_FILE
 from src.db import SessionLocal, Inventory, Order
 
+
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -19,6 +20,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Serve React dashboard static files from /dashboard/build if present
+import os
+from fastapi.staticfiles import StaticFiles
+if os.path.isdir(os.path.join(os.path.dirname(__file__), "dashboard", "build")):
+    app.mount("/dashboard", StaticFiles(directory="dashboard/build", html=True), name="dashboard")
 
 INVENTORY_FILE = PROJECT_ROOT / "data" / "processed" / "inventory_recommendations.csv"
 

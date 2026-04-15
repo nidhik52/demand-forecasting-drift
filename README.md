@@ -1,4 +1,3 @@
-
 # 🚀 Drift-Aware Continuous Learning for Retail Demand Forecasting
 
 ## 📌 Overview
@@ -318,3 +317,45 @@ M.Tech Data Science
 
 
 This project demonstrates how **machine learning systems evolve in production**, handling changing data patterns through **drift-aware continuous learning and MLOps practices**. Contributions and suggestions are welcome!
+
+---
+
+## 🐳 Docker: Run Anywhere
+
+You can run the entire backend (API + dashboard) in a single lightweight Docker container, without installing Python, Node, or any dependencies on your machine.
+
+### 1. Build the Docker Image
+
+```bash
+git clone https://github.com/nidhik52/demand-forecasting-drift.git
+cd demand-forecasting-drift
+# Build the image (replace <tag> as needed)
+docker build -t demand-forecasting-drift:latest .
+```
+
+### 2. Run the Container
+
+```bash
+docker run -it --rm -p 8000:8000 demand-forecasting-drift:latest
+```
+
+- The FastAPI backend will be available at: http://localhost:8000
+- The dashboard will be served at: http://localhost:8000/dashboard
+- Interactive API docs: http://localhost:8000/docs
+
+### 3. (Optional) Mount Your Own Data/Models
+
+To use your own data/models, mount them as volumes:
+
+```bash
+docker run -it --rm -p 8000:8000 \
+  -v $PWD/data:/app/data \
+  -v $PWD/models:/app/models \
+  demand-forecasting-drift:latest
+```
+
+### 4. Minimal Disk Usage
+- Uses Python and Node slim images
+- Only production frontend build is included
+- No dev dependencies or build tools in final image
+- Data/models are not baked in (mount as needed)
