@@ -3,16 +3,9 @@
 services:
   - type: web
     name: demand-api
-    runtime: python
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.9
-    buildCommand: |
-      pip install --upgrade pip setuptools wheel
-      pip install -r requirements.txt
-      pip install tqdm
-      pip install mlflow
-      if [ "${ENABLE_PROPHET}" = "1" ]; then
-        pip install -r requirements-prophet.txt
-      fi
-    startCommand: uvicorn api:app --host 0.0.0.0 --port 10000
+      - key: ENABLE_PROPHET
+        value: "1"
+    dockerfilePath: ./Dockerfile
+    plan: free
+    autoDeploy: true
