@@ -68,8 +68,14 @@ jobs:
           PY
 
       # Upgrade MLflow DB schema before running pipeline
-      - name: Upgrade MLflow DB schema
-        run: mlflow db upgrade sqlite:///mlflow.db
+      - name: Upgrade MLflow DB schema (only if needed)
+        run: |
+          if ! sqlite3 mlflow.db ".tables" | grep -q "metrics"; then
+            echo "Upgrading MLflow DB schema..."
+            mlflow db upgrade sqlite:///mlflow.db
+          else
+            echo "MLflow DB schema already up-to-date. Skipping upgrade."
+          fi
 
       # Run baseline model (fast — no Prophet compile needed)
       # Date range: 3 months — long enough for drift detector to accumulate signal
