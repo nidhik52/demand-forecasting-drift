@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
 import subprocess
@@ -21,11 +21,33 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # Serve React dashboard static files from /dashboard/build if present
 import os
+import pathlib
 from fastapi.staticfiles import StaticFiles
-if os.path.isdir(os.path.join(os.path.dirname(__file__), "dashboard", "build")):
-    app.mount("/dashboard", StaticFiles(directory="dashboard/build", html=True), name="dashboard")
+dashboard_build_dir = pathlib.Path(__file__).parent / "dashboard" / "build"
+if dashboard_build_dir.is_dir():
+    app.mount("/dashboard", StaticFiles(directory=str(dashboard_build_dir), html=True), name="dashboard")
+else:
+    import logging
+    logging.error("React build not found at %s. Please run 'npm run build' in dashboard/ before building the Docker image.", dashboard_build_dir)
+    @app.on_event("startup")
+    async def missing_dashboard_build():
+        raise RuntimeError(f"React build not found at {dashboard_build_dir}. Please run 'npm run build' in dashboard/ before building the Docker image.")
+
+# Root endpoint: redirect to /dashboard
+from fastapi.responses import RedirectResponse, PlainTextResponse
+@app.get("/", include_in_schema=False)
+def root():
+    return RedirectResponse(url="/dashboard")
+
+# Health check endpoint
+@app.get("/health", include_in_schema=False)
+def health():
+    if not dashboard_build_dir.is_dir():
+        raise HTTPException(status_code=500, detail="React dashboard build missing")
+    return {"status": "ok"}
 
 INVENTORY_FILE = PROJECT_ROOT / "data" / "processed" / "inventory_recommendations.csv"
 
