@@ -70,11 +70,11 @@ jobs:
       # Upgrade MLflow DB schema before running pipeline
       - name: Upgrade MLflow DB schema (only if needed)
         run: |
-          if ! sqlite3 mlflow.db ".tables" | grep -q "metrics"; then
+          if [ -s mlflow.db ]; then
             echo "Upgrading MLflow DB schema..."
             mlflow db upgrade sqlite:///mlflow.db
           else
-            echo "MLflow DB schema already up-to-date. Skipping upgrade."
+            echo "mlflow.db does not exist or is empty. Skipping upgrade."
           fi
 
       # Run baseline model (fast — no Prophet compile needed)
