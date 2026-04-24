@@ -6,6 +6,14 @@
 This project implements a **drift-aware, end-to-end machine learning system** for retail demand forecasting with continuous learning and MLOps capabilities.
 
 
+---
+
+## 🗃️ Data & Preprocessing
+
+The system uses a synthetic retail dataset of **160,000 transaction records** across **72 SKUs** (2024–2025). Each record includes sales, product, region, and customer details. Data is aggregated to daily demand per SKU, with missing dates forward-filled. Four controlled concept drift windows (12 days each) are injected at random intervals, affecting ~1/6 of SKUs per window, using a demand multiplier (1.6–2.4×) for reproducibility.
+
+---
+
 The system forecasts product demand, monitors model performance over time, detects **concept drift**, and automatically retrains models when performance degrades. It also generates **inventory replenishment recommendations** based on updated forecasts, ensuring optimal stock levels and reducing the risk of stockouts or overstocking.
 
 
@@ -18,8 +26,12 @@ In addition, the project integrates **modern MLOps practices** including experim
 
 
 - 📈 Demand forecasting using historical sales data
+
+- 🗃️ Synthetic data generation, preprocessing, and drift injection
 - 🔍 Concept drift detection using prediction error (MAE)
+- 🕑 Dual-window (7-day & 30-day) rolling MAE drift detection
 - 🔁 Automated model retraining on drift
+- 🛡️ Safety gate: retrain only if new model outperforms previous on holdout
 - 💾 Model versioning with timestamped artifacts
 - 📊 Metrics tracking over time
 - 🧾 System event logging (drift, retrain, orders)
@@ -31,6 +43,12 @@ In addition, the project integrates **modern MLOps practices** including experim
 - 🔄 CI/CD using GitHub Actions
 - 🛡️ Robust error handling and logging
 - 🧩 Modular, extensible codebase
+
+---
+
+## 🤖 Forecasting
+
+Forecasts are generated per SKU using **Facebook Prophet** with yearly and weekly seasonality (multiplicative mode), changepoint prior scale 0.05, and a 60-day forecast horizon. Each forecast provides a point estimate and 95% confidence interval (yhat, yhat_lower, yhat_upper).
 
 ---
 
@@ -56,6 +74,16 @@ Model Versioning + MLflow Logging
 Inventory Recommendation
      ↓
 API + Dashboard + Monitoring
+---
+
+## 🕑 Drift Detection Logic
+
+Drift is detected using **dual rolling MAE windows**:
+
+- **Short-term:** 7-day window (rapid detection)
+- **Long-term:** 30-day window (gradual drift)
+
+Drift is flagged if either window’s MAE exceeds **2.0× baseline** for **3+ consecutive days**. A 7-day cooldown prevents retrain oscillation. Baseline MAE is set from validation data.
 ```
 
 ---
@@ -238,6 +266,19 @@ Inventory recommendations are based on:
 - Current stock
 - Lead time
 
+Prophet’s 95% confidence interval is used to estimate demand uncertainty:
+
+     forecast_std = (yhat_upper - yhat_lower) / 4
+     safety_stock = 1.65 × forecast_std × sqrt(lead_time)
+     reorder_point = avg_daily_demand × lead_time + safety_stock
+     order_quantity = avg_daily_demand × cycle_days (30)
+
+Risk levels:
+
+- 🟢 SAFE: Current stock ≥ reorder point
+- 🟡 WARNING: Current stock < reorder point
+- 🔴 CRITICAL: Current stock ≤ safety stock
+
 
 Risk levels:
 
@@ -293,13 +334,17 @@ Implemented using **GitHub Actions**:
 ## 🚧 Future Work
 
 
-- Integrate Kafka for real-time data streaming and event processing
-- Deploy on Kubernetes for scalable, containerized infrastructure
+- Inventory order fulfillment: implement full order lifecycle (in-transit, restock after lead time, dynamic safety stock)
+- Multivariate drift detection: use external signals (promotions, macroeconomic, etc.)
+- Ensemble & online learning: combine Prophet, XGBoost, LSTM; enable incremental updates
+- Real-time data integration: live POS feed via Kafka
+- AutoML: automate retraining window/model selection (Bayesian optimization)
+- A/B testing: deploy and compare multiple models in production to evaluate performance and drift response
+- Cloud deployment: resolve dashboard CORS/env issues for full-stack deployment
 - Add SageMaker integration for managed model training and deployment
-- Implement advanced drift detection methods (e.g., KS test, ADWIN)
-- Real-time monitoring with Prometheus and Grafana dashboards
-- Add automated inventory restocking after order lead time
-- Enhance security and access control for production
+- Advanced drift detection (KS test, ADWIN)
+- Real-time monitoring with Prometheus/Grafana
+- Enhance security and access control
 
 ---
 
@@ -359,3 +404,30 @@ docker run -it --rm -p 8000:8000 \
 - Only production frontend build is included
 - No dev dependencies or build tools in final image
 - Data/models are not baked in (mount as needed)
+
+---
+
+## 📊 Results
+
+Key results (see paper for full details):
+
+- Mean MAE: 8.03 units/day (all SKUs)
+- Forecast accuracy: 91.8% (APPL-001, 20% tolerance)
+- Drift events: 2.9% of predictions
+- Post-drift retraining: up to 98.6% MAE reduction
+
+---
+
+## ⚠️ Known Limitations
+
+- Inventory restock after order placement is not yet automated (panel shows pre-order stock)
+- Synthetic dataset: external validity is limited
+- Only Prophet evaluated (architecture supports others)
+- Dashboard cloud deployment: CORS/env issues remain
+- Univariate forecasting (no external covariates yet)
+
+---
+
+## 🌐 Dashboard Deployment Notes
+
+The React dashboard works locally, but may face API connectivity issues on cloud platforms (Render, Vercel) due to CORS and environment variable configuration. Backend API deployment is operational; full stack cloud deployment is in progress.
