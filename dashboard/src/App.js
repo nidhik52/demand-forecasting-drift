@@ -88,7 +88,9 @@ function App() {
     }
   }, [selectedSKU, start, end]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => { 
+    fetchData(); 
+  }, [selectedSKU, start, end]);
 
   // Monitoring poll every 30s
   useEffect(() => {
