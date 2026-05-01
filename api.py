@@ -32,9 +32,13 @@ if dashboard_build_dir.is_dir():
 else:
     import logging
     logging.error("React build not found at %s. Please run 'npm run build' in dashboard/ before building the Docker image.", dashboard_build_dir)
-    @app.on_event("startup")
-    async def missing_dashboard_build():
-        raise RuntimeError(f"React build not found at {dashboard_build_dir}. Please run 'npm run build' in dashboard/ before building the Docker image.")
+    # FIX 10: log warning instead of crashing — Render raw deploy may not have build dir
+    import logging
+    logging.warning(
+        "React build not found at %s. "
+        "Dashboard will not be served. API endpoints are still available.",
+        dashboard_build_dir
+    )
 
 # Root endpoint: redirect to /dashboard
 from fastapi.responses import RedirectResponse, PlainTextResponse

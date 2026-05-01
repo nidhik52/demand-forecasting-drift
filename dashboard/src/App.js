@@ -111,7 +111,16 @@ function App() {
         params: { start, end, model: modelChoice }
       });
       // Refresh after 3s to give pipeline time to write first results
-      setTimeout(fetchData, 3000);
+      // FIX 9: poll every 5s for up to 3 minutes while pipeline runs
+      let attempts = 0;
+      const maxAttempts = 36; // 36 × 5s = 3 minutes
+      const pollInterval = setInterval(async () => {
+        attempts++;
+        await fetchData();
+        if (attempts >= maxAttempts) {
+          clearInterval(pollInterval);
+        }
+      }, 5000);
     } catch {
       setError("Failed to run pipeline.");
     } finally {

@@ -1,9 +1,20 @@
 services:
   - type: web
     name: demand-api
-    envVars:
-      - key: ENABLE_PROPHET
-        value: "1"
     dockerfilePath: ./Dockerfile
     plan: free
     autoDeploy: true
+    envVars:
+      - key: PORT
+        value: "8000"
+      - key: MODEL_TYPE
+        value: "baseline"
+      - key: ENABLE_PROPHET
+        value: "0"
+    # FIX 4: Render free tier does not support persistent disks.
+    # Pre-seeded data/ is baked into the Docker image (see Dockerfile COPY data/).
+    # For production use, upgrade to Starter plan and add a disk:
+    # disk:
+    #   name: pipeline-data
+    #   mountPath: /app/data
+    #   sizeGB: 1

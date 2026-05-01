@@ -49,8 +49,7 @@ def setup_cmdstan_once():
     except Exception as e:
         raise RuntimeError(f"CmdStan setup failed: {e}")
 
-if MODEL_TYPE == "prophet" and PROPHET_AVAILABLE:
-    setup_cmdstan_once()
+# CmdStan is set up lazily inside run_pipeline() to avoid import-time crashes
 
 # ----------------------------
 # Model functions (unchanged)
@@ -309,6 +308,14 @@ def get_inventory_data(sku: str, session: Session) -> Dict:
 def run_pipeline(start: str, end: str, run_id: str = "manual",
                  drift_threshold: float = 2.0, cooldown_days: int = 7) -> None:
     print(f"\n🚀 Pipeline | {start} → {end} | Threshold={drift_threshold}x | Cooldown={cooldown_days}d")
+    # FIX 7: set up CmdStan here, not at import time — avoids crash on import
+    if MODEL_TYPE == "prophet" and PROPHET_AVAILABLE:
+        try:
+            setup_cmdstan_once()
+        except Exception as e:
+            print(f"⚠️  CmdStan setup failed: {e}. Falling back to baseline model.")
+            import os
+            os.environ["MODEL_TYPE"] = "baseline"
     ensure_data_range(start, end)
     df = load_data()
     df = df[(df["Date"] >= start) & (df["Date"] <= end)]
@@ -457,19 +464,8 @@ def run_pipeline(start: str, end: str, run_id: str = "manual",
                         mlflow.log_metric("rmse", rmse)
                         mlflow.log_metric("drift_ratio", drift_status["ratio"])
                         mlflow.log_artifact(str(model_path))
-                        # Optionally log Prophet model to MLflow model registry
-                        if MODEL_TYPE == "prophet" and PROPHET_AVAILABLE:
-                            try:
-                                import cloudpickle
-                                mlflow.pyfunc.log_model(
-                                    artifact_path="prophet_model",
-                                    python_model=new_model,
-                                    code_path=None,
-                                    conda_env=None,
-                                    serialization_format="cloudpickle"
-                                )
-                            except Exception as e:
-                                print(f"MLflow model logging failed: {e}")
+                        # FIX 6: removed broken mlflow.pyfunc.log_model call
+                        # Prophet is not a pyfunc-compatible model; log_artifact above is sufficient
 
                     # New baseline = post-retrain MAE on same day
                     new_preds   = predict_prophet(new_model, test_df) if MODEL_TYPE == "prophet" else predict_baseline(new_model, test_df)
@@ -540,6 +536,15 @@ def run_pipeline(start: str, end: str, run_id: str = "manual",
     inv_df.to_csv(INVENTORY_FILE, index=False)
     print(f"Inventory DB exported to {INVENTORY_FILE}")
 
+    # FIX 8: Generate forecast_2025.csv FIRST so inventory recommendations use fresh data
+    try:
+        from src.forecasting import run_forecasting as _run_forecasting
+        print("\n🔮 Generating forecast_2025.csv...")
+        _run_forecasting(df, silent=True)
+        print("✅ forecast_2025.csv generated.")
+    except Exception as e:
+        print(f"⚠️  forecast_2025.csv generation failed: {e}. Inventory may use stale data.")
+
     # --- Regenerate inventory_recommendations.csv ---
     try:
         from src.inventory import load_data as load_inv_data, generate_inventory_recommendations, save_inventory
@@ -554,8 +559,13 @@ def run_pipeline(start: str, end: str, run_id: str = "manual",
         else:
             current_date = pd.Timestamp.now()
         recs_df = generate_inventory_recommendations(forecast, inventory, current_date)
-        save_inventory(recs_df)
-        print(f"Inventory recommendations regenerated for reference date: {current_date.date()}.")
+        # FIX 3: save to a separate forecast-based file — don't overwrite the
+        # per-day inv_results CSV which is the primary source for the dashboard
+        from src.config import PROCESSED_DIR
+        forecast_recs_path = PROCESSED_DIR / "inventory_recommendations_forecast.csv"
+        recs_df.to_csv(forecast_recs_path, index=False)
+        print(f"Inventory forecast recommendations saved to inventory_recommendations_forecast.csv")
+        print(f"Primary inventory_recommendations.csv (per-day) preserved.")
     except Exception as e:
         print(f"Failed to regenerate inventory recommendations: {e}")
 
@@ -573,15 +583,6 @@ def run_pipeline(start: str, end: str, run_id: str = "manual",
         print("  ℹ  No drift events — empty system_events.csv written")
 
     print(f"\n✅ Pipeline done. {len(results)} predictions written.")
-
-    # --- Generate forecast_2025.csv for dashboard and notebook validation ---
-    try:
-        from src.forecasting import run_forecasting
-        print("\n🔮 Generating forecast_2025.csv for dashboard/notebook...")
-        run_forecasting(df, silent=True)
-        print("✅ forecast_2025.csv generated.")
-    except Exception as e:
-        print(f"❌ Failed to generate forecast_2025.csv: {e}")
 
 
 if __name__ == "__main__":

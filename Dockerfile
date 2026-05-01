@@ -1,58 +1,63 @@
-# Use official Python slim image for backend
-FROM python:3.11-slim as backend
+# ── Stage 1: Python backend ──────────────────────────────────
+FROM python:3.11-slim AS backend
 
-# Set workdir
 WORKDIR /app
 
-# Install system dependencies for Python packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    gcc \
-    git \
+    build-essential gcc git curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
-COPY requirements.txt requirements.txt
-COPY requirements-prophet.txt requirements-prophet.txt
+COPY requirements.txt requirements-prophet.txt ./
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt && \
     pip install --no-cache-dir -r requirements-prophet.txt
 
-# Copy backend code
-COPY api.py pipeline.py pipeline_baseline.py ./
+# Copy ALL application code + pre-seeded data
+COPY api.py pipeline.py pipeline_baseline.py dashboard_server.py ./
 COPY src/ ./src/
+# BUG 1 FIX: copy pre-seeded processed data so API returns data immediately
+COPY data/ ./data/
 
-# Expose FastAPI port
-EXPOSE 8000
+# ── Stage 2: React frontend ───────────────────────────────────
+FROM node:20-slim AS frontend
 
-# Start FastAPI backend
-CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]
-
-# --- Frontend stage ---
-FROM node:20-slim as frontend
 WORKDIR /dashboard
 COPY dashboard/package.json dashboard/package-lock.json ./
-RUN npm install --omit=dev --legacy-peer-deps
-COPY dashboard/ ./
-RUN npm run build
+RUN npm install --legacy-peer-deps
 
-# --- Final stage: minimal image ---
-FROM python:3.11-slim as final
+COPY dashboard/ ./
+# CI=false prevents treating warnings as errors
+RUN CI=false npm run build
+
+# ── Stage 3: Final image ──────────────────────────────────────
+FROM python:3.11-slim AS final
+
 WORKDIR /app
 
-# Copy backend from backend stage
-COPY --from=backend /app /app
+# System deps needed at runtime (Prophet / cmdstan)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential gcc git curl \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy frontend build from frontend stage
-COPY --from=frontend /dashboard/build /app/dashboard/build
-
-# Install runtime Python dependencies in final image
+# Python packages
+COPY requirements.txt requirements-prophet.txt ./
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt && \
     pip install --no-cache-dir -r requirements-prophet.txt
 
-# Expose FastAPI port
+# Pre-install cmdstan so first pipeline run doesn't time out
+RUN python -c "import cmdstanpy; cmdstanpy.install_cmdstan(version='2.33.1', overwrite=False)" || true
+
+# Copy backend code + data from backend stage
+COPY --from=backend /app /app
+
+# Copy React build from frontend stage
+COPY --from=frontend /dashboard/build /app/dashboard/build
+
+# Create writable directories for runtime output
+RUN mkdir -p /app/data/processed /app/data/raw /app/models/prophet /app/models/baseline /app/mlruns
+
 EXPOSE 8000
 
-# Start FastAPI backend (serves API + static dashboard), use PORT env var if set
+# BUG 10 FIX: use PORT env var (Render sets this automatically)
 CMD ["sh", "-c", "uvicorn api:app --host 0.0.0.0 --port ${PORT:-8000}"]

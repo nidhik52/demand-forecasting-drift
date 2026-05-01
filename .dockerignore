@@ -4,7 +4,6 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
-*.db
 *.sqlite3
 *.log
 
@@ -19,5 +18,4 @@ dashboard/node_modules/
 .gitignore
 
 # Ignore local data and models (optional, keep only sample data/models in image)
-data/
 models/
