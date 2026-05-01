@@ -46,7 +46,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements-prophet.txt
 
 # Pre-install cmdstan so first pipeline run doesn't time out
-RUN python -c "import cmdstanpy; cmdstanpy.install_cmdstan(version='2.33.1', overwrite=False)" || true
+RUN python -c "import cmdstanpy; cmdstanpy.install_cmdstan(version='2.33.1', overwrite=True)" || true
 
 # Copy backend code + data from backend stage
 COPY --from=backend /app /app
