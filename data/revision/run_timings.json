@@ -1,0 +1,8 @@
+{
+ "A_loop_s": 1130,
+ "A_days": 425,
+ "B_loop_s": 79,
+ "B_days": 29,
+ "source": "tqdm final line of the pipeline console logs (data/revision/run_logs/)",
+ "note": "Runs A and B ran concurrently on 4 vCPU; the rolling-origin evaluation ran alone"
+}

@@ -36,6 +36,11 @@ def setup_cmdstan_once():
     global _CMDSTAN_SETUP_DONE
     if _CMDSTAN_SETUP_DONE:
         return
+    # REVISION CHANGE: opt-out that keeps Prophet's bundled CmdStan instead of
+    # downloading and compiling CmdStan 2.33.1 into ~/.cmdstan.
+    if os.getenv("USE_BUNDLED_CMDSTAN") == "1":
+        _CMDSTAN_SETUP_DONE = True
+        return
     try:
         import cmdstanpy
         os.environ.setdefault("CXXFLAGS", "-O0 -g0 -std=c++14")
@@ -237,6 +242,55 @@ class RollingDriftDetector:
         else:
             self._baselines[sku] = None  # will recompute after window fills
 
+    # REVISION CHANGE: a rejected candidate starts the cooldown but keeps the
+    # incumbent's baseline and error queue, so persistent drift is re-evaluated
+    # after the cooldown instead of on every following day.
+    def record_rejection(self, sku: str, current_date: pd.Timestamp):
+        self._last_retrain[sku] = current_date
+        self._consec[sku]       = 0
+
+# ----------------------------
+# REVISION CHANGE: held-out MAPE safety gate (manuscript Eq. 4, Algorithm 3).
+# H = the last `holdout_days` observed days before the trigger date; the
+# candidate is fitted only on data before H and compared with the incumbent on
+# the nonzero-demand days of H. Replacement happens only if the candidate's
+# MAPE is strictly lower; the evaluated candidate is the one deployed.
+# ----------------------------
+def mape_safety_gate(train_df: pd.DataFrame, incumbent, incumbent_train_end: pd.Timestamp,
+                     fit_fn, predict_fn, holdout_days: int = 7) -> Dict[str, Any]:
+    train_df = train_df.sort_values("Date")
+    holdout  = train_df.iloc[-holdout_days:]
+    fit_part = train_df.iloc[:-holdout_days]
+    decision: Dict[str, Any] = {
+        "accepted": False, "candidate": None, "mape_candidate": None, "mape_incumbent": None,
+        "n_holdout": len(holdout), "n_holdout_nonzero": 0,
+        "holdout_start": holdout["Date"].min() if len(holdout) else None,
+        "holdout_end": holdout["Date"].max() if len(holdout) else None,
+        "candidate_train_end": fit_part["Date"].max() if len(fit_part) else None,
+        "incumbent_train_end": incumbent_train_end, "reason": "",
+    }
+    if len(holdout) < holdout_days or len(fit_part) < 3:
+        decision["reason"] = "insufficient_history"
+        return decision
+    # Leakage guard: neither model may have been fitted on any day of H.
+    if incumbent_train_end is not None and incumbent_train_end >= decision["holdout_start"]:
+        decision["reason"] = "incumbent_overlaps_holdout"
+        return decision
+    actual  = holdout["Demand"].to_numpy(dtype=float)
+    nonzero = actual > 0
+    decision["n_holdout_nonzero"] = int(nonzero.sum())
+    if not nonzero.any():
+        # Zero denominator |H+| = 0: no valid comparison, so the incumbent is kept.
+        decision["reason"] = "no_nonzero_holdout_days"
+        return decision
+    candidate = fit_fn(fit_part)
+    mape_c = calculate_mape(actual[nonzero], predict_fn(candidate, holdout)[nonzero])
+    mape_i = calculate_mape(actual[nonzero], predict_fn(incumbent, holdout)[nonzero])
+    decision.update(candidate=candidate, mape_candidate=mape_c, mape_incumbent=mape_i,
+                    accepted=bool(mape_c < mape_i),
+                    reason="candidate_lower_mape" if mape_c < mape_i else "candidate_not_lower")
+    return decision
+
 # ----------------------------
 # Inventory helpers (unchanged)
 # ----------------------------
@@ -273,6 +327,9 @@ def update_inventory_after_demand(sku: str, demand_quantity: int, session: Sessi
     if new_stock < 20:
         restock = np.random.choice([0, 30, 60, 120], p=[0.2, 0.4, 0.3, 0.1])
         new_stock += restock
+    # REVISION CHANGE: store a Python int; numpy.int64 was written to SQLite as
+    # an 8-byte blob, which corrupted Current_Stock in inventory_master.csv.
+    new_stock = int(new_stock)
     inv.current_stock = new_stock          # type: ignore
     inv.last_updated  = datetime.utcnow() # type: ignore
     session.commit()
@@ -306,8 +363,24 @@ def get_inventory_data(sku: str, session: Session) -> Dict:
 # FIX: MLflow uses log_model correctly for Prophet
 # ----------------------------
 def run_pipeline(start: str, end: str, run_id: str = "manual",
-                 drift_threshold: float = 2.0, cooldown_days: int = 7) -> None:
+                 drift_threshold: float = 2.0, cooldown_days: int = 7,
+                 history_start: Optional[str] = None, seed: Optional[int] = None,
+                 output_dir: Optional[str] = None, inventory_file: Optional[str] = None,
+                 safety_gate: bool = True, holdout_days: int = 7) -> None:
     print(f"\n🚀 Pipeline | {start} → {end} | Threshold={drift_threshold}x | Cooldown={cooldown_days}d")
+    # REVISION CHANGE: optional seeding of the pipeline's own random draws
+    # (simulated restocks, event/model timestamps). Unseeded when seed is None.
+    if seed is not None:
+        np.random.seed(seed)
+        random.seed(seed)
+    # REVISION CHANGE: optional separate output directory so that revision runs
+    # never overwrite or delete the archived files in data/processed/.
+    out_dir = Path(output_dir) if output_dir else Path("data/processed")
+    out_dir.mkdir(parents=True, exist_ok=True)
+    if output_dir:
+        import src.event_logger as _event_logger
+        _event_logger.EVENT_LOG_FILE = out_dir / "system_events.csv"
+    gate_log = []
     # FIX 7: set up CmdStan here, not at import time — avoids crash on import
     if MODEL_TYPE == "prophet" and PROPHET_AVAILABLE:
         try:
@@ -318,7 +391,12 @@ def run_pipeline(start: str, end: str, run_id: str = "manual",
             os.environ["MODEL_TYPE"] = "baseline"
     ensure_data_range(start, end)
     df = load_data()
-    df = df[(df["Date"] >= start) & (df["Date"] <= end)]
+    # REVISION CHANGE: by default models only ever see dates from `start`
+    # (2 days of history on the first day). With history_start, models train on
+    # all observations before each simulated date, while the daily loop still
+    # covers only [start, end].
+    df = df[(df["Date"] >= (history_start or start)) & (df["Date"] <= end)]
+    loop_dates = sorted(df.loc[df["Date"] >= start, "Date"].unique())
 
     detector = RollingDriftDetector(
         threshold=drift_threshold,
@@ -328,6 +406,7 @@ def run_pipeline(start: str, end: str, run_id: str = "manual",
     )
 
     sku_model   = {}
+    sku_train_end: Dict[str, pd.Timestamp] = {}  # REVISION CHANGE: last training date per model
     results     = []
     inv_results = []
     quality_log = []
@@ -336,7 +415,9 @@ def run_pipeline(start: str, end: str, run_id: str = "manual",
     from src.config import EVENT_LOG_FILE
     # Also clear the hardcoded path in event_logger (same file, different reference)
     hardcoded_log = Path("data/processed/system_events.csv")
-    for log_path in set([EVENT_LOG_FILE, hardcoded_log]):
+    # REVISION CHANGE: with output_dir only that run's own log is cleared.
+    log_paths = [out_dir / "system_events.csv"] if output_dir else [EVENT_LOG_FILE, hardcoded_log]
+    for log_path in set(log_paths):
         if log_path.exists():
             log_path.unlink()
 
@@ -367,8 +448,9 @@ def run_pipeline(start: str, end: str, run_id: str = "manual",
                 return int(float(val))
             except Exception:
                 return default
-        if INVENTORY_FILE.exists():
-            inv_df = pd.read_csv(INVENTORY_FILE)
+        init_file = Path(inventory_file) if inventory_file else INVENTORY_FILE  # REVISION CHANGE
+        if init_file.exists():
+            inv_df = pd.read_csv(init_file)
             for _, row in inv_df.iterrows():
                 inv = Inventory(
                     sku=row["SKU"],
@@ -381,7 +463,7 @@ def run_pipeline(start: str, end: str, run_id: str = "manual",
             session.commit()
             print("Initialized inventory DB from inventory_master.csv")
 
-    for current_date in tqdm(sorted(df["Date"].unique()), desc="Processing days"):
+    for current_date in tqdm(loop_dates, desc="Processing days"):
         current_date = pd.Timestamp(current_date)
         process_in_transit_orders(current_date, session)
 
@@ -404,6 +486,7 @@ def run_pipeline(start: str, end: str, run_id: str = "manual",
                 else:
                     model = train_baseline(train_df)
                 sku_model[sku] = model
+                sku_train_end[sku] = train_df["Date"].max()
 
             model = sku_model[sku]
             if MODEL_TYPE == "prophet" and PROPHET_AVAILABLE:
@@ -427,12 +510,41 @@ def run_pipeline(start: str, end: str, run_id: str = "manual",
                           f"{sku} drift detected (ratio={drift_status['ratio']:.2f}x, rolling_MAE={drift_status['rolling_mae']:.2f})",
                           current_date)
 
-                if drift_status["retrain"]:
+                use_prophet = MODEL_TYPE == "prophet" and PROPHET_AVAILABLE
+                fit_fn      = train_prophet if use_prophet else train_baseline
+                predict_fn  = predict_prophet if use_prophet else predict_baseline
+                gate = None
+                if drift_status["retrain"] and safety_gate:
+                    # REVISION CHANGE: candidate must pass the held-out MAPE gate.
+                    gate = mape_safety_gate(train_df, model, sku_train_end.get(sku),
+                                            fit_fn, predict_fn, holdout_days)
+                    gate_log.append({
+                        "Trigger_Date": current_date, "SKU": sku,
+                        "Decision": "ACCEPTED" if gate["accepted"] else "REJECTED",
+                        "Reason": gate["reason"],
+                        "MAPE_Candidate": gate["mape_candidate"], "MAPE_Incumbent": gate["mape_incumbent"],
+                        "Holdout_Start": gate["holdout_start"], "Holdout_End": gate["holdout_end"],
+                        "N_Holdout": gate["n_holdout"], "N_Holdout_Nonzero": gate["n_holdout_nonzero"],
+                        "Candidate_Train_End": gate["candidate_train_end"],
+                        "Incumbent_Train_End": gate["incumbent_train_end"],
+                        "Drift_Ratio": drift_status["ratio"],
+                    })
+                    if not gate["accepted"]:
+                        detector.record_rejection(sku, current_date)
+                        _mc = "NA" if gate["mape_candidate"] is None else f"{gate['mape_candidate']:.2f}"
+                        _mi = "NA" if gate["mape_incumbent"] is None else f"{gate['mape_incumbent']:.2f}"
+                        log_event("RETRAIN_REJECTED",
+                                  f"{sku} candidate rejected (MAPE_candidate={_mc} MAPE_incumbent={_mi}, {gate['reason']})",
+                                  current_date)
+
+                if drift_status["retrain"] and (gate is None or gate["accepted"]):
                     print(f"  🔄 {sku}: RETRAIN on {current_date.date()} (ratio={drift_status['ratio']:.2f}x)")
-                    if MODEL_TYPE == "prophet" and PROPHET_AVAILABLE:
-                        new_model = train_prophet(train_df)
+                    if gate is not None:
+                        new_model = gate["candidate"]  # REVISION CHANGE: deploy the evaluated candidate
+                        sku_train_end[sku] = gate["candidate_train_end"]
                     else:
-                        new_model = train_baseline(train_df)
+                        new_model = fit_fn(train_df)
+                        sku_train_end[sku] = train_df["Date"].max()
 
                     sku_model[sku] = new_model
                     retrain_happened = True
@@ -472,10 +584,16 @@ def run_pipeline(start: str, end: str, run_id: str = "manual",
                     new_mae     = calculate_mae(actual, new_preds)
                     detector.record_retrain(sku, current_date, new_baseline=new_mae)
 
-                    log_event("RETRAIN",
-                              f"{sku} retrained (pre_MAE={mae:.2f} post_MAE={new_mae:.2f})",
-                              current_date)
-                else:
+                    if gate is not None:
+                        log_event("RETRAIN_ACCEPTED",
+                                  f"{sku} candidate accepted (MAPE_candidate={gate['mape_candidate']:.2f} "
+                                  f"MAPE_incumbent={gate['mape_incumbent']:.2f}; pre_MAE={mae:.2f} post_MAE={new_mae:.2f})",
+                                  current_date)
+                    else:
+                        log_event("RETRAIN",
+                                  f"{sku} retrained (pre_MAE={mae:.2f} post_MAE={new_mae:.2f})",
+                                  current_date)
+                elif not drift_status["retrain"]:  # REVISION CHANGE: rejections are not cooldowns
                     print(f"  ⏭️ {sku}: drift in cooldown on {current_date.date()}")
                     log_event("COOLDOWN",
                               f"{sku} drift detected but in cooldown period",
@@ -532,9 +650,19 @@ def run_pipeline(start: str, end: str, run_id: str = "manual",
             "Stock_As_Of_Date": inv.last_updated.strftime("%Y-%m-%d") if inv.last_updated else ""
         })
     inv_df = pd.DataFrame(inv_rows)
-    INVENTORY_FILE.parent.mkdir(parents=True, exist_ok=True)
-    inv_df.to_csv(INVENTORY_FILE, index=False)
-    print(f"Inventory DB exported to {INVENTORY_FILE}")
+    # REVISION CHANGE: with output_dir, the export and the two end-of-run
+    # artifacts below are written to that directory instead of data/processed/.
+    inv_export = out_dir / "inventory_master.csv" if output_dir else INVENTORY_FILE
+    inv_export.parent.mkdir(parents=True, exist_ok=True)
+    inv_df.to_csv(inv_export, index=False)
+    print(f"Inventory DB exported to {inv_export}")
+    if output_dir:
+        import src.forecasting as _forecasting
+        import src.inventory as _inventory
+        _forecasting.FORECAST_FILE = out_dir / "forecast_2025.csv"
+        _forecasting.MODELS_DIR = Path("./models_forecasting")
+        _inventory.FORECAST_FILE = out_dir / "forecast_2025.csv"
+        _inventory.INVENTORY_FILE = inv_export
 
     # FIX 8: Generate forecast_2025.csv FIRST so inventory recommendations use fresh data
     try:
@@ -562,7 +690,7 @@ def run_pipeline(start: str, end: str, run_id: str = "manual",
         # FIX 3: save to a separate forecast-based file — don't overwrite the
         # per-day inv_results CSV which is the primary source for the dashboard
         from src.config import PROCESSED_DIR
-        forecast_recs_path = PROCESSED_DIR / "inventory_recommendations_forecast.csv"
+        forecast_recs_path = (out_dir if output_dir else PROCESSED_DIR) / "inventory_recommendations_forecast.csv"
         recs_df.to_csv(forecast_recs_path, index=False)
         print(f"Inventory forecast recommendations saved to inventory_recommendations_forecast.csv")
         print(f"Primary inventory_recommendations.csv (per-day) preserved.")
@@ -571,13 +699,20 @@ def run_pipeline(start: str, end: str, run_id: str = "manual",
 
     session.close()
 
-    Path("data/processed").mkdir(parents=True, exist_ok=True)
-    pd.DataFrame(results).to_csv("data/processed/metrics.csv", index=False)
-    pd.DataFrame(inv_results).to_csv("data/processed/inventory_recommendations.csv", index=False)
-    pd.DataFrame(quality_log).to_csv("data/processed/data_quality.csv", index=False)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    pd.DataFrame(results).to_csv(out_dir / "metrics.csv", index=False)
+    pd.DataFrame(inv_results).to_csv(out_dir / "inventory_recommendations.csv", index=False)
+    pd.DataFrame(quality_log).to_csv(out_dir / "data_quality.csv", index=False)
+    if safety_gate:
+        # REVISION CHANGE: one row per gate decision (accepted and rejected).
+        pd.DataFrame(gate_log, columns=[
+            "Trigger_Date", "SKU", "Decision", "Reason", "MAPE_Candidate", "MAPE_Incumbent",
+            "Holdout_Start", "Holdout_End", "N_Holdout", "N_Holdout_Nonzero",
+            "Candidate_Train_End", "Incumbent_Train_End", "Drift_Ratio",
+        ]).to_csv(out_dir / "gate_decisions.csv", index=False)
 
     # FIX: always write system_events.csv even if empty (CI/CD validate step needs it)
-    event_log_path = Path("data/processed/system_events.csv")
+    event_log_path = out_dir / "system_events.csv"
     if not event_log_path.exists():
         pd.DataFrame(columns=["timestamp", "event_type", "message"]).to_csv(event_log_path, index=False)
         print("  ℹ  No drift events — empty system_events.csv written")
@@ -592,5 +727,15 @@ if __name__ == "__main__":
     parser.add_argument("--run_id",         default="manual")
     parser.add_argument("--drift_threshold",type=float, default=2.0)
     parser.add_argument("--cooldown_days",  type=int, default=7)
+    # REVISION CHANGE: options added for the JCMM_1268 revision experiments
+    parser.add_argument("--history_start",  default=None, help="first date models may train on (default: --start)")
+    parser.add_argument("--seed",           type=int, default=None)
+    parser.add_argument("--output_dir",     default=None, help="write all outputs here instead of data/processed")
+    parser.add_argument("--inventory_file", default=None, help="initial inventory CSV (default: config INVENTORY_FILE)")
+    parser.add_argument("--no_safety_gate", action="store_true", help="replace the model at every trigger (pre-revision behaviour)")
+    parser.add_argument("--holdout_days",   type=int, default=7)
     args = parser.parse_args()
-    run_pipeline(args.start, args.end, args.run_id, args.drift_threshold, args.cooldown_days)
+    run_pipeline(args.start, args.end, args.run_id, args.drift_threshold, args.cooldown_days,
+                 history_start=args.history_start, seed=args.seed, output_dir=args.output_dir,
+                 inventory_file=args.inventory_file, safety_gate=not args.no_safety_gate,
+                 holdout_days=args.holdout_days)

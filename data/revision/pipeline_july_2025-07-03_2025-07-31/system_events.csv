@@ -1,0 +1,5 @@
+timestamp,event_type,message
+2025-07-18 18:07:00,DRIFT,"MOVI-002 drift detected (ratio=2.21x, rolling_MAE=2.25)"
+2025-07-18 12:15:00,RETRAIN_ACCEPTED,MOVI-002 candidate accepted (MAPE_candidate=17.57 MAPE_incumbent=17.57; pre_MAE=1.35 post_MAE=1.33)
+2025-07-21 11:08:00,DRIFT,"OFFC-001 drift detected (ratio=2.38x, rolling_MAE=2.19)"
+2025-07-21 16:05:00,RETRAIN_ACCEPTED,OFFC-001 candidate accepted (MAPE_candidate=15.91 MAPE_incumbent=15.95; pre_MAE=1.07 post_MAE=1.08)
