@@ -1,0 +1,30 @@
+{
+  "injected_pairs": 48,
+  "TP": 21,
+  "FN": 27,
+  "pair_recall_pct": 43.75,
+  "delay_days_min": 1.0,
+  "delay_days_median": 6.0,
+  "delay_days_mean": 6.29,
+  "delay_days_max": 18.0,
+  "drift_alert_days_total": 486,
+  "drift_alert_days_in_interval": 50,
+  "false_alarm_alert_days": 436,
+  "false_alarm_episodes": 217,
+  "false_alarm_skus": 60,
+  "non_injected_sku_days": 29640,
+  "false_alarm_alert_days_per_1000_non_injected_sku_days": 14.71,
+  "alert_day_precision_pct": 10.29,
+  "detected_by_draw": {
+    "1": 10,
+    "2": 5,
+    "3": 5,
+    "4": 1
+  },
+  "event_counts": {
+    "DRIFT": 486,
+    "COOLDOWN": 255,
+    "RETRAIN_ACCEPTED": 139,
+    "RETRAIN_REJECTED": 92
+  }
+}

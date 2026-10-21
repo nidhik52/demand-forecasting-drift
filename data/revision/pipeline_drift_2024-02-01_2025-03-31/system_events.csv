@@ -1,0 +1,973 @@
+timestamp,event_type,message
+2024-02-13 18:07:00,DRIFT,"FURN-001 drift detected (ratio=2.82x, rolling_MAE=4.69)"
+2024-02-13 12:15:00,RETRAIN_ACCEPTED,FURN-001 candidate accepted (MAPE_candidate=37.60 MAPE_incumbent=38.06; pre_MAE=10.36 post_MAE=10.51)
+2024-02-15 11:08:00,DRIFT,"TOOL-003 drift detected (ratio=2.53x, rolling_MAE=6.17)"
+2024-02-15 09:43:00,RETRAIN_REJECTED,"TOOL-003 candidate rejected (MAPE_candidate=67.88 MAPE_incumbent=60.77, candidate_not_lower)"
+2024-02-16 16:05:00,DRIFT,"JWLY-001 drift detected (ratio=2.03x, rolling_MAE=8.14)"
+2024-02-16 17:27:00,RETRAIN_REJECTED,"JWLY-001 candidate rejected (MAPE_candidate=55.96 MAPE_incumbent=55.52, candidate_not_lower)"
+2024-02-18 08:01:00,DRIFT,"TOOL-003 drift detected (ratio=3.09x, rolling_MAE=7.53)"
+2024-02-18 09:13:00,COOLDOWN,TOOL-003 drift detected but in cooldown period
+2024-02-19 11:32:00,DRIFT,"TOOL-003 drift detected (ratio=3.69x, rolling_MAE=8.98)"
+2024-02-19 17:01:00,COOLDOWN,TOOL-003 drift detected but in cooldown period
+2024-02-19 16:12:00,DRIFT,"HLTH-002 drift detected (ratio=2.61x, rolling_MAE=9.26)"
+2024-02-19 18:44:00,RETRAIN_REJECTED,"HLTH-002 candidate rejected (MAPE_candidate=169.10 MAPE_incumbent=140.93, candidate_not_lower)"
+2024-02-19 16:26:00,DRIFT,"HOMK-001 drift detected (ratio=2.27x, rolling_MAE=6.94)"
+2024-02-19 11:28:00,RETRAIN_REJECTED,"HOMK-001 candidate rejected (MAPE_candidate=99.89 MAPE_incumbent=92.45, candidate_not_lower)"
+2024-02-20 17:17:00,DRIFT,"TOOL-003 drift detected (ratio=3.87x, rolling_MAE=9.44)"
+2024-02-20 08:48:00,COOLDOWN,TOOL-003 drift detected but in cooldown period
+2024-02-20 10:44:00,DRIFT,"JWLY-001 drift detected (ratio=2.61x, rolling_MAE=10.44)"
+2024-02-20 14:21:00,COOLDOWN,JWLY-001 drift detected but in cooldown period
+2024-02-21 12:09:00,DRIFT,"JWLY-001 drift detected (ratio=2.54x, rolling_MAE=10.17)"
+2024-02-21 11:48:00,COOLDOWN,JWLY-001 drift detected but in cooldown period
+2024-02-21 13:06:00,DRIFT,"TOOL-003 drift detected (ratio=3.86x, rolling_MAE=9.41)"
+2024-02-21 09:24:00,COOLDOWN,TOOL-003 drift detected but in cooldown period
+2024-02-21 09:22:00,DRIFT,"PCAR-002 drift detected (ratio=2.29x, rolling_MAE=15.32)"
+2024-02-21 12:51:00,RETRAIN_ACCEPTED,PCAR-002 candidate accepted (MAPE_candidate=101.35 MAPE_incumbent=186.33; pre_MAE=17.80 post_MAE=9.58)
+2024-02-22 08:46:00,DRIFT,"FURN-003 drift detected (ratio=2.50x, rolling_MAE=10.21)"
+2024-02-22 09:59:00,RETRAIN_ACCEPTED,FURN-003 candidate accepted (MAPE_candidate=85.39 MAPE_incumbent=139.47; pre_MAE=14.86 post_MAE=9.35)
+2024-02-22 14:05:00,DRIFT,"TOOL-003 drift detected (ratio=3.70x, rolling_MAE=9.01)"
+2024-02-22 18:39:00,RETRAIN_ACCEPTED,TOOL-003 candidate accepted (MAPE_candidate=47.12 MAPE_incumbent=52.31; pre_MAE=9.93 post_MAE=6.56)
+2024-02-22 13:36:00,DRIFT,"HLTH-002 drift detected (ratio=2.19x, rolling_MAE=7.79)"
+2024-02-22 11:45:00,COOLDOWN,HLTH-002 drift detected but in cooldown period
+2024-02-22 09:02:00,DRIFT,"JWLY-001 drift detected (ratio=2.54x, rolling_MAE=10.19)"
+2024-02-22 18:14:00,COOLDOWN,JWLY-001 drift detected but in cooldown period
+2024-02-22 12:05:00,DRIFT,"HOMK-001 drift detected (ratio=2.08x, rolling_MAE=6.36)"
+2024-02-22 11:55:00,COOLDOWN,HOMK-001 drift detected but in cooldown period
+2024-02-22 09:24:00,DRIFT,"AUTO-003 drift detected (ratio=2.85x, rolling_MAE=6.95)"
+2024-02-22 12:29:00,RETRAIN_REJECTED,"AUTO-003 candidate rejected (MAPE_candidate=32.21 MAPE_incumbent=27.95, candidate_not_lower)"
+2024-02-23 18:53:00,DRIFT,"HOMK-001 drift detected (ratio=2.34x, rolling_MAE=7.14)"
+2024-02-23 13:10:00,COOLDOWN,HOMK-001 drift detected but in cooldown period
+2024-02-23 13:22:00,DRIFT,"HLTH-002 drift detected (ratio=2.47x, rolling_MAE=8.78)"
+2024-02-23 11:42:00,COOLDOWN,HLTH-002 drift detected but in cooldown period
+2024-02-23 12:44:00,DRIFT,"JWLY-001 drift detected (ratio=2.75x, rolling_MAE=11.01)"
+2024-02-23 09:38:00,RETRAIN_ACCEPTED,JWLY-001 candidate accepted (MAPE_candidate=46.88 MAPE_incumbent=53.71; pre_MAE=6.79 post_MAE=10.45)
+2024-02-24 18:10:00,DRIFT,"HLTH-002 drift detected (ratio=2.11x, rolling_MAE=7.50)"
+2024-02-24 16:46:00,COOLDOWN,HLTH-002 drift detected but in cooldown period
+2024-02-25 11:10:00,DRIFT,"HLTH-002 drift detected (ratio=2.39x, rolling_MAE=8.48)"
+2024-02-25 15:24:00,COOLDOWN,HLTH-002 drift detected but in cooldown period
+2024-02-27 12:59:00,DRIFT,"HOMK-001 drift detected (ratio=2.15x, rolling_MAE=6.57)"
+2024-02-27 16:14:00,RETRAIN_ACCEPTED,HOMK-001 candidate accepted (MAPE_candidate=46.90 MAPE_incumbent=48.79; pre_MAE=1.80 post_MAE=3.64)
+2024-02-29 18:20:00,DRIFT,"GROC-001 drift detected (ratio=2.24x, rolling_MAE=14.63)"
+2024-02-29 08:51:00,RETRAIN_ACCEPTED,GROC-001 candidate accepted (MAPE_candidate=100.63 MAPE_incumbent=126.77; pre_MAE=15.44 post_MAE=11.42)
+2024-03-02 13:25:00,DRIFT,"AUTO-003 drift detected (ratio=3.00x, rolling_MAE=7.32)"
+2024-03-02 12:04:00,RETRAIN_REJECTED,"AUTO-003 candidate rejected (MAPE_candidate=67.95 MAPE_incumbent=58.49, candidate_not_lower)"
+2024-03-03 11:58:00,DRIFT,"JWLY-003 drift detected (ratio=2.36x, rolling_MAE=13.87)"
+2024-03-03 13:13:00,RETRAIN_ACCEPTED,JWLY-003 candidate accepted (MAPE_candidate=83.35 MAPE_incumbent=174.83; pre_MAE=9.33 post_MAE=4.70)
+2024-03-04 18:31:00,DRIFT,"SPRT-003 drift detected (ratio=2.20x, rolling_MAE=12.94)"
+2024-03-04 18:29:00,RETRAIN_ACCEPTED,SPRT-003 candidate accepted (MAPE_candidate=19.72 MAPE_incumbent=83.76; pre_MAE=14.30 post_MAE=3.65)
+2024-03-05 10:16:00,DRIFT,"AUTO-003 drift detected (ratio=3.26x, rolling_MAE=7.95)"
+2024-03-05 10:15:00,COOLDOWN,AUTO-003 drift detected but in cooldown period
+2024-03-06 16:34:00,DRIFT,"AUTO-003 drift detected (ratio=2.88x, rolling_MAE=7.04)"
+2024-03-06 12:47:00,COOLDOWN,AUTO-003 drift detected but in cooldown period
+2024-03-07 17:27:00,DRIFT,"SPRT-002 drift detected (ratio=2.35x, rolling_MAE=21.29)"
+2024-03-07 13:14:00,RETRAIN_ACCEPTED,SPRT-002 candidate accepted (MAPE_candidate=42.95 MAPE_incumbent=97.67; pre_MAE=42.00 post_MAE=31.14)
+2024-03-07 10:32:00,DRIFT,"AUTO-003 drift detected (ratio=2.40x, rolling_MAE=5.84)"
+2024-03-07 15:05:00,COOLDOWN,AUTO-003 drift detected but in cooldown period
+2024-03-08 08:55:00,DRIFT,"AUTO-003 drift detected (ratio=2.26x, rolling_MAE=5.51)"
+2024-03-08 09:09:00,COOLDOWN,AUTO-003 drift detected but in cooldown period
+2024-03-08 18:10:00,DRIFT,"HLTH-002 drift detected (ratio=2.70x, rolling_MAE=9.58)"
+2024-03-08 17:04:00,RETRAIN_ACCEPTED,HLTH-002 candidate accepted (MAPE_candidate=75.94 MAPE_incumbent=125.81; pre_MAE=14.98 post_MAE=10.61)
+2024-03-08 14:24:00,DRIFT,"BEAU-003 drift detected (ratio=2.53x, rolling_MAE=18.37)"
+2024-03-08 16:16:00,RETRAIN_ACCEPTED,BEAU-003 candidate accepted (MAPE_candidate=71.18 MAPE_incumbent=83.91; pre_MAE=21.00 post_MAE=6.37)
+2024-03-09 16:55:00,DRIFT,"AUTO-003 drift detected (ratio=2.16x, rolling_MAE=5.27)"
+2024-03-09 08:43:00,RETRAIN_REJECTED,"AUTO-003 candidate rejected (MAPE_candidate=223.76 MAPE_incumbent=180.76, candidate_not_lower)"
+2024-03-09 09:43:00,DRIFT,"GRDN-003 drift detected (ratio=2.49x, rolling_MAE=12.78)"
+2024-03-09 12:49:00,RETRAIN_ACCEPTED,GRDN-003 candidate accepted (MAPE_candidate=35.42 MAPE_incumbent=43.91; pre_MAE=16.98 post_MAE=15.84)
+2024-03-10 18:21:00,DRIFT,"APPL-001 drift detected (ratio=2.08x, rolling_MAE=12.44)"
+2024-03-10 14:10:00,RETRAIN_ACCEPTED,APPL-001 candidate accepted (MAPE_candidate=43.54 MAPE_incumbent=66.56; pre_MAE=14.81 post_MAE=5.27)
+2024-03-10 15:00:00,DRIFT,"MOVI-003 drift detected (ratio=2.27x, rolling_MAE=15.70)"
+2024-03-10 10:32:00,RETRAIN_ACCEPTED,MOVI-003 candidate accepted (MAPE_candidate=108.27 MAPE_incumbent=109.83; pre_MAE=7.94 post_MAE=4.15)
+2024-03-10 09:55:00,DRIFT,"OUTD-003 drift detected (ratio=2.99x, rolling_MAE=15.98)"
+2024-03-10 18:19:00,RETRAIN_REJECTED,"OUTD-003 candidate rejected (MAPE_candidate=53.78 MAPE_incumbent=49.77, candidate_not_lower)"
+2024-03-11 18:32:00,DRIFT,"MUSC-003 drift detected (ratio=2.21x, rolling_MAE=8.82)"
+2024-03-11 10:23:00,RETRAIN_ACCEPTED,MUSC-003 candidate accepted (MAPE_candidate=78.28 MAPE_incumbent=126.82; pre_MAE=2.35 post_MAE=7.03)
+2024-03-11 10:34:00,DRIFT,"MUSC-001 drift detected (ratio=2.71x, rolling_MAE=14.31)"
+2024-03-11 16:58:00,RETRAIN_REJECTED,"MUSC-001 candidate rejected (MAPE_candidate=60.33 MAPE_incumbent=57.91, candidate_not_lower)"
+2024-03-12 08:38:00,DRIFT,"PCAR-001 drift detected (ratio=2.79x, rolling_MAE=16.58)"
+2024-03-12 08:07:00,RETRAIN_ACCEPTED,PCAR-001 candidate accepted (MAPE_candidate=57.59 MAPE_incumbent=59.66; pre_MAE=37.73 post_MAE=41.65)
+2024-03-13 13:56:00,DRIFT,"OUTD-003 drift detected (ratio=3.33x, rolling_MAE=17.81)"
+2024-03-13 12:15:00,COOLDOWN,OUTD-003 drift detected but in cooldown period
+2024-03-14 08:15:00,DRIFT,"OUTD-003 drift detected (ratio=2.44x, rolling_MAE=13.03)"
+2024-03-14 17:05:00,COOLDOWN,OUTD-003 drift detected but in cooldown period
+2024-03-14 09:46:00,DRIFT,"MUSC-001 drift detected (ratio=4.01x, rolling_MAE=21.21)"
+2024-03-14 15:52:00,COOLDOWN,MUSC-001 drift detected but in cooldown period
+2024-03-14 09:48:00,DRIFT,"HOMK-003 drift detected (ratio=2.67x, rolling_MAE=14.20)"
+2024-03-14 16:49:00,RETRAIN_REJECTED,"HOMK-003 candidate rejected (MAPE_candidate=44.62 MAPE_incumbent=43.62, candidate_not_lower)"
+2024-03-14 10:08:00,DRIFT,"CLTH-003 drift detected (ratio=2.12x, rolling_MAE=13.75)"
+2024-03-14 16:10:00,RETRAIN_ACCEPTED,CLTH-003 candidate accepted (MAPE_candidate=42.56 MAPE_incumbent=90.57; pre_MAE=19.00 post_MAE=6.13)
+2024-03-14 12:33:00,DRIFT,"AUTO-003 drift detected (ratio=2.78x, rolling_MAE=6.79)"
+2024-03-14 17:27:00,COOLDOWN,AUTO-003 drift detected but in cooldown period
+2024-03-15 11:59:00,DRIFT,"FURN-001 drift detected (ratio=2.41x, rolling_MAE=25.38)"
+2024-03-15 16:48:00,RETRAIN_REJECTED,"FURN-001 candidate rejected (MAPE_candidate=83.24 MAPE_incumbent=68.83, candidate_not_lower)"
+2024-03-15 11:45:00,DRIFT,"MUSC-001 drift detected (ratio=4.52x, rolling_MAE=23.89)"
+2024-03-15 12:25:00,COOLDOWN,MUSC-001 drift detected but in cooldown period
+2024-03-15 18:41:00,DRIFT,"OUTD-003 drift detected (ratio=2.30x, rolling_MAE=12.26)"
+2024-03-15 13:28:00,COOLDOWN,OUTD-003 drift detected but in cooldown period
+2024-03-15 16:28:00,DRIFT,"DIY0-002 drift detected (ratio=2.51x, rolling_MAE=19.11)"
+2024-03-15 11:04:00,RETRAIN_ACCEPTED,DIY0-002 candidate accepted (MAPE_candidate=41.51 MAPE_incumbent=45.19; pre_MAE=27.30 post_MAE=29.93)
+2024-03-15 13:01:00,DRIFT,"AUTO-003 drift detected (ratio=2.63x, rolling_MAE=6.41)"
+2024-03-15 17:35:00,COOLDOWN,AUTO-003 drift detected but in cooldown period
+2024-03-16 11:37:00,DRIFT,"OUTD-003 drift detected (ratio=2.47x, rolling_MAE=13.20)"
+2024-03-16 11:00:00,COOLDOWN,OUTD-003 drift detected but in cooldown period
+2024-03-16 09:45:00,DRIFT,"AUTO-003 drift detected (ratio=2.48x, rolling_MAE=6.05)"
+2024-03-16 11:04:00,RETRAIN_ACCEPTED,AUTO-003 candidate accepted (MAPE_candidate=41.70 MAPE_incumbent=43.69; pre_MAE=1.41 post_MAE=2.56)
+2024-03-16 08:55:00,DRIFT,"MUSC-001 drift detected (ratio=4.14x, rolling_MAE=21.90)"
+2024-03-16 13:04:00,COOLDOWN,MUSC-001 drift detected but in cooldown period
+2024-03-16 16:15:00,DRIFT,"BOOK-001 drift detected (ratio=2.58x, rolling_MAE=13.24)"
+2024-03-16 15:13:00,RETRAIN_ACCEPTED,BOOK-001 candidate accepted (MAPE_candidate=54.60 MAPE_incumbent=66.33; pre_MAE=3.84 post_MAE=4.10)
+2024-03-17 16:08:00,DRIFT,"MUSC-001 drift detected (ratio=3.60x, rolling_MAE=19.05)"
+2024-03-17 17:36:00,COOLDOWN,MUSC-001 drift detected but in cooldown period
+2024-03-17 15:15:00,DRIFT,"BEAU-003 drift detected (ratio=2.58x, rolling_MAE=16.46)"
+2024-03-17 14:12:00,RETRAIN_ACCEPTED,BEAU-003 candidate accepted (MAPE_candidate=40.53 MAPE_incumbent=54.05; pre_MAE=7.16 post_MAE=11.01)
+2024-03-17 09:06:00,DRIFT,"OUTD-003 drift detected (ratio=3.45x, rolling_MAE=18.43)"
+2024-03-17 13:27:00,RETRAIN_ACCEPTED,OUTD-003 candidate accepted (MAPE_candidate=30.71 MAPE_incumbent=57.05; pre_MAE=43.03 post_MAE=31.42)
+2024-03-17 14:29:00,DRIFT,"HOMK-003 drift detected (ratio=3.38x, rolling_MAE=18.02)"
+2024-03-17 08:43:00,COOLDOWN,HOMK-003 drift detected but in cooldown period
+2024-03-18 18:41:00,DRIFT,"FURN-001 drift detected (ratio=2.29x, rolling_MAE=24.13)"
+2024-03-18 09:03:00,COOLDOWN,FURN-001 drift detected but in cooldown period
+2024-03-18 14:46:00,DRIFT,"MUSC-001 drift detected (ratio=3.23x, rolling_MAE=17.04)"
+2024-03-18 13:51:00,RETRAIN_REJECTED,"MUSC-001 candidate rejected (MAPE_candidate=51.17 MAPE_incumbent=49.90, candidate_not_lower)"
+2024-03-18 09:15:00,DRIFT,"HOMK-003 drift detected (ratio=3.44x, rolling_MAE=18.32)"
+2024-03-18 11:12:00,COOLDOWN,HOMK-003 drift detected but in cooldown period
+2024-03-19 16:28:00,DRIFT,"MOVI-003 drift detected (ratio=4.21x, rolling_MAE=17.47)"
+2024-03-19 10:17:00,RETRAIN_ACCEPTED,MOVI-003 candidate accepted (MAPE_candidate=44.18 MAPE_incumbent=56.05; pre_MAE=3.12 post_MAE=3.25)
+2024-03-19 15:15:00,DRIFT,"HOMK-003 drift detected (ratio=3.44x, rolling_MAE=18.31)"
+2024-03-19 09:28:00,COOLDOWN,HOMK-003 drift detected but in cooldown period
+2024-03-19 16:06:00,DRIFT,"FURN-001 drift detected (ratio=2.12x, rolling_MAE=22.35)"
+2024-03-19 08:41:00,COOLDOWN,FURN-001 drift detected but in cooldown period
+2024-03-20 16:53:00,DRIFT,"HOMK-003 drift detected (ratio=3.47x, rolling_MAE=18.46)"
+2024-03-20 08:05:00,COOLDOWN,HOMK-003 drift detected but in cooldown period
+2024-03-21 11:10:00,DRIFT,"HOMK-003 drift detected (ratio=2.92x, rolling_MAE=15.57)"
+2024-03-21 14:31:00,RETRAIN_REJECTED,"HOMK-003 candidate rejected (MAPE_candidate=67.42 MAPE_incumbent=63.83, candidate_not_lower)"
+2024-03-21 15:13:00,DRIFT,"SOFT-001 drift detected (ratio=2.80x, rolling_MAE=14.61)"
+2024-03-21 08:10:00,RETRAIN_ACCEPTED,SOFT-001 candidate accepted (MAPE_candidate=89.94 MAPE_incumbent=224.55; pre_MAE=19.51 post_MAE=4.79)
+2024-03-21 14:00:00,DRIFT,"TOYS-003 drift detected (ratio=2.13x, rolling_MAE=16.00)"
+2024-03-21 15:18:00,RETRAIN_ACCEPTED,TOYS-003 candidate accepted (MAPE_candidate=29.01 MAPE_incumbent=100.00; pre_MAE=12.00 post_MAE=1.84)
+2024-03-22 14:44:00,DRIFT,"BABY-003 drift detected (ratio=2.40x, rolling_MAE=11.16)"
+2024-03-22 15:09:00,RETRAIN_ACCEPTED,BABY-003 candidate accepted (MAPE_candidate=71.30 MAPE_incumbent=120.09; pre_MAE=9.09 post_MAE=1.89)
+2024-03-23 11:18:00,DRIFT,"TOYS-002 drift detected (ratio=2.28x, rolling_MAE=16.98)"
+2024-03-23 17:47:00,RETRAIN_ACCEPTED,TOYS-002 candidate accepted (MAPE_candidate=122.90 MAPE_incumbent=302.15; pre_MAE=25.43 post_MAE=11.83)
+2024-03-23 16:03:00,DRIFT,"SPRT-001 drift detected (ratio=2.22x, rolling_MAE=15.72)"
+2024-03-23 08:37:00,RETRAIN_ACCEPTED,SPRT-001 candidate accepted (MAPE_candidate=22.08 MAPE_incumbent=89.81; pre_MAE=23.00 post_MAE=12.10)
+2024-03-24 15:32:00,DRIFT,"GRDN-002 drift detected (ratio=2.98x, rolling_MAE=9.66)"
+2024-03-24 16:10:00,RETRAIN_REJECTED,"GRDN-002 candidate rejected (MAPE_candidate=247.09 MAPE_incumbent=243.72, candidate_not_lower)"
+2024-03-24 08:32:00,DRIFT,"BABY-001 drift detected (ratio=2.01x, rolling_MAE=10.82)"
+2024-03-24 10:04:00,RETRAIN_ACCEPTED,BABY-001 candidate accepted (MAPE_candidate=49.81 MAPE_incumbent=124.93; pre_MAE=11.26 post_MAE=1.50)
+2024-03-26 17:04:00,DRIFT,"TOOL-001 drift detected (ratio=2.57x, rolling_MAE=12.49)"
+2024-03-26 11:25:00,RETRAIN_ACCEPTED,TOOL-001 candidate accepted (MAPE_candidate=53.76 MAPE_incumbent=104.77; pre_MAE=16.20 post_MAE=7.18)
+2024-03-27 09:56:00,DRIFT,"GRDN-002 drift detected (ratio=2.09x, rolling_MAE=6.77)"
+2024-03-27 17:15:00,COOLDOWN,GRDN-002 drift detected but in cooldown period
+2024-03-27 17:38:00,DRIFT,"TOOL-002 drift detected (ratio=2.03x, rolling_MAE=10.23)"
+2024-03-27 09:26:00,RETRAIN_ACCEPTED,TOOL-002 candidate accepted (MAPE_candidate=34.13 MAPE_incumbent=49.79; pre_MAE=1.78 post_MAE=0.57)
+2024-03-28 18:37:00,DRIFT,"GRDN-002 drift detected (ratio=2.19x, rolling_MAE=7.12)"
+2024-03-28 17:33:00,COOLDOWN,GRDN-002 drift detected but in cooldown period
+2024-03-28 13:59:00,DRIFT,"SPRT-003 drift detected (ratio=2.47x, rolling_MAE=9.02)"
+2024-03-28 18:45:00,RETRAIN_ACCEPTED,SPRT-003 candidate accepted (MAPE_candidate=43.49 MAPE_incumbent=47.67; pre_MAE=5.94 post_MAE=4.00)
+2024-03-28 13:15:00,DRIFT,"AUTO-003 drift detected (ratio=3.15x, rolling_MAE=8.07)"
+2024-03-28 10:42:00,RETRAIN_ACCEPTED,AUTO-003 candidate accepted (MAPE_candidate=44.78 MAPE_incumbent=45.93; pre_MAE=12.86 post_MAE=11.93)
+2024-03-29 18:19:00,DRIFT,"GRDN-002 drift detected (ratio=2.30x, rolling_MAE=7.45)"
+2024-03-29 15:20:00,COOLDOWN,GRDN-002 drift detected but in cooldown period
+2024-03-30 09:00:00,DRIFT,"GRDN-002 drift detected (ratio=2.15x, rolling_MAE=6.96)"
+2024-03-30 15:39:00,COOLDOWN,GRDN-002 drift detected but in cooldown period
+2024-03-31 17:06:00,DRIFT,"BABY-003 drift detected (ratio=2.95x, rolling_MAE=5.58)"
+2024-03-31 09:34:00,RETRAIN_REJECTED,"BABY-003 candidate rejected (MAPE_candidate=107.93 MAPE_incumbent=88.09, candidate_not_lower)"
+2024-04-01 11:32:00,DRIFT,"HOMK-002 drift detected (ratio=2.44x, rolling_MAE=14.83)"
+2024-04-01 13:56:00,RETRAIN_ACCEPTED,HOMK-002 candidate accepted (MAPE_candidate=33.62 MAPE_incumbent=81.96; pre_MAE=10.12 post_MAE=0.06)
+2024-04-01 09:56:00,DRIFT,"OUTD-002 drift detected (ratio=2.16x, rolling_MAE=15.05)"
+2024-04-01 12:10:00,RETRAIN_ACCEPTED,OUTD-002 candidate accepted (MAPE_candidate=127.92 MAPE_incumbent=254.08; pre_MAE=27.83 post_MAE=15.48)
+2024-04-02 15:53:00,DRIFT,"TOYS-003 drift detected (ratio=2.41x, rolling_MAE=4.42)"
+2024-04-02 16:45:00,RETRAIN_REJECTED,"TOYS-003 candidate rejected (MAPE_candidate=63.90 MAPE_incumbent=57.28, candidate_not_lower)"
+2024-04-02 12:39:00,DRIFT,"BABY-001 drift detected (ratio=3.34x, rolling_MAE=5.01)"
+2024-04-02 18:33:00,RETRAIN_REJECTED,"BABY-001 candidate rejected (MAPE_candidate=36.19 MAPE_incumbent=35.55, candidate_not_lower)"
+2024-04-02 08:42:00,DRIFT,"GRDN-001 drift detected (ratio=2.35x, rolling_MAE=29.85)"
+2024-04-02 18:06:00,RETRAIN_ACCEPTED,GRDN-001 candidate accepted (MAPE_candidate=62.80 MAPE_incumbent=265.94; pre_MAE=27.62 post_MAE=1.24)
+2024-04-02 10:16:00,DRIFT,"BEAU-001 drift detected (ratio=2.33x, rolling_MAE=14.79)"
+2024-04-02 09:47:00,RETRAIN_ACCEPTED,BEAU-001 candidate accepted (MAPE_candidate=29.92 MAPE_incumbent=81.45; pre_MAE=14.79 post_MAE=5.65)
+2024-04-03 16:09:00,DRIFT,"BABY-003 drift detected (ratio=2.03x, rolling_MAE=3.84)"
+2024-04-03 12:18:00,COOLDOWN,BABY-003 drift detected but in cooldown period
+2024-04-05 17:13:00,DRIFT,"TOOL-002 drift detected (ratio=17.66x, rolling_MAE=10.07)"
+2024-04-05 18:40:00,RETRAIN_ACCEPTED,TOOL-002 candidate accepted (MAPE_candidate=36.31 MAPE_incumbent=40.57; pre_MAE=17.98 post_MAE=16.40)
+2024-04-05 12:32:00,DRIFT,"MOVI-003 drift detected (ratio=2.46x, rolling_MAE=8.02)"
+2024-04-05 15:16:00,RETRAIN_REJECTED,"MOVI-003 candidate rejected (MAPE_candidate=67.55 MAPE_incumbent=53.96, candidate_not_lower)"
+2024-04-05 08:05:00,DRIFT,"BABY-001 drift detected (ratio=2.79x, rolling_MAE=4.18)"
+2024-04-05 18:27:00,COOLDOWN,BABY-001 drift detected but in cooldown period
+2024-04-06 12:02:00,DRIFT,"HOMK-001 drift detected (ratio=2.11x, rolling_MAE=7.67)"
+2024-04-06 10:40:00,RETRAIN_ACCEPTED,HOMK-001 candidate accepted (MAPE_candidate=130.35 MAPE_incumbent=151.37; pre_MAE=0.82 post_MAE=0.66)
+2024-04-06 12:10:00,DRIFT,"BABY-001 drift detected (ratio=3.18x, rolling_MAE=4.76)"
+2024-04-06 15:35:00,COOLDOWN,BABY-001 drift detected but in cooldown period
+2024-04-07 14:35:00,DRIFT,"BABY-001 drift detected (ratio=3.85x, rolling_MAE=5.77)"
+2024-04-07 08:07:00,COOLDOWN,BABY-001 drift detected but in cooldown period
+2024-04-08 09:56:00,DRIFT,"TOYS-003 drift detected (ratio=2.50x, rolling_MAE=4.58)"
+2024-04-08 10:34:00,COOLDOWN,TOYS-003 drift detected but in cooldown period
+2024-04-08 08:53:00,DRIFT,"MOVI-003 drift detected (ratio=2.02x, rolling_MAE=6.57)"
+2024-04-08 13:37:00,COOLDOWN,MOVI-003 drift detected but in cooldown period
+2024-04-08 16:09:00,DRIFT,"BABY-001 drift detected (ratio=4.56x, rolling_MAE=6.83)"
+2024-04-08 14:08:00,COOLDOWN,BABY-001 drift detected but in cooldown period
+2024-04-08 08:19:00,DRIFT,"SPRT-003 drift detected (ratio=2.06x, rolling_MAE=8.23)"
+2024-04-08 08:57:00,RETRAIN_ACCEPTED,SPRT-003 candidate accepted (MAPE_candidate=55.87 MAPE_incumbent=61.59; pre_MAE=1.31 post_MAE=2.47)
+2024-04-09 13:13:00,DRIFT,"TOYS-003 drift detected (ratio=2.53x, rolling_MAE=4.64)"
+2024-04-09 18:15:00,RETRAIN_REJECTED,"TOYS-003 candidate rejected (MAPE_candidate=37.94 MAPE_incumbent=35.17, candidate_not_lower)"
+2024-04-09 18:06:00,DRIFT,"CLTH-001 drift detected (ratio=2.22x, rolling_MAE=11.47)"
+2024-04-09 16:56:00,RETRAIN_ACCEPTED,CLTH-001 candidate accepted (MAPE_candidate=53.60 MAPE_incumbent=165.42; pre_MAE=16.28 post_MAE=7.67)
+2024-04-09 14:39:00,DRIFT,"MOVI-003 drift detected (ratio=2.14x, rolling_MAE=6.98)"
+2024-04-09 10:59:00,COOLDOWN,MOVI-003 drift detected but in cooldown period
+2024-04-09 11:55:00,DRIFT,"BABY-001 drift detected (ratio=4.72x, rolling_MAE=7.07)"
+2024-04-09 10:56:00,RETRAIN_ACCEPTED,BABY-001 candidate accepted (MAPE_candidate=203.50 MAPE_incumbent=227.00; pre_MAE=9.37 post_MAE=8.51)
+2024-04-10 14:01:00,DRIFT,"BABY-003 drift detected (ratio=3.76x, rolling_MAE=7.11)"
+2024-04-10 13:50:00,RETRAIN_ACCEPTED,BABY-003 candidate accepted (MAPE_candidate=72.52 MAPE_incumbent=80.72; pre_MAE=16.36 post_MAE=14.74)
+2024-04-10 14:51:00,DRIFT,"HOMK-002 drift detected (ratio=38.22x, rolling_MAE=2.14)"
+2024-04-10 18:55:00,RETRAIN_REJECTED,"HOMK-002 candidate rejected (MAPE_candidate=46.27 MAPE_incumbent=31.08, candidate_not_lower)"
+2024-04-10 11:17:00,DRIFT,"MOVI-003 drift detected (ratio=2.40x, rolling_MAE=7.82)"
+2024-04-10 10:50:00,COOLDOWN,MOVI-003 drift detected but in cooldown period
+2024-04-11 09:24:00,DRIFT,"GRDN-001 drift detected (ratio=3.99x, rolling_MAE=4.96)"
+2024-04-11 15:14:00,RETRAIN_ACCEPTED,GRDN-001 candidate accepted (MAPE_candidate=84.33 MAPE_incumbent=96.54; pre_MAE=7.05 post_MAE=5.06)
+2024-04-11 11:52:00,DRIFT,"MOVI-003 drift detected (ratio=2.92x, rolling_MAE=9.52)"
+2024-04-11 15:22:00,COOLDOWN,MOVI-003 drift detected but in cooldown period
+2024-04-12 12:52:00,DRIFT,"MOVI-003 drift detected (ratio=2.92x, rolling_MAE=9.50)"
+2024-04-12 11:14:00,RETRAIN_REJECTED,"MOVI-003 candidate rejected (MAPE_candidate=122.12 MAPE_incumbent=114.24, candidate_not_lower)"
+2024-04-12 08:42:00,DRIFT,"TOYS-003 drift detected (ratio=2.74x, rolling_MAE=5.03)"
+2024-04-12 11:25:00,COOLDOWN,TOYS-003 drift detected but in cooldown period
+2024-04-12 13:17:00,DRIFT,"GRDN-002 drift detected (ratio=2.33x, rolling_MAE=7.56)"
+2024-04-12 12:22:00,RETRAIN_ACCEPTED,GRDN-002 candidate accepted (MAPE_candidate=31.17 MAPE_incumbent=55.23; pre_MAE=9.67 post_MAE=6.02)
+2024-04-13 18:32:00,DRIFT,"TOYS-003 drift detected (ratio=2.72x, rolling_MAE=5.00)"
+2024-04-13 14:43:00,COOLDOWN,TOYS-003 drift detected but in cooldown period
+2024-04-13 16:21:00,DRIFT,"HOMK-002 drift detected (ratio=54.16x, rolling_MAE=3.04)"
+2024-04-13 08:07:00,COOLDOWN,HOMK-002 drift detected but in cooldown period
+2024-04-14 12:11:00,DRIFT,"HOMK-002 drift detected (ratio=62.43x, rolling_MAE=3.50)"
+2024-04-14 17:16:00,COOLDOWN,HOMK-002 drift detected but in cooldown period
+2024-04-15 08:06:00,DRIFT,"HOMK-001 drift detected (ratio=6.49x, rolling_MAE=4.30)"
+2024-04-15 17:27:00,RETRAIN_REJECTED,"HOMK-001 candidate rejected (MAPE_candidate=27.51 MAPE_incumbent=25.79, candidate_not_lower)"
+2024-04-15 13:46:00,DRIFT,"HOMK-002 drift detected (ratio=63.37x, rolling_MAE=3.55)"
+2024-04-15 13:27:00,COOLDOWN,HOMK-002 drift detected but in cooldown period
+2024-04-15 17:32:00,DRIFT,"MOVI-003 drift detected (ratio=3.58x, rolling_MAE=11.65)"
+2024-04-15 09:24:00,COOLDOWN,MOVI-003 drift detected but in cooldown period
+2024-04-16 17:12:00,DRIFT,"HOMK-002 drift detected (ratio=59.04x, rolling_MAE=3.31)"
+2024-04-16 12:02:00,COOLDOWN,HOMK-002 drift detected but in cooldown period
+2024-04-16 14:00:00,DRIFT,"MOVI-003 drift detected (ratio=3.57x, rolling_MAE=11.63)"
+2024-04-16 16:59:00,COOLDOWN,MOVI-003 drift detected but in cooldown period
+2024-04-17 16:43:00,DRIFT,"MOVI-003 drift detected (ratio=3.26x, rolling_MAE=10.62)"
+2024-04-17 18:12:00,COOLDOWN,MOVI-003 drift detected but in cooldown period
+2024-04-17 13:27:00,DRIFT,"HOMK-002 drift detected (ratio=58.11x, rolling_MAE=3.26)"
+2024-04-17 09:42:00,RETRAIN_REJECTED,"HOMK-002 candidate rejected (MAPE_candidate=51.58 MAPE_incumbent=41.29, candidate_not_lower)"
+2024-04-17 13:39:00,DRIFT,"SPRT-003 drift detected (ratio=2.39x, rolling_MAE=5.91)"
+2024-04-17 13:42:00,RETRAIN_REJECTED,"SPRT-003 candidate rejected (MAPE_candidate=40.50 MAPE_incumbent=40.49, candidate_not_lower)"
+2024-04-17 09:46:00,DRIFT,"SOFT-003 drift detected (ratio=2.21x, rolling_MAE=12.69)"
+2024-04-17 12:42:00,RETRAIN_ACCEPTED,SOFT-003 candidate accepted (MAPE_candidate=129.46 MAPE_incumbent=217.99; pre_MAE=7.17 post_MAE=2.23)
+2024-04-18 14:20:00,DRIFT,"HOMK-001 drift detected (ratio=9.96x, rolling_MAE=6.59)"
+2024-04-18 14:44:00,COOLDOWN,HOMK-001 drift detected but in cooldown period
+2024-04-18 12:35:00,DRIFT,"MOVI-003 drift detected (ratio=3.04x, rolling_MAE=9.89)"
+2024-04-18 10:12:00,COOLDOWN,MOVI-003 drift detected but in cooldown period
+2024-04-19 14:42:00,DRIFT,"MOVI-003 drift detected (ratio=3.03x, rolling_MAE=9.87)"
+2024-04-19 10:39:00,RETRAIN_ACCEPTED,MOVI-003 candidate accepted (MAPE_candidate=80.86 MAPE_incumbent=93.39; pre_MAE=10.39 post_MAE=8.49)
+2024-04-19 17:19:00,DRIFT,"HOMK-001 drift detected (ratio=9.89x, rolling_MAE=6.55)"
+2024-04-19 14:35:00,COOLDOWN,HOMK-001 drift detected but in cooldown period
+2024-04-20 08:19:00,DRIFT,"SPRT-003 drift detected (ratio=2.60x, rolling_MAE=6.42)"
+2024-04-20 12:13:00,COOLDOWN,SPRT-003 drift detected but in cooldown period
+2024-04-20 14:50:00,DRIFT,"HOMK-002 drift detected (ratio=44.44x, rolling_MAE=2.49)"
+2024-04-20 17:38:00,COOLDOWN,HOMK-002 drift detected but in cooldown period
+2024-04-20 18:20:00,DRIFT,"TOYS-003 drift detected (ratio=2.96x, rolling_MAE=5.44)"
+2024-04-20 15:43:00,RETRAIN_ACCEPTED,TOYS-003 candidate accepted (MAPE_candidate=50.43 MAPE_incumbent=56.25; pre_MAE=5.43 post_MAE=3.06)
+2024-04-20 11:32:00,DRIFT,"HOMK-001 drift detected (ratio=10.60x, rolling_MAE=7.02)"
+2024-04-20 15:50:00,COOLDOWN,HOMK-001 drift detected but in cooldown period
+2024-04-21 10:42:00,DRIFT,"HOMK-001 drift detected (ratio=10.97x, rolling_MAE=7.27)"
+2024-04-21 09:18:00,COOLDOWN,HOMK-001 drift detected but in cooldown period
+2024-04-21 16:42:00,DRIFT,"PETS-001 drift detected (ratio=2.39x, rolling_MAE=12.16)"
+2024-04-21 13:05:00,RETRAIN_ACCEPTED,PETS-001 candidate accepted (MAPE_candidate=128.38 MAPE_incumbent=199.16; pre_MAE=6.27 post_MAE=0.74)
+2024-04-21 11:43:00,DRIFT,"SPRT-003 drift detected (ratio=3.06x, rolling_MAE=7.56)"
+2024-04-21 12:14:00,COOLDOWN,SPRT-003 drift detected but in cooldown period
+2024-04-21 11:09:00,DRIFT,"HOMK-002 drift detected (ratio=33.05x, rolling_MAE=1.85)"
+2024-04-21 08:02:00,COOLDOWN,HOMK-002 drift detected but in cooldown period
+2024-04-21 11:30:00,DRIFT,"OFFC-002 drift detected (ratio=2.57x, rolling_MAE=12.60)"
+2024-04-21 09:29:00,RETRAIN_ACCEPTED,OFFC-002 candidate accepted (MAPE_candidate=155.90 MAPE_incumbent=234.46; pre_MAE=7.42 post_MAE=0.28)
+2024-04-22 14:56:00,DRIFT,"HOMK-002 drift detected (ratio=45.16x, rolling_MAE=2.53)"
+2024-04-22 18:36:00,COOLDOWN,HOMK-002 drift detected but in cooldown period
+2024-04-22 11:45:00,DRIFT,"SPRT-003 drift detected (ratio=3.17x, rolling_MAE=7.85)"
+2024-04-22 14:31:00,COOLDOWN,SPRT-003 drift detected but in cooldown period
+2024-04-22 14:15:00,DRIFT,"HOMK-001 drift detected (ratio=11.41x, rolling_MAE=7.56)"
+2024-04-22 10:41:00,RETRAIN_REJECTED,"HOMK-001 candidate rejected (MAPE_candidate=39.04 MAPE_incumbent=36.71, candidate_not_lower)"
+2024-04-23 08:57:00,DRIFT,"HOMK-002 drift detected (ratio=68.61x, rolling_MAE=3.85)"
+2024-04-23 09:49:00,COOLDOWN,HOMK-002 drift detected but in cooldown period
+2024-04-23 14:14:00,DRIFT,"SPRT-003 drift detected (ratio=2.94x, rolling_MAE=7.28)"
+2024-04-23 10:51:00,COOLDOWN,SPRT-003 drift detected but in cooldown period
+2024-04-24 16:29:00,DRIFT,"SPRT-003 drift detected (ratio=3.35x, rolling_MAE=8.28)"
+2024-04-24 08:35:00,RETRAIN_REJECTED,"SPRT-003 candidate rejected (MAPE_candidate=50.76 MAPE_incumbent=49.94, candidate_not_lower)"
+2024-04-24 11:58:00,DRIFT,"HOMK-002 drift detected (ratio=79.43x, rolling_MAE=4.45)"
+2024-04-24 09:29:00,RETRAIN_REJECTED,"HOMK-002 candidate rejected (MAPE_candidate=114.84 MAPE_incumbent=101.78, candidate_not_lower)"
+2024-04-25 10:51:00,DRIFT,"ELEC-003 drift detected (ratio=2.24x, rolling_MAE=6.82)"
+2024-04-25 15:42:00,RETRAIN_REJECTED,"ELEC-003 candidate rejected (MAPE_candidate=86.76 MAPE_incumbent=65.78, candidate_not_lower)"
+2024-04-25 16:35:00,DRIFT,"MUSC-002 drift detected (ratio=2.05x, rolling_MAE=16.80)"
+2024-04-25 15:39:00,RETRAIN_ACCEPTED,MUSC-002 candidate accepted (MAPE_candidate=38.40 MAPE_incumbent=146.61; pre_MAE=15.93 post_MAE=1.15)
+2024-04-25 16:27:00,DRIFT,"HOMK-001 drift detected (ratio=11.38x, rolling_MAE=7.54)"
+2024-04-25 16:28:00,COOLDOWN,HOMK-001 drift detected but in cooldown period
+2024-04-26 10:47:00,DRIFT,"SOFT-003 drift detected (ratio=2.08x, rolling_MAE=4.66)"
+2024-04-26 12:48:00,RETRAIN_ACCEPTED,SOFT-003 candidate accepted (MAPE_candidate=59.13 MAPE_incumbent=61.88; pre_MAE=0.27 post_MAE=1.62)
+2024-04-26 11:53:00,DRIFT,"HOMK-001 drift detected (ratio=12.18x, rolling_MAE=8.07)"
+2024-04-26 18:17:00,COOLDOWN,HOMK-001 drift detected but in cooldown period
+2024-04-27 16:31:00,DRIFT,"HOMK-002 drift detected (ratio=93.25x, rolling_MAE=5.23)"
+2024-04-27 18:15:00,COOLDOWN,HOMK-002 drift detected but in cooldown period
+2024-04-27 12:28:00,DRIFT,"HOMK-001 drift detected (ratio=11.60x, rolling_MAE=7.68)"
+2024-04-27 09:45:00,COOLDOWN,HOMK-001 drift detected but in cooldown period
+2024-04-27 12:15:00,DRIFT,"SPRT-003 drift detected (ratio=3.23x, rolling_MAE=7.99)"
+2024-04-27 12:21:00,COOLDOWN,SPRT-003 drift detected but in cooldown period
+2024-04-28 13:57:00,DRIFT,"SPRT-003 drift detected (ratio=2.65x, rolling_MAE=6.56)"
+2024-04-28 16:05:00,COOLDOWN,SPRT-003 drift detected but in cooldown period
+2024-04-28 10:09:00,DRIFT,"HOMK-001 drift detected (ratio=13.78x, rolling_MAE=9.13)"
+2024-04-28 11:24:00,COOLDOWN,HOMK-001 drift detected but in cooldown period
+2024-04-28 10:45:00,DRIFT,"HOMK-002 drift detected (ratio=113.54x, rolling_MAE=6.37)"
+2024-04-28 11:04:00,COOLDOWN,HOMK-002 drift detected but in cooldown period
+2024-04-29 14:26:00,DRIFT,"HOMK-002 drift detected (ratio=107.82x, rolling_MAE=6.05)"
+2024-04-29 13:34:00,COOLDOWN,HOMK-002 drift detected but in cooldown period
+2024-04-29 15:26:00,DRIFT,"TOYS-003 drift detected (ratio=2.80x, rolling_MAE=8.56)"
+2024-04-29 08:13:00,RETRAIN_REJECTED,"TOYS-003 candidate rejected (MAPE_candidate=58.63 MAPE_incumbent=58.32, candidate_not_lower)"
+2024-04-29 14:24:00,DRIFT,"HOMK-001 drift detected (ratio=13.22x, rolling_MAE=8.76)"
+2024-04-29 08:54:00,RETRAIN_ACCEPTED,HOMK-001 candidate accepted (MAPE_candidate=294.32 MAPE_incumbent=335.24; pre_MAE=5.05 post_MAE=6.03)
+2024-04-29 17:24:00,DRIFT,"SPRT-003 drift detected (ratio=2.25x, rolling_MAE=5.56)"
+2024-04-29 15:00:00,COOLDOWN,SPRT-003 drift detected but in cooldown period
+2024-04-30 13:19:00,DRIFT,"HOMK-002 drift detected (ratio=111.11x, rolling_MAE=6.23)"
+2024-04-30 14:54:00,COOLDOWN,HOMK-002 drift detected but in cooldown period
+2024-04-30 14:34:00,DRIFT,"BABY-002 drift detected (ratio=2.14x, rolling_MAE=9.74)"
+2024-04-30 16:51:00,RETRAIN_REJECTED,"BABY-002 candidate rejected (MAPE_candidate=96.55 MAPE_incumbent=85.15, candidate_not_lower)"
+2024-04-30 17:57:00,DRIFT,"PETS-001 drift detected (ratio=9.13x, rolling_MAE=6.78)"
+2024-04-30 11:17:00,RETRAIN_ACCEPTED,PETS-001 candidate accepted (MAPE_candidate=28.84 MAPE_incumbent=31.45; pre_MAE=6.56 post_MAE=5.59)
+2024-04-30 14:31:00,DRIFT,"SPRT-003 drift detected (ratio=2.07x, rolling_MAE=5.13)"
+2024-04-30 08:24:00,COOLDOWN,SPRT-003 drift detected but in cooldown period
+2024-04-30 13:42:00,DRIFT,"OFFC-002 drift detected (ratio=17.96x, rolling_MAE=5.01)"
+2024-04-30 14:46:00,RETRAIN_ACCEPTED,OFFC-002 candidate accepted (MAPE_candidate=50.54 MAPE_incumbent=54.01; pre_MAE=10.39 post_MAE=8.65)
+2024-05-01 10:53:00,DRIFT,"HOMK-002 drift detected (ratio=96.77x, rolling_MAE=5.43)"
+2024-05-01 10:39:00,RETRAIN_ACCEPTED,HOMK-002 candidate accepted (MAPE_candidate=51.74 MAPE_incumbent=52.02; pre_MAE=0.06 post_MAE=0.60)
+2024-05-01 16:01:00,DRIFT,"AUTO-001 drift detected (ratio=2.24x, rolling_MAE=11.82)"
+2024-05-01 17:42:00,RETRAIN_ACCEPTED,AUTO-001 candidate accepted (MAPE_candidate=141.07 MAPE_incumbent=234.09; pre_MAE=10.97 post_MAE=7.26)
+2024-05-02 08:05:00,DRIFT,"TOYS-003 drift detected (ratio=2.40x, rolling_MAE=7.35)"
+2024-05-02 18:27:00,COOLDOWN,TOYS-003 drift detected but in cooldown period
+2024-05-03 10:55:00,DRIFT,"GROC-002 drift detected (ratio=2.16x, rolling_MAE=16.07)"
+2024-05-03 08:16:00,RETRAIN_ACCEPTED,GROC-002 candidate accepted (MAPE_candidate=64.29 MAPE_incumbent=135.37; pre_MAE=16.58 post_MAE=4.83)
+2024-05-03 14:20:00,DRIFT,"TOYS-003 drift detected (ratio=2.22x, rolling_MAE=6.79)"
+2024-05-03 11:29:00,COOLDOWN,TOYS-003 drift detected but in cooldown period
+2024-05-04 13:21:00,DRIFT,"TOYS-003 drift detected (ratio=2.02x, rolling_MAE=6.19)"
+2024-05-04 14:17:00,COOLDOWN,TOYS-003 drift detected but in cooldown period
+2024-05-04 14:16:00,DRIFT,"MUSC-002 drift detected (ratio=5.28x, rolling_MAE=6.07)"
+2024-05-04 09:30:00,RETRAIN_REJECTED,"MUSC-002 candidate rejected (MAPE_candidate=53.37 MAPE_incumbent=52.69, candidate_not_lower)"
+2024-05-05 08:47:00,DRIFT,"SOFT-003 drift detected (ratio=2.05x, rolling_MAE=3.31)"
+2024-05-05 16:03:00,RETRAIN_REJECTED,"SOFT-003 candidate rejected (MAPE_candidate=36.27 MAPE_incumbent=31.29, candidate_not_lower)"
+2024-05-07 13:14:00,DRIFT,"SPRT-003 drift detected (ratio=2.27x, rolling_MAE=5.62)"
+2024-05-07 18:04:00,RETRAIN_REJECTED,"SPRT-003 candidate rejected (MAPE_candidate=87.70 MAPE_incumbent=74.64, candidate_not_lower)"
+2024-05-07 18:02:00,DRIFT,"MUSC-002 drift detected (ratio=3.39x, rolling_MAE=3.89)"
+2024-05-07 08:15:00,COOLDOWN,MUSC-002 drift detected but in cooldown period
+2024-05-08 11:53:00,DRIFT,"MUSC-002 drift detected (ratio=3.16x, rolling_MAE=3.63)"
+2024-05-08 08:39:00,COOLDOWN,MUSC-002 drift detected but in cooldown period
+2024-05-09 10:15:00,DRIFT,"MUSC-002 drift detected (ratio=2.81x, rolling_MAE=3.23)"
+2024-05-09 10:30:00,COOLDOWN,MUSC-002 drift detected but in cooldown period
+2024-05-10 18:07:00,DRIFT,"HOMK-002 drift detected (ratio=7.77x, rolling_MAE=4.67)"
+2024-05-10 15:44:00,RETRAIN_ACCEPTED,HOMK-002 candidate accepted (MAPE_candidate=26.82 MAPE_incumbent=29.77; pre_MAE=5.47 post_MAE=5.49)
+2024-05-10 12:49:00,DRIFT,"SOFT-003 drift detected (ratio=3.14x, rolling_MAE=5.07)"
+2024-05-10 13:10:00,COOLDOWN,SOFT-003 drift detected but in cooldown period
+2024-05-10 17:38:00,DRIFT,"MUSC-002 drift detected (ratio=3.12x, rolling_MAE=3.59)"
+2024-05-10 09:49:00,COOLDOWN,MUSC-002 drift detected but in cooldown period
+2024-05-11 10:19:00,DRIFT,"SOFT-003 drift detected (ratio=3.40x, rolling_MAE=5.50)"
+2024-05-11 09:37:00,COOLDOWN,SOFT-003 drift detected but in cooldown period
+2024-05-11 08:59:00,DRIFT,"ELEC-003 drift detected (ratio=2.26x, rolling_MAE=6.87)"
+2024-05-11 18:58:00,RETRAIN_ACCEPTED,ELEC-003 candidate accepted (MAPE_candidate=23.97 MAPE_incumbent=74.78; pre_MAE=7.00 post_MAE=0.06)
+2024-05-11 14:25:00,DRIFT,"MUSC-002 drift detected (ratio=3.14x, rolling_MAE=3.61)"
+2024-05-11 17:44:00,RETRAIN_ACCEPTED,MUSC-002 candidate accepted (MAPE_candidate=71.73 MAPE_incumbent=73.60; pre_MAE=13.30 post_MAE=12.66)
+2024-05-12 18:15:00,DRIFT,"SOFT-003 drift detected (ratio=3.34x, rolling_MAE=5.40)"
+2024-05-12 09:44:00,RETRAIN_REJECTED,"SOFT-003 candidate rejected (MAPE_candidate=37.01 MAPE_incumbent=36.04, candidate_not_lower)"
+2024-05-12 12:54:00,DRIFT,"TOOL-003 drift detected (ratio=2.39x, rolling_MAE=15.68)"
+2024-05-12 09:50:00,RETRAIN_ACCEPTED,TOOL-003 candidate accepted (MAPE_candidate=57.19 MAPE_incumbent=83.18; pre_MAE=10.35 post_MAE=0.60)
+2024-05-13 17:50:00,DRIFT,"ELEC-001 drift detected (ratio=2.12x, rolling_MAE=10.33)"
+2024-05-13 16:27:00,RETRAIN_ACCEPTED,ELEC-001 candidate accepted (MAPE_candidate=72.75 MAPE_incumbent=196.31; pre_MAE=4.72 post_MAE=2.62)
+2024-05-15 18:23:00,DRIFT,"SOFT-003 drift detected (ratio=4.49x, rolling_MAE=7.26)"
+2024-05-15 09:32:00,COOLDOWN,SOFT-003 drift detected but in cooldown period
+2024-05-15 18:21:00,DRIFT,"SPRT-003 drift detected (ratio=3.11x, rolling_MAE=7.69)"
+2024-05-15 08:54:00,RETRAIN_REJECTED,"SPRT-003 candidate rejected (MAPE_candidate=59.47 MAPE_incumbent=49.43, candidate_not_lower)"
+2024-05-16 14:52:00,DRIFT,"SOFT-003 drift detected (ratio=4.47x, rolling_MAE=7.23)"
+2024-05-16 15:06:00,COOLDOWN,SOFT-003 drift detected but in cooldown period
+2024-05-17 14:23:00,DRIFT,"SOFT-003 drift detected (ratio=4.30x, rolling_MAE=6.94)"
+2024-05-17 18:57:00,COOLDOWN,SOFT-003 drift detected but in cooldown period
+2024-05-18 15:45:00,DRIFT,"SPRT-003 drift detected (ratio=3.01x, rolling_MAE=7.45)"
+2024-05-18 10:27:00,COOLDOWN,SPRT-003 drift detected but in cooldown period
+2024-05-18 10:46:00,DRIFT,"SOFT-003 drift detected (ratio=3.90x, rolling_MAE=6.30)"
+2024-05-18 16:41:00,COOLDOWN,SOFT-003 drift detected but in cooldown period
+2024-05-19 12:39:00,DRIFT,"SPRT-003 drift detected (ratio=3.01x, rolling_MAE=7.45)"
+2024-05-19 16:49:00,COOLDOWN,SPRT-003 drift detected but in cooldown period
+2024-05-19 15:29:00,DRIFT,"SOFT-003 drift detected (ratio=3.52x, rolling_MAE=5.69)"
+2024-05-19 14:52:00,RETRAIN_REJECTED,"SOFT-003 candidate rejected (MAPE_candidate=44.67 MAPE_incumbent=41.55, candidate_not_lower)"
+2024-05-20 17:17:00,DRIFT,"SPRT-003 drift detected (ratio=2.39x, rolling_MAE=5.92)"
+2024-05-20 13:54:00,COOLDOWN,SPRT-003 drift detected but in cooldown period
+2024-05-20 11:53:00,DRIFT,"JWLY-003 drift detected (ratio=2.60x, rolling_MAE=12.20)"
+2024-05-20 15:15:00,RETRAIN_ACCEPTED,JWLY-003 candidate accepted (MAPE_candidate=115.79 MAPE_incumbent=167.14; pre_MAE=16.92 post_MAE=14.36)
+2024-05-20 15:36:00,DRIFT,"ELEC-003 drift detected (ratio=64.94x, rolling_MAE=3.86)"
+2024-05-20 17:42:00,RETRAIN_REJECTED,"ELEC-003 candidate rejected (MAPE_candidate=89.38 MAPE_incumbent=88.75, candidate_not_lower)"
+2024-05-21 14:21:00,DRIFT,"TOOL-003 drift detected (ratio=7.13x, rolling_MAE=4.28)"
+2024-05-21 13:11:00,RETRAIN_ACCEPTED,TOOL-003 candidate accepted (MAPE_candidate=25.52 MAPE_incumbent=25.90; pre_MAE=3.63 post_MAE=3.43)
+2024-05-21 15:13:00,DRIFT,"SPRT-003 drift detected (ratio=2.54x, rolling_MAE=6.28)"
+2024-05-21 13:51:00,COOLDOWN,SPRT-003 drift detected but in cooldown period
+2024-05-21 12:21:00,DRIFT,"BOOK-003 drift detected (ratio=2.32x, rolling_MAE=16.40)"
+2024-05-21 17:44:00,RETRAIN_ACCEPTED,BOOK-003 candidate accepted (MAPE_candidate=47.99 MAPE_incumbent=87.06; pre_MAE=1.79 post_MAE=8.37)
+2024-05-22 12:35:00,DRIFT,"SPRT-003 drift detected (ratio=2.19x, rolling_MAE=5.42)"
+2024-05-22 08:33:00,RETRAIN_REJECTED,"SPRT-003 candidate rejected (MAPE_candidate=173.70 MAPE_incumbent=154.96, candidate_not_lower)"
+2024-05-22 11:05:00,DRIFT,"SOFT-003 drift detected (ratio=2.80x, rolling_MAE=4.53)"
+2024-05-22 11:46:00,COOLDOWN,SOFT-003 drift detected but in cooldown period
+2024-05-23 14:31:00,DRIFT,"ELEC-003 drift detected (ratio=48.08x, rolling_MAE=2.86)"
+2024-05-23 16:48:00,COOLDOWN,ELEC-003 drift detected but in cooldown period
+2024-05-23 11:44:00,DRIFT,"SOFT-003 drift detected (ratio=2.98x, rolling_MAE=4.82)"
+2024-05-23 15:41:00,COOLDOWN,SOFT-003 drift detected but in cooldown period
+2024-05-24 15:28:00,DRIFT,"ELEC-003 drift detected (ratio=52.86x, rolling_MAE=3.14)"
+2024-05-24 08:05:00,COOLDOWN,ELEC-003 drift detected but in cooldown period
+2024-05-24 12:14:00,DRIFT,"SOFT-003 drift detected (ratio=2.51x, rolling_MAE=4.05)"
+2024-05-24 14:44:00,COOLDOWN,SOFT-003 drift detected but in cooldown period
+2024-05-25 11:19:00,DRIFT,"ELEC-003 drift detected (ratio=53.23x, rolling_MAE=3.16)"
+2024-05-25 18:37:00,COOLDOWN,ELEC-003 drift detected but in cooldown period
+2024-05-25 13:30:00,DRIFT,"SOFT-003 drift detected (ratio=2.54x, rolling_MAE=4.11)"
+2024-05-25 16:33:00,COOLDOWN,SOFT-003 drift detected but in cooldown period
+2024-05-25 13:27:00,DRIFT,"SPRT-003 drift detected (ratio=2.61x, rolling_MAE=6.46)"
+2024-05-25 16:21:00,COOLDOWN,SPRT-003 drift detected but in cooldown period
+2024-05-26 13:44:00,DRIFT,"SPRT-003 drift detected (ratio=3.19x, rolling_MAE=7.89)"
+2024-05-26 15:17:00,COOLDOWN,SPRT-003 drift detected but in cooldown period
+2024-05-26 12:16:00,DRIFT,"SOFT-003 drift detected (ratio=2.57x, rolling_MAE=4.15)"
+2024-05-26 11:07:00,RETRAIN_REJECTED,"SOFT-003 candidate rejected (MAPE_candidate=51.00 MAPE_incumbent=42.32, candidate_not_lower)"
+2024-05-26 11:20:00,DRIFT,"ELEC-003 drift detected (ratio=53.27x, rolling_MAE=3.17)"
+2024-05-26 09:47:00,COOLDOWN,ELEC-003 drift detected but in cooldown period
+2024-05-26 16:48:00,DRIFT,"GROC-001 drift detected (ratio=2.03x, rolling_MAE=23.14)"
+2024-05-26 11:47:00,RETRAIN_ACCEPTED,GROC-001 candidate accepted (MAPE_candidate=122.83 MAPE_incumbent=270.53; pre_MAE=21.61 post_MAE=4.63)
+2024-05-27 15:17:00,DRIFT,"ELEC-003 drift detected (ratio=46.08x, rolling_MAE=2.74)"
+2024-05-27 16:38:00,RETRAIN_ACCEPTED,ELEC-003 candidate accepted (MAPE_candidate=42.35 MAPE_incumbent=43.92; pre_MAE=2.59 post_MAE=2.71)
+2024-05-27 12:06:00,DRIFT,"SPRT-003 drift detected (ratio=3.13x, rolling_MAE=7.75)"
+2024-05-27 11:18:00,COOLDOWN,SPRT-003 drift detected but in cooldown period
+2024-05-27 11:23:00,DRIFT,"TOYS-003 drift detected (ratio=2.08x, rolling_MAE=6.36)"
+2024-05-27 08:45:00,RETRAIN_ACCEPTED,TOYS-003 candidate accepted (MAPE_candidate=36.88 MAPE_incumbent=43.06; pre_MAE=0.10 post_MAE=2.58)
+2024-05-28 16:08:00,DRIFT,"PETS-002 drift detected (ratio=2.13x, rolling_MAE=16.07)"
+2024-05-28 08:35:00,RETRAIN_ACCEPTED,PETS-002 candidate accepted (MAPE_candidate=58.56 MAPE_incumbent=183.90; pre_MAE=11.12 post_MAE=0.28)
+2024-05-28 12:44:00,DRIFT,"SPRT-003 drift detected (ratio=3.07x, rolling_MAE=7.61)"
+2024-05-28 10:40:00,COOLDOWN,SPRT-003 drift detected but in cooldown period
+2024-05-29 15:06:00,DRIFT,"FURN-002 drift detected (ratio=2.45x, rolling_MAE=14.99)"
+2024-05-29 12:30:00,RETRAIN_ACCEPTED,FURN-002 candidate accepted (MAPE_candidate=92.86 MAPE_incumbent=172.87; pre_MAE=18.76 post_MAE=6.92)
+2024-05-29 15:28:00,DRIFT,"SOFT-003 drift detected (ratio=2.03x, rolling_MAE=3.29)"
+2024-05-29 13:11:00,COOLDOWN,SOFT-003 drift detected but in cooldown period
+2024-05-29 08:16:00,DRIFT,"SPRT-003 drift detected (ratio=3.03x, rolling_MAE=7.50)"
+2024-05-29 15:07:00,RETRAIN_REJECTED,"SPRT-003 candidate rejected (MAPE_candidate=101.09 MAPE_incumbent=98.06, candidate_not_lower)"
+2024-06-01 09:25:00,DRIFT,"APPL-003 drift detected (ratio=2.15x, rolling_MAE=13.45)"
+2024-06-01 17:40:00,RETRAIN_ACCEPTED,APPL-003 candidate accepted (MAPE_candidate=186.57 MAPE_incumbent=293.88; pre_MAE=11.01 post_MAE=3.35)
+2024-06-01 18:03:00,DRIFT,"SPRT-003 drift detected (ratio=2.31x, rolling_MAE=5.73)"
+2024-06-01 10:09:00,COOLDOWN,SPRT-003 drift detected but in cooldown period
+2024-06-02 17:19:00,DRIFT,"SPRT-003 drift detected (ratio=2.31x, rolling_MAE=5.72)"
+2024-06-02 09:15:00,COOLDOWN,SPRT-003 drift detected but in cooldown period
+2024-06-03 09:35:00,DRIFT,"SOFT-003 drift detected (ratio=2.56x, rolling_MAE=4.13)"
+2024-06-03 14:38:00,RETRAIN_REJECTED,"SOFT-003 candidate rejected (MAPE_candidate=65.75 MAPE_incumbent=58.93, candidate_not_lower)"
+2024-06-05 17:50:00,DRIFT,"BOOK-001 drift detected (ratio=2.20x, rolling_MAE=9.04)"
+2024-06-05 17:14:00,RETRAIN_REJECTED,"BOOK-001 candidate rejected (MAPE_candidate=42.25 MAPE_incumbent=42.24, candidate_not_lower)"
+2024-06-06 16:24:00,DRIFT,"SOFT-003 drift detected (ratio=2.65x, rolling_MAE=4.28)"
+2024-06-06 15:58:00,COOLDOWN,SOFT-003 drift detected but in cooldown period
+2024-06-06 15:19:00,DRIFT,"PETS-002 drift detected (ratio=24.09x, rolling_MAE=6.63)"
+2024-06-06 12:36:00,RETRAIN_ACCEPTED,PETS-002 candidate accepted (MAPE_candidate=41.29 MAPE_incumbent=44.63; pre_MAE=10.77 post_MAE=9.73)
+2024-06-06 17:03:00,DRIFT,"SPRT-003 drift detected (ratio=2.33x, rolling_MAE=5.76)"
+2024-06-06 09:48:00,RETRAIN_ACCEPTED,SPRT-003 candidate accepted (MAPE_candidate=31.35 MAPE_incumbent=33.88; pre_MAE=5.59 post_MAE=4.97)
+2024-06-07 11:40:00,DRIFT,"SOFT-003 drift detected (ratio=3.04x, rolling_MAE=4.91)"
+2024-06-07 11:16:00,COOLDOWN,SOFT-003 drift detected but in cooldown period
+2024-06-07 18:05:00,DRIFT,"SOFT-002 drift detected (ratio=2.12x, rolling_MAE=12.17)"
+2024-06-07 10:35:00,RETRAIN_ACCEPTED,SOFT-002 candidate accepted (MAPE_candidate=25.04 MAPE_incumbent=68.52; pre_MAE=17.57 post_MAE=6.27)
+2024-06-08 09:10:00,DRIFT,"TOYS-003 drift detected (ratio=2.79x, rolling_MAE=7.21)"
+2024-06-08 15:44:00,RETRAIN_ACCEPTED,TOYS-003 candidate accepted (MAPE_candidate=32.51 MAPE_incumbent=32.71; pre_MAE=0.30 post_MAE=1.43)
+2024-06-08 17:30:00,DRIFT,"SOFT-003 drift detected (ratio=2.30x, rolling_MAE=3.72)"
+2024-06-08 12:02:00,COOLDOWN,SOFT-003 drift detected but in cooldown period
+2024-06-09 11:18:00,DRIFT,"SOFT-003 drift detected (ratio=2.23x, rolling_MAE=3.60)"
+2024-06-09 12:44:00,COOLDOWN,SOFT-003 drift detected but in cooldown period
+2024-06-10 15:04:00,DRIFT,"APPL-003 drift detected (ratio=2.63x, rolling_MAE=8.82)"
+2024-06-10 12:50:00,RETRAIN_ACCEPTED,APPL-003 candidate accepted (MAPE_candidate=194.71 MAPE_incumbent=200.22; pre_MAE=10.93 post_MAE=10.09)
+2024-06-10 18:37:00,DRIFT,"SOFT-003 drift detected (ratio=2.40x, rolling_MAE=3.88)"
+2024-06-10 18:51:00,RETRAIN_REJECTED,"SOFT-003 candidate rejected (MAPE_candidate=40.39 MAPE_incumbent=34.20, candidate_not_lower)"
+2024-06-11 11:27:00,DRIFT,"TOOL-003 drift detected (ratio=2.27x, rolling_MAE=7.79)"
+2024-06-11 09:34:00,RETRAIN_REJECTED,"TOOL-003 candidate rejected (MAPE_candidate=48.72 MAPE_incumbent=38.65, candidate_not_lower)"
+2024-06-11 11:41:00,DRIFT,"ELEC-002 drift detected (ratio=2.55x, rolling_MAE=7.91)"
+2024-06-11 12:52:00,RETRAIN_ACCEPTED,ELEC-002 candidate accepted (MAPE_candidate=52.22 MAPE_incumbent=136.45; pre_MAE=10.98 post_MAE=3.47)
+2024-06-12 10:04:00,DRIFT,"SOFT-001 drift detected (ratio=2.17x, rolling_MAE=10.41)"
+2024-06-12 12:38:00,RETRAIN_ACCEPTED,SOFT-001 candidate accepted (MAPE_candidate=59.07 MAPE_incumbent=59.11; pre_MAE=10.82 post_MAE=11.15)
+2024-06-13 17:58:00,DRIFT,"SOFT-003 drift detected (ratio=2.31x, rolling_MAE=3.73)"
+2024-06-13 12:28:00,COOLDOWN,SOFT-003 drift detected but in cooldown period
+2024-06-13 09:29:00,DRIFT,"JWLY-002 drift detected (ratio=2.09x, rolling_MAE=12.17)"
+2024-06-13 14:17:00,RETRAIN_ACCEPTED,JWLY-002 candidate accepted (MAPE_candidate=331.53 MAPE_incumbent=541.41; pre_MAE=2.19 post_MAE=8.34)
+2024-06-13 16:34:00,DRIFT,"GROC-001 drift detected (ratio=2.52x, rolling_MAE=11.67)"
+2024-06-13 09:38:00,RETRAIN_ACCEPTED,GROC-001 candidate accepted (MAPE_candidate=124.33 MAPE_incumbent=142.17; pre_MAE=12.09 post_MAE=13.47)
+2024-06-14 08:56:00,DRIFT,"SOFT-003 drift detected (ratio=2.35x, rolling_MAE=3.80)"
+2024-06-14 14:47:00,COOLDOWN,SOFT-003 drift detected but in cooldown period
+2024-06-15 13:38:00,DRIFT,"SOFT-003 drift detected (ratio=2.65x, rolling_MAE=4.27)"
+2024-06-15 12:01:00,COOLDOWN,SOFT-003 drift detected but in cooldown period
+2024-06-16 09:14:00,DRIFT,"SOFT-003 drift detected (ratio=2.56x, rolling_MAE=4.13)"
+2024-06-16 18:53:00,COOLDOWN,SOFT-003 drift detected but in cooldown period
+2024-06-17 17:37:00,DRIFT,"TOYS-003 drift detected (ratio=4.34x, rolling_MAE=6.20)"
+2024-06-17 08:48:00,RETRAIN_REJECTED,"TOYS-003 candidate rejected (MAPE_candidate=186.56 MAPE_incumbent=166.66, candidate_not_lower)"
+2024-06-17 18:52:00,DRIFT,"SOFT-003 drift detected (ratio=2.92x, rolling_MAE=4.71)"
+2024-06-17 12:36:00,RETRAIN_REJECTED,"SOFT-003 candidate rejected (MAPE_candidate=63.34 MAPE_incumbent=58.61, candidate_not_lower)"
+2024-06-17 08:48:00,DRIFT,"PETS-003 drift detected (ratio=2.01x, rolling_MAE=12.73)"
+2024-06-17 16:41:00,RETRAIN_ACCEPTED,PETS-003 candidate accepted (MAPE_candidate=144.34 MAPE_incumbent=273.83; pre_MAE=16.47 post_MAE=5.95)
+2024-06-20 15:58:00,DRIFT,"TOYS-003 drift detected (ratio=4.54x, rolling_MAE=6.49)"
+2024-06-20 12:11:00,COOLDOWN,TOYS-003 drift detected but in cooldown period
+2024-06-20 17:27:00,DRIFT,"SOFT-003 drift detected (ratio=2.75x, rolling_MAE=4.44)"
+2024-06-20 18:52:00,COOLDOWN,SOFT-003 drift detected but in cooldown period
+2024-06-21 15:05:00,DRIFT,"SOFT-003 drift detected (ratio=3.06x, rolling_MAE=4.94)"
+2024-06-21 15:22:00,COOLDOWN,SOFT-003 drift detected but in cooldown period
+2024-06-21 14:21:00,DRIFT,"TOYS-003 drift detected (ratio=4.11x, rolling_MAE=5.88)"
+2024-06-21 13:42:00,COOLDOWN,TOYS-003 drift detected but in cooldown period
+2024-06-22 09:54:00,DRIFT,"SOFT-003 drift detected (ratio=2.79x, rolling_MAE=4.51)"
+2024-06-22 10:21:00,COOLDOWN,SOFT-003 drift detected but in cooldown period
+2024-06-22 14:44:00,DRIFT,"TOYS-003 drift detected (ratio=3.44x, rolling_MAE=4.92)"
+2024-06-22 15:18:00,COOLDOWN,TOYS-003 drift detected but in cooldown period
+2024-06-23 18:25:00,DRIFT,"TOYS-003 drift detected (ratio=3.84x, rolling_MAE=5.50)"
+2024-06-23 16:02:00,COOLDOWN,TOYS-003 drift detected but in cooldown period
+2024-06-23 15:05:00,DRIFT,"BOOK-002 drift detected (ratio=2.61x, rolling_MAE=10.19)"
+2024-06-23 13:16:00,RETRAIN_REJECTED,"BOOK-002 candidate rejected (MAPE_candidate=185.68 MAPE_incumbent=147.99, candidate_not_lower)"
+2024-06-23 13:07:00,DRIFT,"SOFT-003 drift detected (ratio=2.87x, rolling_MAE=4.64)"
+2024-06-23 14:55:00,COOLDOWN,SOFT-003 drift detected but in cooldown period
+2024-06-24 16:52:00,DRIFT,"OFFC-001 drift detected (ratio=2.06x, rolling_MAE=17.46)"
+2024-06-24 16:29:00,RETRAIN_ACCEPTED,OFFC-001 candidate accepted (MAPE_candidate=54.40 MAPE_incumbent=174.70; pre_MAE=17.18 post_MAE=4.57)
+2024-06-24 14:03:00,DRIFT,"SOFT-003 drift detected (ratio=2.43x, rolling_MAE=3.93)"
+2024-06-24 11:33:00,RETRAIN_REJECTED,"SOFT-003 candidate rejected (MAPE_candidate=46.21 MAPE_incumbent=43.32, candidate_not_lower)"
+2024-06-24 13:39:00,DRIFT,"TOYS-003 drift detected (ratio=3.76x, rolling_MAE=5.38)"
+2024-06-24 15:40:00,RETRAIN_REJECTED,"TOYS-003 candidate rejected (MAPE_candidate=32.90 MAPE_incumbent=32.28, candidate_not_lower)"
+2024-06-26 15:48:00,DRIFT,"BOOK-002 drift detected (ratio=3.08x, rolling_MAE=12.05)"
+2024-06-26 08:13:00,COOLDOWN,BOOK-002 drift detected but in cooldown period
+2024-06-27 12:35:00,DRIFT,"SOFT-003 drift detected (ratio=3.16x, rolling_MAE=5.11)"
+2024-06-27 10:59:00,COOLDOWN,SOFT-003 drift detected but in cooldown period
+2024-06-27 12:28:00,DRIFT,"TOYS-003 drift detected (ratio=2.82x, rolling_MAE=4.03)"
+2024-06-27 15:07:00,COOLDOWN,TOYS-003 drift detected but in cooldown period
+2024-06-27 08:40:00,DRIFT,"BOOK-002 drift detected (ratio=2.68x, rolling_MAE=10.49)"
+2024-06-27 17:51:00,COOLDOWN,BOOK-002 drift detected but in cooldown period
+2024-06-28 11:45:00,DRIFT,"BOOK-002 drift detected (ratio=2.39x, rolling_MAE=9.34)"
+2024-06-28 10:19:00,COOLDOWN,BOOK-002 drift detected but in cooldown period
+2024-06-28 16:00:00,DRIFT,"SOFT-003 drift detected (ratio=2.94x, rolling_MAE=4.74)"
+2024-06-28 16:26:00,COOLDOWN,SOFT-003 drift detected but in cooldown period
+2024-06-28 09:14:00,DRIFT,"TOYS-003 drift detected (ratio=2.14x, rolling_MAE=3.06)"
+2024-06-28 09:29:00,COOLDOWN,TOYS-003 drift detected but in cooldown period
+2024-06-29 09:41:00,DRIFT,"SOFT-003 drift detected (ratio=3.20x, rolling_MAE=5.17)"
+2024-06-29 10:31:00,COOLDOWN,SOFT-003 drift detected but in cooldown period
+2024-06-29 12:32:00,DRIFT,"TOYS-003 drift detected (ratio=2.40x, rolling_MAE=3.44)"
+2024-06-29 12:26:00,COOLDOWN,TOYS-003 drift detected but in cooldown period
+2024-06-29 15:30:00,DRIFT,"BOOK-002 drift detected (ratio=2.10x, rolling_MAE=8.21)"
+2024-06-29 11:29:00,COOLDOWN,BOOK-002 drift detected but in cooldown period
+2024-06-30 16:09:00,DRIFT,"BOOK-002 drift detected (ratio=2.30x, rolling_MAE=9.00)"
+2024-06-30 14:12:00,RETRAIN_REJECTED,"BOOK-002 candidate rejected (MAPE_candidate=55.77 MAPE_incumbent=39.34, candidate_not_lower)"
+2024-06-30 17:32:00,DRIFT,"SOFT-003 drift detected (ratio=3.38x, rolling_MAE=5.46)"
+2024-06-30 10:55:00,COOLDOWN,SOFT-003 drift detected but in cooldown period
+2024-06-30 09:17:00,DRIFT,"TOYS-003 drift detected (ratio=2.06x, rolling_MAE=2.96)"
+2024-06-30 14:21:00,COOLDOWN,TOYS-003 drift detected but in cooldown period
+2024-07-01 16:17:00,DRIFT,"SOFT-003 drift detected (ratio=3.65x, rolling_MAE=5.89)"
+2024-07-01 12:53:00,RETRAIN_ACCEPTED,SOFT-003 candidate accepted (MAPE_candidate=42.23 MAPE_incumbent=42.46; pre_MAE=7.09 post_MAE=6.53)
+2024-07-02 17:37:00,DRIFT,"MUSC-001 drift detected (ratio=2.07x, rolling_MAE=10.94)"
+2024-07-02 10:28:00,RETRAIN_ACCEPTED,MUSC-001 candidate accepted (MAPE_candidate=194.30 MAPE_incumbent=254.52; pre_MAE=3.74 post_MAE=0.35)
+2024-07-04 16:30:00,DRIFT,"TOYS-003 drift detected (ratio=3.55x, rolling_MAE=5.08)"
+2024-07-04 13:21:00,RETRAIN_REJECTED,"TOYS-003 candidate rejected (MAPE_candidate=78.06 MAPE_incumbent=69.27, candidate_not_lower)"
+2024-07-04 16:48:00,DRIFT,"TOOL-001 drift detected (ratio=2.20x, rolling_MAE=15.81)"
+2024-07-04 15:59:00,RETRAIN_ACCEPTED,TOOL-001 candidate accepted (MAPE_candidate=37.59 MAPE_incumbent=149.22; pre_MAE=14.90 post_MAE=1.68)
+2024-07-07 13:55:00,DRIFT,"TOYS-003 drift detected (ratio=3.83x, rolling_MAE=5.48)"
+2024-07-07 11:44:00,COOLDOWN,TOYS-003 drift detected but in cooldown period
+2024-07-08 11:36:00,DRIFT,"TOYS-003 drift detected (ratio=4.09x, rolling_MAE=5.86)"
+2024-07-08 14:14:00,COOLDOWN,TOYS-003 drift detected but in cooldown period
+2024-07-09 14:02:00,DRIFT,"TOYS-003 drift detected (ratio=3.90x, rolling_MAE=5.58)"
+2024-07-09 13:47:00,COOLDOWN,TOYS-003 drift detected but in cooldown period
+2024-07-10 15:45:00,DRIFT,"TOYS-003 drift detected (ratio=3.17x, rolling_MAE=4.54)"
+2024-07-10 14:24:00,COOLDOWN,TOYS-003 drift detected but in cooldown period
+2024-07-11 18:50:00,DRIFT,"MUSC-001 drift detected (ratio=19.71x, rolling_MAE=6.89)"
+2024-07-11 15:02:00,RETRAIN_ACCEPTED,MUSC-001 candidate accepted (MAPE_candidate=72.12 MAPE_incumbent=78.34; pre_MAE=4.12 post_MAE=2.67)
+2024-07-11 10:32:00,DRIFT,"TOYS-003 drift detected (ratio=3.07x, rolling_MAE=4.39)"
+2024-07-11 09:55:00,RETRAIN_ACCEPTED,TOYS-003 candidate accepted (MAPE_candidate=26.23 MAPE_incumbent=27.16; pre_MAE=3.17 post_MAE=4.10)
+2024-07-13 15:06:00,DRIFT,"TOOL-001 drift detected (ratio=2.42x, rolling_MAE=4.07)"
+2024-07-13 15:00:00,RETRAIN_ACCEPTED,TOOL-001 candidate accepted (MAPE_candidate=71.69 MAPE_incumbent=80.38; pre_MAE=6.89 post_MAE=6.07)
+2024-07-16 10:26:00,DRIFT,"MOVI-003 drift detected (ratio=2.57x, rolling_MAE=21.86)"
+2024-07-16 09:30:00,RETRAIN_ACCEPTED,MOVI-003 candidate accepted (MAPE_candidate=328.62 MAPE_incumbent=699.97; pre_MAE=19.35 post_MAE=5.30)
+2024-07-18 12:21:00,DRIFT,"TOYS-001 drift detected (ratio=2.36x, rolling_MAE=11.90)"
+2024-07-18 14:41:00,RETRAIN_ACCEPTED,TOYS-001 candidate accepted (MAPE_candidate=210.87 MAPE_incumbent=281.46; pre_MAE=12.25 post_MAE=9.17)
+2024-07-20 09:54:00,DRIFT,"MUSC-001 drift detected (ratio=3.00x, rolling_MAE=8.03)"
+2024-07-20 13:54:00,RETRAIN_REJECTED,"MUSC-001 candidate rejected (MAPE_candidate=72.40 MAPE_incumbent=71.94, candidate_not_lower)"
+2024-07-30 18:54:00,DRIFT,"CLTH-002 drift detected (ratio=2.10x, rolling_MAE=7.76)"
+2024-07-30 13:40:00,RETRAIN_ACCEPTED,CLTH-002 candidate accepted (MAPE_candidate=30.36 MAPE_incumbent=40.93; pre_MAE=5.40 post_MAE=0.83)
+2024-08-06 15:55:00,DRIFT,"PCAR-002 drift detected (ratio=2.08x, rolling_MAE=19.92)"
+2024-08-06 17:04:00,RETRAIN_ACCEPTED,PCAR-002 candidate accepted (MAPE_candidate=73.16 MAPE_incumbent=258.39; pre_MAE=21.72 post_MAE=2.09)
+2024-08-08 11:40:00,DRIFT,"CLTH-002 drift detected (ratio=5.72x, rolling_MAE=4.76)"
+2024-08-08 18:58:00,RETRAIN_REJECTED,"CLTH-002 candidate rejected (MAPE_candidate=34.29 MAPE_incumbent=33.89, candidate_not_lower)"
+2024-08-11 12:14:00,DRIFT,"CLTH-002 drift detected (ratio=6.29x, rolling_MAE=5.24)"
+2024-08-11 09:27:00,COOLDOWN,CLTH-002 drift detected but in cooldown period
+2024-08-12 09:48:00,DRIFT,"CLTH-002 drift detected (ratio=6.36x, rolling_MAE=5.29)"
+2024-08-12 18:45:00,COOLDOWN,CLTH-002 drift detected but in cooldown period
+2024-08-12 09:28:00,DRIFT,"GROC-002 drift detected (ratio=2.07x, rolling_MAE=10.00)"
+2024-08-12 12:57:00,RETRAIN_ACCEPTED,GROC-002 candidate accepted (MAPE_candidate=130.06 MAPE_incumbent=136.44; pre_MAE=0.56 post_MAE=1.85)
+2024-08-13 08:02:00,DRIFT,"BOOK-002 drift detected (ratio=2.31x, rolling_MAE=9.02)"
+2024-08-13 13:50:00,RETRAIN_REJECTED,"BOOK-002 candidate rejected (MAPE_candidate=103.26 MAPE_incumbent=97.13, candidate_not_lower)"
+2024-08-13 08:18:00,DRIFT,"HLTH-001 drift detected (ratio=2.01x, rolling_MAE=11.55)"
+2024-08-13 14:09:00,RETRAIN_ACCEPTED,HLTH-001 candidate accepted (MAPE_candidate=75.39 MAPE_incumbent=135.76; pre_MAE=3.83 post_MAE=2.75)
+2024-08-13 11:33:00,DRIFT,"CLTH-002 drift detected (ratio=5.49x, rolling_MAE=4.57)"
+2024-08-13 14:36:00,COOLDOWN,CLTH-002 drift detected but in cooldown period
+2024-08-14 18:50:00,DRIFT,"CLTH-002 drift detected (ratio=3.61x, rolling_MAE=3.00)"
+2024-08-14 10:10:00,COOLDOWN,CLTH-002 drift detected but in cooldown period
+2024-08-14 10:05:00,DRIFT,"MOVI-002 drift detected (ratio=2.23x, rolling_MAE=18.71)"
+2024-08-14 14:39:00,RETRAIN_ACCEPTED,MOVI-002 candidate accepted (MAPE_candidate=37.61 MAPE_incumbent=100.00; pre_MAE=14.00 post_MAE=0.40)
+2024-08-15 18:15:00,DRIFT,"CLTH-002 drift detected (ratio=3.63x, rolling_MAE=3.02)"
+2024-08-15 15:58:00,RETRAIN_REJECTED,"CLTH-002 candidate rejected (MAPE_candidate=42.48 MAPE_incumbent=36.53, candidate_not_lower)"
+2024-08-15 17:09:00,DRIFT,"MUSC-001 drift detected (ratio=2.38x, rolling_MAE=6.38)"
+2024-08-15 11:29:00,RETRAIN_REJECTED,"MUSC-001 candidate rejected (MAPE_candidate=52.24 MAPE_incumbent=51.64, candidate_not_lower)"
+2024-08-16 18:16:00,DRIFT,"BOOK-002 drift detected (ratio=2.46x, rolling_MAE=9.61)"
+2024-08-16 15:16:00,COOLDOWN,BOOK-002 drift detected but in cooldown period
+2024-08-17 18:00:00,DRIFT,"BOOK-002 drift detected (ratio=2.13x, rolling_MAE=8.34)"
+2024-08-17 15:57:00,COOLDOWN,BOOK-002 drift detected but in cooldown period
+2024-08-18 12:43:00,DRIFT,"MUSC-001 drift detected (ratio=2.38x, rolling_MAE=6.38)"
+2024-08-18 16:10:00,COOLDOWN,MUSC-001 drift detected but in cooldown period
+2024-08-18 09:28:00,DRIFT,"CLTH-002 drift detected (ratio=2.49x, rolling_MAE=2.07)"
+2024-08-18 13:37:00,COOLDOWN,CLTH-002 drift detected but in cooldown period
+2024-08-19 12:40:00,DRIFT,"CLTH-002 drift detected (ratio=2.48x, rolling_MAE=2.06)"
+2024-08-19 14:44:00,COOLDOWN,CLTH-002 drift detected but in cooldown period
+2024-08-19 12:29:00,DRIFT,"BOOK-001 drift detected (ratio=2.07x, rolling_MAE=8.49)"
+2024-08-19 14:54:00,RETRAIN_ACCEPTED,BOOK-001 candidate accepted (MAPE_candidate=43.94 MAPE_incumbent=45.25; pre_MAE=2.10 post_MAE=0.06)
+2024-08-19 15:06:00,DRIFT,"MUSC-001 drift detected (ratio=2.33x, rolling_MAE=6.23)"
+2024-08-19 11:24:00,COOLDOWN,MUSC-001 drift detected but in cooldown period
+2024-08-20 17:22:00,DRIFT,"CLTH-002 drift detected (ratio=2.82x, rolling_MAE=2.35)"
+2024-08-20 17:18:00,COOLDOWN,CLTH-002 drift detected but in cooldown period
+2024-08-20 12:01:00,DRIFT,"PCAR-002 drift detected (ratio=2.25x, rolling_MAE=4.71)"
+2024-08-20 18:25:00,RETRAIN_REJECTED,"PCAR-002 candidate rejected (MAPE_candidate=60.25 MAPE_incumbent=59.07, candidate_not_lower)"
+2024-08-21 12:00:00,DRIFT,"GROC-002 drift detected (ratio=4.72x, rolling_MAE=8.74)"
+2024-08-21 18:49:00,RETRAIN_ACCEPTED,GROC-002 candidate accepted (MAPE_candidate=62.79 MAPE_incumbent=64.54; pre_MAE=16.55 post_MAE=16.08)
+2024-08-21 08:58:00,DRIFT,"CLTH-002 drift detected (ratio=3.17x, rolling_MAE=2.63)"
+2024-08-21 17:47:00,COOLDOWN,CLTH-002 drift detected but in cooldown period
+2024-08-22 15:53:00,DRIFT,"CLTH-002 drift detected (ratio=2.45x, rolling_MAE=2.04)"
+2024-08-22 12:49:00,RETRAIN_REJECTED,"CLTH-002 candidate rejected (MAPE_candidate=39.74 MAPE_incumbent=31.53, candidate_not_lower)"
+2024-08-23 11:38:00,DRIFT,"HLTH-001 drift detected (ratio=2.57x, rolling_MAE=7.08)"
+2024-08-23 13:14:00,RETRAIN_REJECTED,"HLTH-001 candidate rejected (MAPE_candidate=82.62 MAPE_incumbent=80.68, candidate_not_lower)"
+2024-08-23 18:12:00,DRIFT,"MOVI-002 drift detected (ratio=10.53x, rolling_MAE=4.23)"
+2024-08-23 17:16:00,RETRAIN_REJECTED,"MOVI-002 candidate rejected (MAPE_candidate=40.18 MAPE_incumbent=36.10, candidate_not_lower)"
+2024-08-23 18:48:00,DRIFT,"PCAR-002 drift detected (ratio=2.29x, rolling_MAE=4.78)"
+2024-08-23 18:43:00,COOLDOWN,PCAR-002 drift detected but in cooldown period
+2024-08-24 10:40:00,DRIFT,"PCAR-002 drift detected (ratio=2.70x, rolling_MAE=5.64)"
+2024-08-24 09:57:00,COOLDOWN,PCAR-002 drift detected but in cooldown period
+2024-08-25 18:41:00,DRIFT,"CLTH-002 drift detected (ratio=5.70x, rolling_MAE=4.75)"
+2024-08-25 08:19:00,COOLDOWN,CLTH-002 drift detected but in cooldown period
+2024-08-25 15:02:00,DRIFT,"MUSC-001 drift detected (ratio=2.40x, rolling_MAE=6.42)"
+2024-08-25 17:23:00,RETRAIN_REJECTED,"MUSC-001 candidate rejected (MAPE_candidate=75.41 MAPE_incumbent=72.94, candidate_not_lower)"
+2024-08-25 10:05:00,DRIFT,"PCAR-002 drift detected (ratio=2.77x, rolling_MAE=5.78)"
+2024-08-25 12:20:00,COOLDOWN,PCAR-002 drift detected but in cooldown period
+2024-08-26 14:11:00,DRIFT,"MOVI-002 drift detected (ratio=5.87x, rolling_MAE=2.36)"
+2024-08-26 11:08:00,COOLDOWN,MOVI-002 drift detected but in cooldown period
+2024-08-26 16:56:00,DRIFT,"PCAR-002 drift detected (ratio=2.35x, rolling_MAE=4.92)"
+2024-08-26 13:33:00,COOLDOWN,PCAR-002 drift detected but in cooldown period
+2024-08-26 16:58:00,DRIFT,"CLTH-002 drift detected (ratio=5.49x, rolling_MAE=4.57)"
+2024-08-26 12:53:00,COOLDOWN,CLTH-002 drift detected but in cooldown period
+2024-08-27 10:16:00,DRIFT,"GRDN-001 drift detected (ratio=2.36x, rolling_MAE=11.93)"
+2024-08-27 12:47:00,RETRAIN_ACCEPTED,GRDN-001 candidate accepted (MAPE_candidate=52.75 MAPE_incumbent=105.30; pre_MAE=10.49 post_MAE=4.91)
+2024-08-27 13:51:00,DRIFT,"MOVI-002 drift detected (ratio=5.93x, rolling_MAE=2.38)"
+2024-08-27 09:29:00,COOLDOWN,MOVI-002 drift detected but in cooldown period
+2024-08-27 09:09:00,DRIFT,"PCAR-002 drift detected (ratio=2.90x, rolling_MAE=6.07)"
+2024-08-27 18:46:00,RETRAIN_ACCEPTED,PCAR-002 candidate accepted (MAPE_candidate=44.49 MAPE_incumbent=44.94; pre_MAE=9.95 post_MAE=9.42)
+2024-08-27 18:25:00,DRIFT,"CLTH-002 drift detected (ratio=5.64x, rolling_MAE=4.69)"
+2024-08-27 16:23:00,COOLDOWN,CLTH-002 drift detected but in cooldown period
+2024-08-28 09:50:00,DRIFT,"BOOK-001 drift detected (ratio=122.28x, rolling_MAE=7.72)"
+2024-08-28 14:00:00,RETRAIN_REJECTED,"BOOK-001 candidate rejected (MAPE_candidate=216.37 MAPE_incumbent=205.93, candidate_not_lower)"
+2024-08-28 12:34:00,DRIFT,"MOVI-002 drift detected (ratio=7.61x, rolling_MAE=3.06)"
+2024-08-28 09:29:00,COOLDOWN,MOVI-002 drift detected but in cooldown period
+2024-08-28 13:43:00,DRIFT,"CLTH-002 drift detected (ratio=5.98x, rolling_MAE=4.97)"
+2024-08-28 18:16:00,COOLDOWN,CLTH-002 drift detected but in cooldown period
+2024-08-29 17:24:00,DRIFT,"MOVI-002 drift detected (ratio=8.33x, rolling_MAE=3.35)"
+2024-08-29 18:23:00,COOLDOWN,MOVI-002 drift detected but in cooldown period
+2024-08-29 09:43:00,DRIFT,"CLTH-002 drift detected (ratio=6.66x, rolling_MAE=5.54)"
+2024-08-29 11:30:00,RETRAIN_REJECTED,"CLTH-002 candidate rejected (MAPE_candidate=174.26 MAPE_incumbent=154.55, candidate_not_lower)"
+2024-08-30 08:39:00,DRIFT,"MOVI-002 drift detected (ratio=8.03x, rolling_MAE=3.23)"
+2024-08-30 16:20:00,RETRAIN_REJECTED,"MOVI-002 candidate rejected (MAPE_candidate=68.66 MAPE_incumbent=64.44, candidate_not_lower)"
+2024-08-30 17:14:00,DRIFT,"BEAU-002 drift detected (ratio=2.04x, rolling_MAE=9.25)"
+2024-08-30 18:52:00,RETRAIN_ACCEPTED,BEAU-002 candidate accepted (MAPE_candidate=87.60 MAPE_incumbent=152.21; pre_MAE=1.22 post_MAE=6.82)
+2024-08-31 15:58:00,DRIFT,"TOYS-003 drift detected (ratio=2.51x, rolling_MAE=10.30)"
+2024-08-31 14:07:00,RETRAIN_ACCEPTED,TOYS-003 candidate accepted (MAPE_candidate=63.50 MAPE_incumbent=65.52; pre_MAE=17.63 post_MAE=17.14)
+2024-08-31 10:02:00,DRIFT,"BOOK-001 drift detected (ratio=118.87x, rolling_MAE=7.50)"
+2024-08-31 08:19:00,COOLDOWN,BOOK-001 drift detected but in cooldown period
+2024-09-01 15:07:00,DRIFT,"BOOK-001 drift detected (ratio=110.69x, rolling_MAE=6.99)"
+2024-09-01 09:15:00,COOLDOWN,BOOK-001 drift detected but in cooldown period
+2024-09-01 16:08:00,DRIFT,"CLTH-002 drift detected (ratio=4.08x, rolling_MAE=3.39)"
+2024-09-01 14:29:00,COOLDOWN,CLTH-002 drift detected but in cooldown period
+2024-09-02 13:42:00,DRIFT,"MOVI-002 drift detected (ratio=11.79x, rolling_MAE=4.73)"
+2024-09-02 16:26:00,COOLDOWN,MOVI-002 drift detected but in cooldown period
+2024-09-02 17:47:00,DRIFT,"CLTH-002 drift detected (ratio=4.25x, rolling_MAE=3.54)"
+2024-09-02 10:56:00,COOLDOWN,CLTH-002 drift detected but in cooldown period
+2024-09-02 14:41:00,DRIFT,"AUTO-002 drift detected (ratio=2.32x, rolling_MAE=15.65)"
+2024-09-02 15:39:00,RETRAIN_ACCEPTED,AUTO-002 candidate accepted (MAPE_candidate=94.86 MAPE_incumbent=205.07; pre_MAE=6.92 post_MAE=2.33)
+2024-09-02 14:17:00,DRIFT,"BOOK-001 drift detected (ratio=94.85x, rolling_MAE=5.99)"
+2024-09-02 08:44:00,COOLDOWN,BOOK-001 drift detected but in cooldown period
+2024-09-03 13:13:00,DRIFT,"BOOK-001 drift detected (ratio=60.99x, rolling_MAE=3.85)"
+2024-09-03 15:28:00,COOLDOWN,BOOK-001 drift detected but in cooldown period
+2024-09-03 11:54:00,DRIFT,"MOVI-002 drift detected (ratio=11.71x, rolling_MAE=4.70)"
+2024-09-03 13:06:00,COOLDOWN,MOVI-002 drift detected but in cooldown period
+2024-09-03 18:23:00,DRIFT,"CLTH-002 drift detected (ratio=4.60x, rolling_MAE=3.83)"
+2024-09-03 16:57:00,COOLDOWN,CLTH-002 drift detected but in cooldown period
+2024-09-04 18:22:00,DRIFT,"MOVI-002 drift detected (ratio=8.26x, rolling_MAE=3.32)"
+2024-09-04 08:25:00,COOLDOWN,MOVI-002 drift detected but in cooldown period
+2024-09-04 12:12:00,DRIFT,"BOOK-001 drift detected (ratio=55.05x, rolling_MAE=3.48)"
+2024-09-04 09:54:00,RETRAIN_REJECTED,"BOOK-001 candidate rejected (MAPE_candidate=51.99 MAPE_incumbent=42.45, candidate_not_lower)"
+2024-09-04 15:05:00,DRIFT,"CLTH-002 drift detected (ratio=4.08x, rolling_MAE=3.40)"
+2024-09-04 18:13:00,COOLDOWN,CLTH-002 drift detected but in cooldown period
+2024-09-05 18:40:00,DRIFT,"CLTH-002 drift detected (ratio=3.62x, rolling_MAE=3.01)"
+2024-09-05 17:01:00,RETRAIN_REJECTED,"CLTH-002 candidate rejected (MAPE_candidate=42.72 MAPE_incumbent=39.73, candidate_not_lower)"
+2024-09-05 08:50:00,DRIFT,"MOVI-002 drift detected (ratio=8.98x, rolling_MAE=3.61)"
+2024-09-05 13:15:00,COOLDOWN,MOVI-002 drift detected but in cooldown period
+2024-09-06 10:50:00,DRIFT,"MOVI-002 drift detected (ratio=11.04x, rolling_MAE=4.43)"
+2024-09-06 17:13:00,RETRAIN_REJECTED,"MOVI-002 candidate rejected (MAPE_candidate=32.75 MAPE_incumbent=31.16, candidate_not_lower)"
+2024-09-07 09:53:00,DRIFT,"BOOK-001 drift detected (ratio=58.65x, rolling_MAE=3.70)"
+2024-09-07 16:13:00,COOLDOWN,BOOK-001 drift detected but in cooldown period
+2024-09-08 17:13:00,DRIFT,"BOOK-001 drift detected (ratio=72.13x, rolling_MAE=4.55)"
+2024-09-08 11:21:00,COOLDOWN,BOOK-001 drift detected but in cooldown period
+2024-09-08 10:50:00,DRIFT,"CLTH-002 drift detected (ratio=3.62x, rolling_MAE=3.01)"
+2024-09-08 17:00:00,COOLDOWN,CLTH-002 drift detected but in cooldown period
+2024-09-09 12:54:00,DRIFT,"CLTH-002 drift detected (ratio=3.81x, rolling_MAE=3.17)"
+2024-09-09 10:08:00,COOLDOWN,CLTH-002 drift detected but in cooldown period
+2024-09-09 16:16:00,DRIFT,"BOOK-001 drift detected (ratio=65.15x, rolling_MAE=4.11)"
+2024-09-09 10:07:00,COOLDOWN,BOOK-001 drift detected but in cooldown period
+2024-09-09 18:55:00,DRIFT,"MOVI-002 drift detected (ratio=13.53x, rolling_MAE=5.43)"
+2024-09-09 08:08:00,COOLDOWN,MOVI-002 drift detected but in cooldown period
+2024-09-10 08:22:00,DRIFT,"MOVI-002 drift detected (ratio=15.30x, rolling_MAE=6.14)"
+2024-09-10 11:37:00,COOLDOWN,MOVI-002 drift detected but in cooldown period
+2024-09-10 13:01:00,DRIFT,"BOOK-001 drift detected (ratio=67.51x, rolling_MAE=4.26)"
+2024-09-10 10:16:00,COOLDOWN,BOOK-001 drift detected but in cooldown period
+2024-09-10 08:08:00,DRIFT,"CLTH-002 drift detected (ratio=3.81x, rolling_MAE=3.17)"
+2024-09-10 14:33:00,COOLDOWN,CLTH-002 drift detected but in cooldown period
+2024-09-11 09:47:00,DRIFT,"CLTH-002 drift detected (ratio=4.67x, rolling_MAE=3.88)"
+2024-09-11 09:30:00,COOLDOWN,CLTH-002 drift detected but in cooldown period
+2024-09-11 15:49:00,DRIFT,"BOOK-001 drift detected (ratio=89.10x, rolling_MAE=5.62)"
+2024-09-11 17:06:00,RETRAIN_ACCEPTED,BOOK-001 candidate accepted (MAPE_candidate=31.05 MAPE_incumbent=31.20; pre_MAE=12.25 post_MAE=13.31)
+2024-09-11 15:32:00,DRIFT,"MOVI-002 drift detected (ratio=17.09x, rolling_MAE=6.86)"
+2024-09-11 11:39:00,COOLDOWN,MOVI-002 drift detected but in cooldown period
+2024-09-11 08:46:00,DRIFT,"BOOK-002 drift detected (ratio=2.31x, rolling_MAE=9.05)"
+2024-09-11 18:33:00,RETRAIN_REJECTED,"BOOK-002 candidate rejected (MAPE_candidate=99.92 MAPE_incumbent=90.01, candidate_not_lower)"
+2024-09-12 12:29:00,DRIFT,"OFFC-001 drift detected (ratio=2.27x, rolling_MAE=10.38)"
+2024-09-12 08:30:00,RETRAIN_ACCEPTED,OFFC-001 candidate accepted (MAPE_candidate=283.95 MAPE_incumbent=354.19; pre_MAE=5.49 post_MAE=2.19)
+2024-09-12 14:27:00,DRIFT,"MOVI-002 drift detected (ratio=14.72x, rolling_MAE=5.91)"
+2024-09-12 18:06:00,COOLDOWN,MOVI-002 drift detected but in cooldown period
+2024-09-12 15:45:00,DRIFT,"CLTH-002 drift detected (ratio=4.84x, rolling_MAE=4.03)"
+2024-09-12 15:04:00,RETRAIN_REJECTED,"CLTH-002 candidate rejected (MAPE_candidate=82.40 MAPE_incumbent=75.35, candidate_not_lower)"
+2024-09-13 09:20:00,DRIFT,"MOVI-002 drift detected (ratio=13.65x, rolling_MAE=5.48)"
+2024-09-13 17:09:00,RETRAIN_REJECTED,"MOVI-002 candidate rejected (MAPE_candidate=62.77 MAPE_incumbent=57.63, candidate_not_lower)"
+2024-09-15 09:08:00,DRIFT,"CLTH-002 drift detected (ratio=5.35x, rolling_MAE=4.46)"
+2024-09-15 12:39:00,COOLDOWN,CLTH-002 drift detected but in cooldown period
+2024-09-16 18:37:00,DRIFT,"MOVI-002 drift detected (ratio=9.23x, rolling_MAE=3.71)"
+2024-09-16 16:45:00,COOLDOWN,MOVI-002 drift detected but in cooldown period
+2024-09-16 13:24:00,DRIFT,"CLTH-002 drift detected (ratio=5.17x, rolling_MAE=4.30)"
+2024-09-16 17:33:00,COOLDOWN,CLTH-002 drift detected but in cooldown period
+2024-09-17 12:29:00,DRIFT,"CLTH-002 drift detected (ratio=4.66x, rolling_MAE=3.88)"
+2024-09-17 16:38:00,COOLDOWN,CLTH-002 drift detected but in cooldown period
+2024-09-17 14:06:00,DRIFT,"MOVI-002 drift detected (ratio=7.45x, rolling_MAE=2.99)"
+2024-09-17 09:54:00,COOLDOWN,MOVI-002 drift detected but in cooldown period
+2024-09-18 18:41:00,DRIFT,"MUSC-001 drift detected (ratio=2.53x, rolling_MAE=6.77)"
+2024-09-18 16:46:00,RETRAIN_REJECTED,"MUSC-001 candidate rejected (MAPE_candidate=144.51 MAPE_incumbent=136.95, candidate_not_lower)"
+2024-09-18 11:27:00,DRIFT,"MOVI-002 drift detected (ratio=5.89x, rolling_MAE=2.36)"
+2024-09-18 15:56:00,COOLDOWN,MOVI-002 drift detected but in cooldown period
+2024-09-18 11:26:00,DRIFT,"CLTH-002 drift detected (ratio=3.67x, rolling_MAE=3.06)"
+2024-09-18 13:52:00,COOLDOWN,CLTH-002 drift detected but in cooldown period
+2024-09-19 15:25:00,DRIFT,"CLTH-002 drift detected (ratio=3.43x, rolling_MAE=2.85)"
+2024-09-19 09:20:00,RETRAIN_ACCEPTED,CLTH-002 candidate accepted (MAPE_candidate=20.79 MAPE_incumbent=22.34; pre_MAE=1.27 post_MAE=1.49)
+2024-09-19 14:20:00,DRIFT,"MOVI-002 drift detected (ratio=5.52x, rolling_MAE=2.22)"
+2024-09-19 18:16:00,COOLDOWN,MOVI-002 drift detected but in cooldown period
+2024-09-19 13:09:00,DRIFT,"PCAR-003 drift detected (ratio=2.27x, rolling_MAE=10.23)"
+2024-09-19 15:04:00,RETRAIN_ACCEPTED,PCAR-003 candidate accepted (MAPE_candidate=86.47 MAPE_incumbent=119.91; pre_MAE=12.44 post_MAE=7.71)
+2024-09-19 09:53:00,DRIFT,"AUTO-002 drift detected (ratio=3.76x, rolling_MAE=8.77)"
+2024-09-19 09:05:00,RETRAIN_REJECTED,"AUTO-002 candidate rejected (MAPE_candidate=32.98 MAPE_incumbent=32.64, candidate_not_lower)"
+2024-09-20 14:06:00,DRIFT,"MOVI-002 drift detected (ratio=6.58x, rolling_MAE=2.64)"
+2024-09-20 13:51:00,RETRAIN_REJECTED,"MOVI-002 candidate rejected (MAPE_candidate=17.50 MAPE_incumbent=16.44, candidate_not_lower)"
+2024-09-21 10:35:00,DRIFT,"BOOK-002 drift detected (ratio=2.37x, rolling_MAE=9.26)"
+2024-09-21 16:35:00,RETRAIN_ACCEPTED,BOOK-002 candidate accepted (MAPE_candidate=36.03 MAPE_incumbent=43.19; pre_MAE=10.96 post_MAE=3.77)
+2024-09-22 13:42:00,DRIFT,"AUTO-002 drift detected (ratio=3.44x, rolling_MAE=8.03)"
+2024-09-22 09:26:00,COOLDOWN,AUTO-002 drift detected but in cooldown period
+2024-09-23 13:55:00,DRIFT,"AUTO-002 drift detected (ratio=3.46x, rolling_MAE=8.07)"
+2024-09-23 18:48:00,COOLDOWN,AUTO-002 drift detected but in cooldown period
+2024-09-23 14:55:00,DRIFT,"MOVI-002 drift detected (ratio=13.50x, rolling_MAE=5.42)"
+2024-09-23 08:18:00,COOLDOWN,MOVI-002 drift detected but in cooldown period
+2024-09-23 17:19:00,DRIFT,"OFFC-003 drift detected (ratio=2.46x, rolling_MAE=13.08)"
+2024-09-23 13:06:00,RETRAIN_REJECTED,"OFFC-003 candidate rejected (MAPE_candidate=63.72 MAPE_incumbent=62.35, candidate_not_lower)"
+2024-09-24 17:32:00,DRIFT,"AUTO-002 drift detected (ratio=3.37x, rolling_MAE=7.85)"
+2024-09-24 11:09:00,COOLDOWN,AUTO-002 drift detected but in cooldown period
+2024-09-24 18:30:00,DRIFT,"MOVI-002 drift detected (ratio=13.27x, rolling_MAE=5.33)"
+2024-09-24 11:54:00,COOLDOWN,MOVI-002 drift detected but in cooldown period
+2024-09-25 09:22:00,DRIFT,"MOVI-002 drift detected (ratio=13.62x, rolling_MAE=5.47)"
+2024-09-25 16:23:00,COOLDOWN,MOVI-002 drift detected but in cooldown period
+2024-09-26 09:48:00,DRIFT,"MOVI-002 drift detected (ratio=13.96x, rolling_MAE=5.61)"
+2024-09-26 12:36:00,COOLDOWN,MOVI-002 drift detected but in cooldown period
+2024-09-26 11:51:00,DRIFT,"OFFC-003 drift detected (ratio=2.52x, rolling_MAE=13.42)"
+2024-09-26 14:54:00,COOLDOWN,OFFC-003 drift detected but in cooldown period
+2024-09-27 16:49:00,DRIFT,"OFFC-003 drift detected (ratio=2.96x, rolling_MAE=15.73)"
+2024-09-27 17:39:00,COOLDOWN,OFFC-003 drift detected but in cooldown period
+2024-09-27 18:41:00,DRIFT,"MOVI-002 drift detected (ratio=13.96x, rolling_MAE=5.61)"
+2024-09-27 16:01:00,RETRAIN_REJECTED,"MOVI-002 candidate rejected (MAPE_candidate=42.32 MAPE_incumbent=40.97, candidate_not_lower)"
+2024-09-28 17:59:00,DRIFT,"DIY0-003 drift detected (ratio=2.31x, rolling_MAE=14.53)"
+2024-09-28 12:01:00,RETRAIN_ACCEPTED,DIY0-003 candidate accepted (MAPE_candidate=38.54 MAPE_incumbent=44.98; pre_MAE=10.88 post_MAE=11.05)
+2024-09-28 10:17:00,DRIFT,"OFFC-003 drift detected (ratio=3.39x, rolling_MAE=18.04)"
+2024-09-28 12:58:00,COOLDOWN,OFFC-003 drift detected but in cooldown period
+2024-09-28 13:22:00,DRIFT,"AUTO-002 drift detected (ratio=5.09x, rolling_MAE=11.86)"
+2024-09-28 10:36:00,RETRAIN_ACCEPTED,AUTO-002 candidate accepted (MAPE_candidate=43.21 MAPE_incumbent=45.04; pre_MAE=7.45 post_MAE=7.03)
+2024-09-28 18:25:00,DRIFT,"CLTH-002 drift detected (ratio=3.62x, rolling_MAE=5.40)"
+2024-09-28 09:09:00,RETRAIN_REJECTED,"CLTH-002 candidate rejected (MAPE_candidate=87.41 MAPE_incumbent=87.31, candidate_not_lower)"
+2024-09-29 18:01:00,DRIFT,"OFFC-003 drift detected (ratio=3.40x, rolling_MAE=18.06)"
+2024-09-29 09:47:00,COOLDOWN,OFFC-003 drift detected but in cooldown period
+2024-09-29 16:13:00,DRIFT,"OUTD-001 drift detected (ratio=2.32x, rolling_MAE=17.06)"
+2024-09-29 15:21:00,RETRAIN_ACCEPTED,OUTD-001 candidate accepted (MAPE_candidate=244.01 MAPE_incumbent=496.41; pre_MAE=19.40 post_MAE=9.85)
+2024-09-30 10:23:00,DRIFT,"MOVI-002 drift detected (ratio=7.30x, rolling_MAE=2.93)"
+2024-09-30 12:46:00,COOLDOWN,MOVI-002 drift detected but in cooldown period
+2024-09-30 13:49:00,DRIFT,"OFFC-003 drift detected (ratio=3.45x, rolling_MAE=18.36)"
+2024-09-30 09:56:00,RETRAIN_ACCEPTED,OFFC-003 candidate accepted (MAPE_candidate=38.37 MAPE_incumbent=61.93; pre_MAE=6.09 post_MAE=1.14)
+2024-09-30 08:09:00,DRIFT,"BOOK-002 drift detected (ratio=3.37x, rolling_MAE=12.70)"
+2024-09-30 17:03:00,RETRAIN_ACCEPTED,BOOK-002 candidate accepted (MAPE_candidate=40.65 MAPE_incumbent=41.49; pre_MAE=28.07 post_MAE=27.88)
+2024-10-01 18:05:00,DRIFT,"MOVI-002 drift detected (ratio=10.01x, rolling_MAE=4.02)"
+2024-10-01 12:28:00,COOLDOWN,MOVI-002 drift detected but in cooldown period
+2024-10-01 18:27:00,DRIFT,"CLTH-002 drift detected (ratio=2.46x, rolling_MAE=3.67)"
+2024-10-01 15:38:00,COOLDOWN,CLTH-002 drift detected but in cooldown period
+2024-10-02 15:26:00,DRIFT,"MOVI-002 drift detected (ratio=9.64x, rolling_MAE=3.87)"
+2024-10-02 12:13:00,COOLDOWN,MOVI-002 drift detected but in cooldown period
+2024-10-02 16:07:00,DRIFT,"CLTH-002 drift detected (ratio=2.11x, rolling_MAE=3.14)"
+2024-10-02 13:27:00,COOLDOWN,CLTH-002 drift detected but in cooldown period
+2024-10-02 09:18:00,DRIFT,"TOOL-003 drift detected (ratio=2.15x, rolling_MAE=7.36)"
+2024-10-02 18:43:00,RETRAIN_REJECTED,"TOOL-003 candidate rejected (MAPE_candidate=68.36 MAPE_incumbent=63.29, candidate_not_lower)"
+2024-10-03 17:31:00,DRIFT,"MOVI-002 drift detected (ratio=11.69x, rolling_MAE=4.70)"
+2024-10-03 16:42:00,COOLDOWN,MOVI-002 drift detected but in cooldown period
+2024-10-03 12:02:00,DRIFT,"OFFC-001 drift detected (ratio=2.65x, rolling_MAE=5.81)"
+2024-10-03 17:03:00,RETRAIN_ACCEPTED,OFFC-001 candidate accepted (MAPE_candidate=42.58 MAPE_incumbent=43.57; pre_MAE=1.08 post_MAE=0.81)
+2024-10-04 08:13:00,DRIFT,"MOVI-002 drift detected (ratio=10.97x, rolling_MAE=4.41)"
+2024-10-04 12:13:00,RETRAIN_REJECTED,"MOVI-002 candidate rejected (MAPE_candidate=52.06 MAPE_incumbent=51.06, candidate_not_lower)"
+2024-10-06 10:48:00,DRIFT,"MUSC-001 drift detected (ratio=2.59x, rolling_MAE=6.94)"
+2024-10-06 13:07:00,RETRAIN_ACCEPTED,MUSC-001 candidate accepted (MAPE_candidate=183.97 MAPE_incumbent=190.98; pre_MAE=11.66 post_MAE=11.25)
+2024-10-07 08:31:00,DRIFT,"MOVI-002 drift detected (ratio=11.93x, rolling_MAE=4.79)"
+2024-10-07 14:11:00,COOLDOWN,MOVI-002 drift detected but in cooldown period
+2024-10-07 10:24:00,DRIFT,"BABY-002 drift detected (ratio=2.42x, rolling_MAE=11.05)"
+2024-10-07 11:32:00,RETRAIN_ACCEPTED,BABY-002 candidate accepted (MAPE_candidate=93.09 MAPE_incumbent=142.97; pre_MAE=11.31 post_MAE=14.00)
+2024-10-08 16:53:00,DRIFT,"MOVI-002 drift detected (ratio=9.59x, rolling_MAE=3.85)"
+2024-10-08 18:51:00,COOLDOWN,MOVI-002 drift detected but in cooldown period
+2024-10-09 13:04:00,DRIFT,"OFFC-003 drift detected (ratio=4.84x, rolling_MAE=5.49)"
+2024-10-09 14:55:00,RETRAIN_REJECTED,"OFFC-003 candidate rejected (MAPE_candidate=66.47 MAPE_incumbent=61.67, candidate_not_lower)"
+2024-10-09 08:27:00,DRIFT,"MOVI-002 drift detected (ratio=8.87x, rolling_MAE=3.56)"
+2024-10-09 08:29:00,COOLDOWN,MOVI-002 drift detected but in cooldown period
+2024-10-10 09:55:00,DRIFT,"MOVI-002 drift detected (ratio=9.59x, rolling_MAE=3.85)"
+2024-10-10 13:36:00,COOLDOWN,MOVI-002 drift detected but in cooldown period
+2024-10-10 14:36:00,DRIFT,"TOOL-003 drift detected (ratio=2.22x, rolling_MAE=7.61)"
+2024-10-10 14:45:00,RETRAIN_REJECTED,"TOOL-003 candidate rejected (MAPE_candidate=97.36 MAPE_incumbent=87.91, candidate_not_lower)"
+2024-10-11 18:26:00,DRIFT,"MOVI-002 drift detected (ratio=9.74x, rolling_MAE=3.91)"
+2024-10-11 14:01:00,RETRAIN_ACCEPTED,MOVI-002 candidate accepted (MAPE_candidate=28.82 MAPE_incumbent=29.27; pre_MAE=4.22 post_MAE=4.27)
+2024-10-11 13:10:00,DRIFT,"ELEC-001 drift detected (ratio=2.21x, rolling_MAE=5.78)"
+2024-10-11 13:05:00,RETRAIN_ACCEPTED,ELEC-001 candidate accepted (MAPE_candidate=62.39 MAPE_incumbent=109.90; pre_MAE=5.08 post_MAE=2.47)
+2024-10-12 14:54:00,DRIFT,"OFFC-003 drift detected (ratio=4.10x, rolling_MAE=4.66)"
+2024-10-12 09:15:00,COOLDOWN,OFFC-003 drift detected but in cooldown period
+2024-10-12 14:37:00,DRIFT,"OFFC-001 drift detected (ratio=4.18x, rolling_MAE=3.39)"
+2024-10-12 14:33:00,RETRAIN_REJECTED,"OFFC-001 candidate rejected (MAPE_candidate=50.46 MAPE_incumbent=49.65, candidate_not_lower)"
+2024-10-13 09:25:00,DRIFT,"OFFC-003 drift detected (ratio=4.63x, rolling_MAE=5.26)"
+2024-10-13 12:47:00,COOLDOWN,OFFC-003 drift detected but in cooldown period
+2024-10-14 13:14:00,DRIFT,"OFFC-003 drift detected (ratio=5.74x, rolling_MAE=6.52)"
+2024-10-14 13:49:00,COOLDOWN,OFFC-003 drift detected but in cooldown period
+2024-10-14 10:04:00,DRIFT,"CLTH-002 drift detected (ratio=3.20x, rolling_MAE=4.76)"
+2024-10-14 09:33:00,RETRAIN_ACCEPTED,CLTH-002 candidate accepted (MAPE_candidate=25.48 MAPE_incumbent=25.81; pre_MAE=5.67 post_MAE=5.56)
+2024-10-15 16:12:00,DRIFT,"OFFC-001 drift detected (ratio=3.88x, rolling_MAE=3.14)"
+2024-10-15 13:22:00,COOLDOWN,OFFC-001 drift detected but in cooldown period
+2024-10-15 18:52:00,DRIFT,"OFFC-003 drift detected (ratio=6.25x, rolling_MAE=7.10)"
+2024-10-15 10:15:00,COOLDOWN,OFFC-003 drift detected but in cooldown period
+2024-10-16 09:09:00,DRIFT,"OFFC-001 drift detected (ratio=4.78x, rolling_MAE=3.88)"
+2024-10-16 12:12:00,COOLDOWN,OFFC-001 drift detected but in cooldown period
+2024-10-16 10:38:00,DRIFT,"OFFC-003 drift detected (ratio=6.47x, rolling_MAE=7.35)"
+2024-10-16 10:48:00,RETRAIN_REJECTED,"OFFC-003 candidate rejected (MAPE_candidate=93.59 MAPE_incumbent=89.13, candidate_not_lower)"
+2024-10-17 18:04:00,DRIFT,"OFFC-001 drift detected (ratio=5.05x, rolling_MAE=4.10)"
+2024-10-17 10:49:00,COOLDOWN,OFFC-001 drift detected but in cooldown period
+2024-10-18 18:31:00,DRIFT,"OFFC-001 drift detected (ratio=5.95x, rolling_MAE=4.82)"
+2024-10-18 15:48:00,COOLDOWN,OFFC-001 drift detected but in cooldown period
+2024-10-19 17:48:00,DRIFT,"OFFC-003 drift detected (ratio=4.73x, rolling_MAE=5.37)"
+2024-10-19 17:28:00,COOLDOWN,OFFC-003 drift detected but in cooldown period
+2024-10-19 18:59:00,DRIFT,"JWLY-001 drift detected (ratio=2.33x, rolling_MAE=24.31)"
+2024-10-19 18:39:00,RETRAIN_ACCEPTED,JWLY-001 candidate accepted (MAPE_candidate=75.26 MAPE_incumbent=99.01; pre_MAE=19.00 post_MAE=4.74)
+2024-10-19 13:55:00,DRIFT,"OFFC-001 drift detected (ratio=6.69x, rolling_MAE=5.42)"
+2024-10-19 10:28:00,RETRAIN_ACCEPTED,OFFC-001 candidate accepted (MAPE_candidate=32.15 MAPE_incumbent=32.79; pre_MAE=5.15 post_MAE=5.29)
+2024-10-20 09:30:00,DRIFT,"OFFC-003 drift detected (ratio=3.98x, rolling_MAE=4.52)"
+2024-10-20 15:40:00,COOLDOWN,OFFC-003 drift detected but in cooldown period
+2024-10-20 12:50:00,DRIFT,"TOOL-003 drift detected (ratio=2.35x, rolling_MAE=8.05)"
+2024-10-20 12:37:00,RETRAIN_REJECTED,"TOOL-003 candidate rejected (MAPE_candidate=75.19 MAPE_incumbent=71.36, candidate_not_lower)"
+2024-10-21 08:22:00,DRIFT,"ELEC-002 drift detected (ratio=3.62x, rolling_MAE=12.57)"
+2024-10-21 12:29:00,RETRAIN_ACCEPTED,ELEC-002 candidate accepted (MAPE_candidate=46.48 MAPE_incumbent=54.69; pre_MAE=14.16 post_MAE=12.62)
+2024-10-21 15:02:00,DRIFT,"OFFC-003 drift detected (ratio=3.48x, rolling_MAE=3.95)"
+2024-10-21 08:23:00,COOLDOWN,OFFC-003 drift detected but in cooldown period
+2024-10-21 12:04:00,DRIFT,"BEAU-002 drift detected (ratio=2.09x, rolling_MAE=14.25)"
+2024-10-21 18:55:00,RETRAIN_REJECTED,"BEAU-002 candidate rejected (MAPE_candidate=42.15 MAPE_incumbent=41.36, candidate_not_lower)"
+2024-10-22 09:39:00,DRIFT,"OFFC-003 drift detected (ratio=2.73x, rolling_MAE=3.10)"
+2024-10-22 17:32:00,COOLDOWN,OFFC-003 drift detected but in cooldown period
+2024-10-23 14:29:00,DRIFT,"OFFC-003 drift detected (ratio=3.76x, rolling_MAE=4.27)"
+2024-10-23 17:35:00,RETRAIN_REJECTED,"OFFC-003 candidate rejected (MAPE_candidate=32.34 MAPE_incumbent=29.49, candidate_not_lower)"
+2024-10-24 08:28:00,DRIFT,"AUTO-001 drift detected (ratio=2.02x, rolling_MAE=14.63)"
+2024-10-24 17:41:00,RETRAIN_REJECTED,"AUTO-001 candidate rejected (MAPE_candidate=59.83 MAPE_incumbent=46.26, candidate_not_lower)"
+2024-10-26 11:20:00,DRIFT,"OFFC-003 drift detected (ratio=4.72x, rolling_MAE=5.36)"
+2024-10-26 17:30:00,COOLDOWN,OFFC-003 drift detected but in cooldown period
+2024-10-27 16:09:00,DRIFT,"OFFC-003 drift detected (ratio=4.97x, rolling_MAE=5.65)"
+2024-10-27 08:28:00,COOLDOWN,OFFC-003 drift detected but in cooldown period
+2024-10-28 09:51:00,DRIFT,"HLTH-001 drift detected (ratio=2.34x, rolling_MAE=6.43)"
+2024-10-28 09:32:00,RETRAIN_ACCEPTED,HLTH-001 candidate accepted (MAPE_candidate=62.23 MAPE_incumbent=70.40; pre_MAE=0.13 post_MAE=1.12)
+2024-10-28 18:11:00,DRIFT,"OFFC-003 drift detected (ratio=4.73x, rolling_MAE=5.37)"
+2024-10-28 08:15:00,COOLDOWN,OFFC-003 drift detected but in cooldown period
+2024-10-29 15:28:00,DRIFT,"OFFC-003 drift detected (ratio=4.86x, rolling_MAE=5.52)"
+2024-10-29 16:33:00,COOLDOWN,OFFC-003 drift detected but in cooldown period
+2024-10-30 17:10:00,DRIFT,"OFFC-003 drift detected (ratio=3.84x, rolling_MAE=4.36)"
+2024-10-30 12:24:00,RETRAIN_ACCEPTED,OFFC-003 candidate accepted (MAPE_candidate=31.89 MAPE_incumbent=33.46; pre_MAE=3.97 post_MAE=4.48)
+2024-11-02 14:49:00,DRIFT,"TOOL-003 drift detected (ratio=2.58x, rolling_MAE=8.87)"
+2024-11-02 13:43:00,RETRAIN_REJECTED,"TOOL-003 candidate rejected (MAPE_candidate=123.48 MAPE_incumbent=122.53, candidate_not_lower)"
+2024-11-02 17:03:00,DRIFT,"APPL-002 drift detected (ratio=2.71x, rolling_MAE=15.33)"
+2024-11-02 13:04:00,RETRAIN_ACCEPTED,APPL-002 candidate accepted (MAPE_candidate=101.64 MAPE_incumbent=153.27; pre_MAE=17.72 post_MAE=8.47)
+2024-11-05 13:06:00,DRIFT,"TOOL-003 drift detected (ratio=2.33x, rolling_MAE=8.00)"
+2024-11-05 16:43:00,COOLDOWN,TOOL-003 drift detected but in cooldown period
+2024-11-06 14:18:00,DRIFT,"TOOL-003 drift detected (ratio=2.04x, rolling_MAE=7.01)"
+2024-11-06 12:46:00,COOLDOWN,TOOL-003 drift detected but in cooldown period
+2024-11-06 18:58:00,DRIFT,"HLTH-001 drift detected (ratio=5.22x, rolling_MAE=5.83)"
+2024-11-06 10:21:00,RETRAIN_ACCEPTED,HLTH-001 candidate accepted (MAPE_candidate=54.65 MAPE_incumbent=57.15; pre_MAE=9.64 post_MAE=9.71)
+2024-11-12 09:37:00,DRIFT,"MOVI-002 drift detected (ratio=2.13x, rolling_MAE=9.10)"
+2024-11-12 18:09:00,RETRAIN_REJECTED,"MOVI-002 candidate rejected (MAPE_candidate=59.96 MAPE_incumbent=58.34, candidate_not_lower)"
+2024-11-20 13:19:00,DRIFT,"GROC-003 drift detected (ratio=2.34x, rolling_MAE=20.40)"
+2024-11-20 18:25:00,RETRAIN_ACCEPTED,GROC-003 candidate accepted (MAPE_candidate=82.63 MAPE_incumbent=194.32; pre_MAE=23.18 post_MAE=9.86)
+2024-12-06 10:38:00,DRIFT,"APPL-001 drift detected (ratio=2.11x, rolling_MAE=11.11)"
+2024-12-06 16:24:00,RETRAIN_ACCEPTED,APPL-001 candidate accepted (MAPE_candidate=28.64 MAPE_incumbent=59.14; pre_MAE=6.88 post_MAE=1.05)
+2024-12-07 18:50:00,DRIFT,"ELEC-003 drift detected (ratio=2.14x, rolling_MAE=5.79)"
+2024-12-07 10:42:00,RETRAIN_ACCEPTED,ELEC-003 candidate accepted (MAPE_candidate=48.77 MAPE_incumbent=50.44; pre_MAE=5.03 post_MAE=2.46)
+2024-12-10 18:58:00,DRIFT,"HOMK-002 drift detected (ratio=2.13x, rolling_MAE=11.68)"
+2024-12-10 18:42:00,RETRAIN_ACCEPTED,HOMK-002 candidate accepted (MAPE_candidate=30.53 MAPE_incumbent=78.86; pre_MAE=8.02 post_MAE=0.01)
+2024-12-15 14:32:00,DRIFT,"APPL-001 drift detected (ratio=7.18x, rolling_MAE=7.56)"
+2024-12-15 13:01:00,RETRAIN_REJECTED,"APPL-001 candidate rejected (MAPE_candidate=45.96 MAPE_incumbent=45.94, candidate_not_lower)"
+2024-12-15 13:19:00,DRIFT,"TOOL-003 drift detected (ratio=2.11x, rolling_MAE=7.22)"
+2024-12-15 10:13:00,RETRAIN_REJECTED,"TOOL-003 candidate rejected (MAPE_candidate=54.44 MAPE_incumbent=51.10, candidate_not_lower)"
+2024-12-18 13:49:00,DRIFT,"APPL-001 drift detected (ratio=4.47x, rolling_MAE=4.71)"
+2024-12-18 15:12:00,COOLDOWN,APPL-001 drift detected but in cooldown period
+2024-12-19 11:08:00,DRIFT,"HOMK-002 drift detected (ratio=618.84x, rolling_MAE=4.96)"
+2024-12-19 10:04:00,RETRAIN_REJECTED,"HOMK-002 candidate rejected (MAPE_candidate=38.30 MAPE_incumbent=36.44, candidate_not_lower)"
+2024-12-19 12:54:00,DRIFT,"TOOL-003 drift detected (ratio=2.73x, rolling_MAE=9.36)"
+2024-12-19 09:32:00,COOLDOWN,TOOL-003 drift detected but in cooldown period
+2024-12-19 16:53:00,DRIFT,"APPL-001 drift detected (ratio=3.69x, rolling_MAE=3.89)"
+2024-12-19 16:02:00,COOLDOWN,APPL-001 drift detected but in cooldown period
+2024-12-20 18:21:00,DRIFT,"APPL-001 drift detected (ratio=2.20x, rolling_MAE=2.32)"
+2024-12-20 17:08:00,COOLDOWN,APPL-001 drift detected but in cooldown period
+2024-12-20 17:24:00,DRIFT,"TOOL-003 drift detected (ratio=2.31x, rolling_MAE=7.94)"
+2024-12-20 10:10:00,COOLDOWN,TOOL-003 drift detected but in cooldown period
+2024-12-21 10:53:00,DRIFT,"TOOL-003 drift detected (ratio=2.02x, rolling_MAE=6.94)"
+2024-12-21 17:51:00,COOLDOWN,TOOL-003 drift detected but in cooldown period
+2024-12-21 10:46:00,DRIFT,"APPL-001 drift detected (ratio=3.16x, rolling_MAE=3.32)"
+2024-12-21 15:02:00,COOLDOWN,APPL-001 drift detected but in cooldown period
+2024-12-22 14:23:00,DRIFT,"APPL-001 drift detected (ratio=2.89x, rolling_MAE=3.04)"
+2024-12-22 11:28:00,RETRAIN_ACCEPTED,APPL-001 candidate accepted (MAPE_candidate=16.58 MAPE_incumbent=19.72; pre_MAE=1.14 post_MAE=0.15)
+2024-12-22 17:18:00,DRIFT,"HOMK-002 drift detected (ratio=736.15x, rolling_MAE=5.91)"
+2024-12-22 15:14:00,COOLDOWN,HOMK-002 drift detected but in cooldown period
+2024-12-23 16:15:00,DRIFT,"HOMK-002 drift detected (ratio=829.45x, rolling_MAE=6.66)"
+2024-12-23 12:51:00,COOLDOWN,HOMK-002 drift detected but in cooldown period
+2024-12-24 15:57:00,DRIFT,"HOMK-002 drift detected (ratio=737.63x, rolling_MAE=5.92)"
+2024-12-24 11:23:00,COOLDOWN,HOMK-002 drift detected but in cooldown period
+2024-12-25 18:36:00,DRIFT,"HOMK-002 drift detected (ratio=764.90x, rolling_MAE=6.14)"
+2024-12-25 15:29:00,COOLDOWN,HOMK-002 drift detected but in cooldown period
+2024-12-26 12:49:00,DRIFT,"HOMK-002 drift detected (ratio=676.72x, rolling_MAE=5.43)"
+2024-12-26 14:32:00,RETRAIN_REJECTED,"HOMK-002 candidate rejected (MAPE_candidate=62.01 MAPE_incumbent=61.52, candidate_not_lower)"
+2024-12-29 16:26:00,DRIFT,"HOMK-002 drift detected (ratio=677.56x, rolling_MAE=5.44)"
+2024-12-29 10:52:00,COOLDOWN,HOMK-002 drift detected but in cooldown period
+2024-12-30 11:51:00,DRIFT,"HOMK-002 drift detected (ratio=785.23x, rolling_MAE=6.30)"
+2024-12-30 17:08:00,COOLDOWN,HOMK-002 drift detected but in cooldown period
+2024-12-31 12:03:00,DRIFT,"HOMK-002 drift detected (ratio=771.90x, rolling_MAE=6.19)"
+2024-12-31 18:30:00,COOLDOWN,HOMK-002 drift detected but in cooldown period
+2024-12-31 13:35:00,DRIFT,"APPL-001 drift detected (ratio=30.50x, rolling_MAE=4.71)"
+2024-12-31 16:54:00,RETRAIN_ACCEPTED,APPL-001 candidate accepted (MAPE_candidate=37.27 MAPE_incumbent=37.42; pre_MAE=4.58 post_MAE=4.85)
+2025-01-01 09:18:00,DRIFT,"HOMK-002 drift detected (ratio=742.95x, rolling_MAE=5.96)"
+2025-01-01 09:48:00,COOLDOWN,HOMK-002 drift detected but in cooldown period
+2025-01-02 10:17:00,DRIFT,"HOMK-002 drift detected (ratio=921.83x, rolling_MAE=7.40)"
+2025-01-02 16:09:00,RETRAIN_ACCEPTED,HOMK-002 candidate accepted (MAPE_candidate=29.29 MAPE_incumbent=30.65; pre_MAE=13.98 post_MAE=12.65)
+2025-01-03 14:05:00,DRIFT,"BEAU-003 drift detected (ratio=2.04x, rolling_MAE=22.45)"
+2025-01-03 15:56:00,RETRAIN_ACCEPTED,BEAU-003 candidate accepted (MAPE_candidate=54.37 MAPE_incumbent=231.93; pre_MAE=24.68 post_MAE=1.37)
+2025-01-12 13:59:00,DRIFT,"BEAU-003 drift detected (ratio=3.25x, rolling_MAE=4.47)"
+2025-01-12 08:25:00,RETRAIN_ACCEPTED,BEAU-003 candidate accepted (MAPE_candidate=38.43 MAPE_incumbent=38.84; pre_MAE=2.26 post_MAE=1.68)
+2025-01-21 16:23:00,DRIFT,"BEAU-003 drift detected (ratio=2.96x, rolling_MAE=4.98)"
+2025-01-21 09:23:00,RETRAIN_ACCEPTED,BEAU-003 candidate accepted (MAPE_candidate=55.39 MAPE_incumbent=55.45; pre_MAE=2.83 post_MAE=2.78)
+2025-02-01 11:01:00,DRIFT,"HOMK-001 drift detected (ratio=2.27x, rolling_MAE=13.72)"
+2025-02-01 09:53:00,RETRAIN_ACCEPTED,HOMK-001 candidate accepted (MAPE_candidate=151.04 MAPE_incumbent=301.29; pre_MAE=13.81 post_MAE=2.81)
+2025-02-17 18:21:00,DRIFT,"TOOL-003 drift detected (ratio=2.57x, rolling_MAE=8.82)"
+2025-02-17 08:18:00,RETRAIN_ACCEPTED,TOOL-003 candidate accepted (MAPE_candidate=28.32 MAPE_incumbent=37.90; pre_MAE=11.52 post_MAE=10.26)
