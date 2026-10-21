@@ -452,4 +452,10 @@ The data are semi-synthetic and the drift is self-injected, so these results do 
 
 ## 🌐 Dashboard Deployment Notes
 
-The React dashboard works locally, but may face API connectivity issues on cloud platforms (Render, Vercel) due to CORS and environment variable configuration. Backend API deployment is operational; full stack cloud deployment is in progress.
+The React dashboard runs locally (`cd dashboard && npm start`).
+
+To host it, build a static site (`npm run build`) and deploy it to any static host, for example Vercel:
+- Set `REACT_APP_API_BASE` to the URL of the FastAPI backend (see `dashboard.env.example`).
+- The backend is configured for Render (`render.yaml`) or Docker.
+
+Cross-origin (CORS) and environment-variable settings must match between the two services.
