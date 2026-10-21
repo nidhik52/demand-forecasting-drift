@@ -10,7 +10,9 @@ This project implements a **drift-aware, end-to-end machine learning system** fo
 
 ## 🗃️ Data & Preprocessing
 
-The system uses a synthetic retail dataset of **160,000 transaction records** across **72 SKUs** (2024–2025). Each record includes sales, product, region, and customer details. Data is aggregated to daily demand per SKU, with missing dates forward-filled. Four controlled concept drift windows (12 days each) are injected at random intervals, affecting ~1/6 of SKUs per window, using a demand multiplier (1.6–2.4×) for reproducibility.
+The system uses the Kaggle *Retail Sales Data 2025* (Noir1112): **160,000 transaction records** across **72 SKUs**, January 2024 – January 2025. Unit quantities are synthesized from category heuristics and regions are reassigned at random. Data are aggregated to daily demand per SKU; missing dates are filled with zero demand. The series is extended to December 2025 as each SKU's historical mean × U[0.8, 1.2]. Four drift windows are then injected with `numpy.random.default_rng(42)`: 2024-03-05→03-17, 2024-09-18→09-30, 2024-10-15→10-27 and 2025-02-09→02-21 (13 days each), each covering 12 SKUs with a demand multiplier drawn from U[1.6, 2.4].
+
+**Reproducibility note.** Seed 42 governs only the drift injection, not the region assignment, quantity synthesis or 2025 extension. Re-running preprocessing therefore gives a different `daily_demand.csv`. The committed `data/processed/daily_demand.csv` is the fixed input used for all reported results.
 
 ---
 
@@ -29,9 +31,9 @@ In addition, the project integrates **modern MLOps practices** including experim
 
 - 🗃️ Synthetic data generation, preprocessing, and drift injection
 - 🔍 Concept drift detection using prediction error (MAE)
-- 🕑 Dual-window (7-day & 30-day) rolling MAE drift detection
+- 🕑 Rolling 7-day MAE drift detection with consecutive-day confirmation and cooldown
 - 🔁 Automated model retraining on drift
-- 🛡️ Safety gate: retrain only if new model outperforms previous on holdout
+- 🛡️ Safety gate: a retrained candidate replaces the current model only if its MAPE on the 7 held-out days before the trigger is strictly lower (`gate_decisions.csv`)
 - 💾 Model versioning with timestamped artifacts
 - 📊 Metrics tracking over time
 - 🧾 System event logging (drift, retrain, orders)
@@ -39,7 +41,7 @@ In addition, the project integrates **modern MLOps practices** including experim
 - 🌐 FastAPI backend for serving data
 - ⚛️ React dashboard for visualization
 - 🧪 MLflow integration for experiment tracking
-- ⏱️ Airflow DAG for pipeline orchestration
+- ⏱️ Airflow-compatible CLI (`pipeline.py --start --end`); no Airflow DAG is included in this repository
 - 🔄 CI/CD using GitHub Actions
 - 🛡️ Robust error handling and logging
 - 🧩 Modular, extensible codebase
@@ -48,7 +50,10 @@ In addition, the project integrates **modern MLOps practices** including experim
 
 ## 🤖 Forecasting
 
-Forecasts are generated per SKU using **Facebook Prophet** with yearly and weekly seasonality (multiplicative mode), changepoint prior scale 0.05, and a 60-day forecast horizon. Each forecast provides a point estimate and 95% confidence interval (yhat, yhat_lower, yhat_upper).
+Forecasts are generated per SKU with **Prophet** (default additive model; negative forecasts clipped to zero).
+
+- **Daily monitoring loop (`pipeline.py`).** Each SKU model is fitted on the history before the current day and forecasts that day. Daily, weekly and yearly seasonality are set to `"auto"`; with under two years of daily data, only weekly seasonality is active.
+- **30-day export (`src/forecasting.py`).** Fits on the pipeline window with daily and weekly seasonality (yearly off) and writes `forecast_2025.csv`. Its in-window values are in-sample fits, so they are not used for evaluation.
 
 ---
 
@@ -67,24 +72,25 @@ Prediction + Evaluation
      ↓
 Drift Detection (MAE Threshold)
      ↓
-Retraining (if drift detected)
+Retraining + MAPE safety gate (if drift detected)
      ↓
 Model Versioning + MLflow Logging
      ↓
 Inventory Recommendation
      ↓
 API + Dashboard + Monitoring
+```
+
 ---
 
 ## 🕑 Drift Detection Logic
 
-Drift is detected using **dual rolling MAE windows**:
+Drift is detected per SKU with a **7-day rolling MAE**:
 
-- **Short-term:** 7-day window (rapid detection)
-- **Long-term:** 30-day window (gradual drift)
-
-Drift is flagged if either window’s MAE exceeds **2.0× baseline** for **3+ consecutive days**. A 7-day cooldown prevents retrain oscillation. Baseline MAE is set from validation data.
-```
+- The baseline is the first full 7-day window mean, then frozen.
+- Drift is flagged when rolling MAE / baseline **> 2.0** on **3 consecutive days**.
+- A **7-day cooldown** limits repeated retraining.
+- After an accepted retrain, the baseline is reset to the new model's error on the trigger day.
 
 ---
 
@@ -101,6 +107,7 @@ demand-forecasting-drift/
 │       ├── metrics.csv
 │       ├── system_events.csv
 │       └── inventory_recommendations.csv
+│   └── revision/     # outputs used in the revised paper
 │
 ├── models/
 │   └── (saved models with SKU + timestamp)
@@ -111,6 +118,8 @@ demand-forecasting-drift/
 │   ├── inventory.py
 │   └── ...
 │
+├── revision/         # JCMM revision experiments (see revision/README.md)
+├── tests/            # pytest tests for the safety gate and revision code
 ├── dashboard/        # React frontend
 ├── api.py            # FastAPI backend
 ├── pipeline.py       # Core pipeline
@@ -161,6 +170,18 @@ pip install -r requirements.txt
 ```bash
 python pipeline.py --start 2025-07-01 --end 2025-07-10
 ```
+
+Useful options:
+
+| Option | Effect |
+|---|---|
+| `--history_start 2024-01-01` | Train on all data before each day |
+| `--seed 42` | Reproducible simulated deliveries |
+| `--output_dir <dir>` | Write outputs to another folder instead of `data/processed/` |
+| `--inventory_file <csv>` | Opening stock |
+| `--no_safety_gate` | Disable the gate |
+
+To reproduce the paper's results, follow [`revision/README.md`](revision/README.md). Prophet 1.1.7 needs `requirements-prophet.txt`; set `USE_BUNDLED_CMDSTAN=1` to use its bundled CmdStan.
 
 
 This will:
@@ -214,12 +235,9 @@ http://127.0.0.1:5000
 ---
 
 
-### 🔹 Step 5: Run Airflow (Pipeline Orchestration)
+### 🔹 Step 5: Scheduling (optional)
 
-```bash
-airflow webserver --port 8080
-airflow scheduler
-```
+No Airflow DAG is included in this repository. The pipeline is a CLI (`python pipeline.py --start ... --end ...`), so any scheduler (Airflow, cron, GitHub Actions) can call it.
 
 ---
 
@@ -242,17 +260,13 @@ After running the pipeline:
 ## 🧪 Drift Detection Logic
 
 
-Drift is detected using:
+See *Drift Detection Logic* above. When drift is confirmed and the cooldown allows retraining:
 
-     MAE > Threshold
-
-
-If drift is detected:
-
-- Event is logged
-- Model is retrained
-- New model is saved (with timestamp)
-- MLflow run is created
+- A `DRIFT` event is logged.
+- A candidate is fitted on data before the 7-day held-out window H, and compared with the current model by MAPE on H.
+- **Accepted** (strictly lower MAPE): the candidate is deployed, saved with a timestamp, logged to MLflow and recorded as `RETRAIN_ACCEPTED`.
+- **Rejected:** the current model is kept, the event is recorded as `RETRAIN_REJECTED`, and the cooldown starts.
+- `python pipeline.py ... --no_safety_gate` restores the older replace-on-every-trigger behaviour.
 
 ---
 
@@ -260,31 +274,20 @@ If drift is detected:
 ## 📦 Inventory Logic
 
 
-Inventory recommendations are based on:
+Daily per-SKU recommendations (`pipeline.py` → `inventory_recommendations.csv`):
 
-- Forecasted demand
-- Current stock
-- Lead time
-
-Prophet’s 95% confidence interval is used to estimate demand uncertainty:
-
-     forecast_std = (yhat_upper - yhat_lower) / 4
-     safety_stock = 1.65 × forecast_std × sqrt(lead_time)
-     reorder_point = avg_daily_demand × lead_time + safety_stock
-     order_quantity = avg_daily_demand × cycle_days (30)
+     S_t  = stock after the day's demand (+ simulated delivery of 0/30/60/120 units if stock < 20)
+     D_L  = lead_time × ŷ_t                 (ŷ_t = one-day-ahead forecast, clipped at 0)
+     ROP  = D_L + safety_stock              (safety_stock = 10 units)
+     Q    = max(0, ⌊ROP − S_t⌋)
 
 Risk levels:
 
-- 🟢 SAFE: Current stock ≥ reorder point
-- 🟡 WARNING: Current stock < reorder point
-- 🔴 CRITICAL: Current stock ≤ safety stock
+- 🟢 SAFE: Q = 0
+- 🟡 WARNING: 0 < Q ≤ 100
+- 🔴 CRITICAL: Q > 100
 
-
-Risk levels:
-
-- 🟢 SAFE
-- 🟡 WARNING
-- 🔴 CRITICAL
+Opening stock, lead times (5/7/10 days) and stock profiles come from `src/generate_inventory.py` (seed 42). A separate single-date routine (`src/inventory.py`) sums the 30-day forecast over the lead time and adds a 20% buffer. It writes `inventory_recommendations_forecast.csv`.
 
 ---
 
@@ -321,12 +324,12 @@ Implemented using **GitHub Actions**:
 | Component                    | Status          |
 | ---------------------------- | --------------  |
 | MLflow (Experiment Tracking) | ✅              |
-| Airflow (Orchestration)      | ✅              |
+| Airflow (Orchestration)      | 📌 No DAG included |
 | CI/CD (GitHub Actions)       | ✅              |
 | FastAPI (Serving)            | ✅              |
 | React Dashboard              | ✅              |
-| Grafana (Monitoring)         | ✅              |
-| Docker / K8s / Kafka         | 📌 Future Work  |
+| Docker                       | ✅              |
+| Grafana / K8s / Kafka        | 📌 Future Work  |
 
 ---
 
@@ -403,25 +406,44 @@ docker run -it --rm -p 8000:8000 \
 - Uses Python and Node slim images
 - Only production frontend build is included
 - No dev dependencies or build tools in final image
-- Data/models are not baked in (mount as needed)
+- Pre-seeded `data/` is copied into the image; models are not (mount volumes to use your own)
 
 ---
 
 ## 📊 Results
 
-Key results (see paper for full details):
+Results reported in the revised JCMM manuscript are listed below. They come from commit `dd1a6fa`, with outputs in `data/revision/`; reproduction steps are in [`revision/README.md`](revision/README.md).
 
-- Mean MAE: 8.03 units/day (all SKUs)
-- Forecast accuracy: 91.8% (APPL-001, 20% tolerance)
-- Drift events: 2.9% of predictions
-- Post-drift retraining: up to 98.6% MAE reduction
+**Leakage-free one-day-ahead forecasts** (rolling origin, 2025-07-03 → 07-31, 72 SKUs, 2,088 SKU-days):
+
+| Forecast | MAE (units/day) | MAPE | Within 20% |
+|---|---|---|---|
+| Prophet (refit daily) | 1.49 | 11.65% | 84.29% |
+| Naive (y_{t−1}) | 1.83 | 13.92% | 75.34% |
+| Seasonal naive (y_{t−7}) | 1.85 | 14.03% | 74.62% |
+| Historical mean | 1.47 | 11.67% | 80.99% |
+| Drift-aware pipeline (July run) | 1.51 | 11.82% | 83.29% |
+
+**Drift detection** against the four injected windows (pipeline run 2024-02-01 → 2025-03-31):
+- 21 of 48 SKU-window injections detected; median delay 6 days.
+- 436 false-alarm alert-days.
+
+**Safety gate:**
+- Drift run: 139 of 231 candidates accepted (60.2%).
+- July run: 2 of 2 accepted.
+
+**Inventory:** 2,088 daily assessments in the July run: SAFE 484, WARNING 1,345, CRITICAL 259.
+
+The data are semi-synthetic and the drift is self-injected, so these results do not establish performance on real retail demand. Files in `data/processed/` are the archived outputs of commit `f264989` (pre-revision). Their `forecast_2025.csv` July values are in-sample fits.
 
 ---
 
 ## ⚠️ Known Limitations
 
 - Inventory restock after order placement is not yet automated (panel shows pre-order stock)
-- Synthetic dataset: external validity is limited
+- Semi-synthetic dataset and self-injected drift: external validity is limited
+- The drift detector raises many false alarms with the default settings (see Results)
+- Preprocessing uses unseeded draws (only drift injection is seeded)
 - Only Prophet evaluated (architecture supports others)
 - Dashboard cloud deployment: CORS/env issues remain
 - Univariate forecasting (no external covariates yet)
