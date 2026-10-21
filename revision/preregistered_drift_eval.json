@@ -1,0 +1,18 @@
+{
+  "_note": "Pre-registered BEFORE any detector run (JCMM_1268 revision, 2026-10-21). Do not edit after results exist.",
+  "injection_source": "src/preprocessing.py::inject_random_drift(seed=42, window_count=4, window_size=12); windows = Date.between(start, start+12) -> 13 inclusive days",
+  "input_data": "data/processed/daily_demand.csv at commit f264989 (frozen; not regenerated)",
+  "unit_of_injection": "(SKU, window) pair; expected 4 windows x 12 SKUs = 48 pairs",
+  "alert_definition": "a DRIFT event in system_events.csv (pipeline.py logs one per SKU-day while the consecutive-flag count >= delta)",
+  "grace_days_after_window_end": 7,
+  "grace_rationale": "equal to the rolling window w=7: injected errors remain in the rolling MAE for up to w-1 days after the window ends",
+  "true_positive": "injected pair with >= 1 DRIFT alert for that SKU dated in [window_start, window_end + 7 days]",
+  "false_negative": "injected pair with no DRIFT alert for that SKU in that interval",
+  "false_alarm_alert_day": "DRIFT alert for SKU s on a date outside every grace-extended injected interval of s",
+  "false_alarm_episode": "maximal run of consecutive-date false-alarm alert-days for one SKU",
+  "detection_delay_days": "first DRIFT alert date in the interval minus window_start (TP pairs only)",
+  "reported_metrics": ["TP", "FN", "pair-level recall = TP/48", "detection delay (min/median/mean/max)", "false-alarm alert-days", "false-alarm episodes", "false-alarm alert-days per 1,000 non-injected SKU-days", "alert-day precision = in-interval alert-days / all alert-days"],
+  "detector_settings": {"threshold": 2.0, "comparison": "ratio > threshold (strict, as coded)", "window": 7, "min_days": 3, "cooldown_days": 7},
+  "run_period": {"history_start": "2024-01-01", "start": "2024-02-01", "end": "2025-03-31"},
+  "not_reported": "true negatives / specificity at SKU-day level are not defined for an alarm stream and are not reported"
+}
